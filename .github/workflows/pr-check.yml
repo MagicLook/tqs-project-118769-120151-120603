@@ -37,10 +37,9 @@ jobs:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
               run: mvn -B -U clean verify \ 
-                org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \ 
                 -Dsonar.projectKey=MagicLook_tqs-project-118769-120151-120603 \
-                -Dsonar.qualitygate.wait=true
-
+                -Dsonar.qualitygate.wait=true \
+                sonar:sonar
             - name: Test Coverage Check
               run: |
                 mvn -B jacoco:report
