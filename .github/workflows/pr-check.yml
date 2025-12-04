@@ -6,7 +6,7 @@ on:
             - main
 
 jobs:
-    commit-check:
+    pr-check:
         runs-on: ubuntu-latest
         timeout-minutes: 10
 
@@ -34,8 +34,9 @@ jobs:
         
             - name: Verify and SonarCloud Scan
               env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-              run: mvn -B clean verify \ 
+              run: mvn -B -U clean verify \ 
                 org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \ 
                 -Dsonar.projectKey=MagicLook_tqs-project-118769-120151-120603 \
                 -Dsonar.qualitygate.wait=true

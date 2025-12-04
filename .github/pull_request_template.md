@@ -21,5 +21,3 @@
 - [ ] Critérios Aceitação são cumpridos
 
 - [ ] Passa o Quality Gate do SonarCloud
-
-- [ ] Aprovado pelo menos por 1 membro da equipa
