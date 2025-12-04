@@ -8,7 +8,7 @@ on:
 jobs:
     pr-check:
         runs-on: ubuntu-latest
-        timeout-minutes: 10
+        timeout-minutes: 20
 
         defaults:
           run:
@@ -31,13 +31,6 @@ jobs:
                 path: ~/.sonar/cache
                 key: ${{ runner.os }}-sonar
                 restore-keys: ${{ runner.os }}-sonar
-        
-            - name: Cache Maven packages
-              uses: actions/cache@v4
-              with:
-                path: ~/.m2
-                key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-                restore-keys: ${{ runner.os }}-m2
 
             - name: Verify and SonarCloud Scan
               env:
