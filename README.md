@@ -10,3 +10,4 @@ MagicLook - App for Booking Ceremony Clothes
 
 Teste Github Actions Nsei
 Nsei
+Nsei
