@@ -23,4 +23,8 @@ public class ItemType {
         this.category = category;
     }
 
+    // Setters
+    public void setItemTypeId(Integer id) {
+        this.id = id;
+    }
 }

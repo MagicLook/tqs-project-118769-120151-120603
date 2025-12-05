@@ -21,4 +21,9 @@ public class Shop {
         this.name = name;
         this.location = location;
     }
+
+    // Setters
+    public void setShopId(Integer shopId) {
+        this.shopId = shopId;
+    }
 }
