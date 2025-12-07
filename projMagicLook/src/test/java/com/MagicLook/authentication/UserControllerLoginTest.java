@@ -163,3 +163,36 @@ class UserControllerLoginTest {
     }
 
 }
+
+// ========== TESTES PARA DASHBOARD ==========
+// === DEPOIS TÊM DE SER REMOVIDOS =========== 
+
+@Test
+    void testShowDashboard_WithLoggedInUser_ShouldReturnDashboard() {
+        when(session.getAttribute("loggedInUser")).thenReturn(testUser);
+
+        String viewName = userController.showDashboard(session, model);
+
+        assertEquals("dashboard", viewName);
+        verify(model).addAttribute(eq("user"), eq(testUser));
+        verify(session).getAttribute("loggedInUser");
+    }
+
+    @Test
+    void testShowDashboard_WithoutLoggedInUser_ShouldRedirectToLogin() {
+        when(session.getAttribute("loggedInUser")).thenReturn(null);
+
+        String viewName = userController.showDashboard(session, model);
+
+        assertEquals("redirect:/magiclook/login", viewName);
+        verify(model, never()).addAttribute(anyString(), any());
+        verify(session).getAttribute("loggedInUser");
+    }
+
+    @Test
+    void testShowDashboard_WithNullSession_ShouldRedirectToLogin() {
+        String viewName = userController.showDashboard(null, model);
+
+        assertEquals("redirect:/magiclook/login", viewName);
+        verify(model, never()).addAttribute(anyString(), any());
+    }
