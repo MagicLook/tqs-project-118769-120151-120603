@@ -1,6 +1,6 @@
 package com.MagicLook.data;
 
-import jakarta.persistence.*;;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "shop")
