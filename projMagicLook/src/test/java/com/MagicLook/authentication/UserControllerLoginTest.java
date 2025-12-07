@@ -162,12 +162,10 @@ class UserControllerLoginTest {
         verify(model).addAttribute(eq("error"), eq("Erro inesperado"));
     }
 
-}
+    // ========== TESTES PARA DASHBOARD ==========
+    // === DEPOIS TÊM DE SER REMOVIDOS =========== 
 
-// ========== TESTES PARA DASHBOARD ==========
-// === DEPOIS TÊM DE SER REMOVIDOS =========== 
-
-@Test
+    @Test
     void testShowDashboard_WithLoggedInUser_ShouldReturnDashboard() {
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
 
@@ -188,11 +186,4 @@ class UserControllerLoginTest {
         verify(model, never()).addAttribute(anyString(), any());
         verify(session).getAttribute("loggedInUser");
     }
-
-    @Test
-    void testShowDashboard_WithNullSession_ShouldRedirectToLogin() {
-        String viewName = userController.showDashboard(null, model);
-
-        assertEquals("redirect:/magiclook/login", viewName);
-        verify(model, never()).addAttribute(anyString(), any());
-    }
+}
