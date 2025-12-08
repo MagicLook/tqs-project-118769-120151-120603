@@ -25,7 +25,27 @@ public class Shop implements Serializable{
         this.location = location;
     }
 
-    public void setShopId(Integer shopId) {
+    public int getShopId() {
+        return shopId;
+    }
+
+    public void setShopId(int shopId) {
         this.shopId = shopId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 }
