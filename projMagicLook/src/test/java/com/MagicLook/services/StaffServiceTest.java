@@ -1,4 +1,4 @@
-package com.MagicLook.authentication;
+package com.MagicLook.services;
 
 import com.MagicLook.data.Staff;
 import com.MagicLook.data.Shop;
