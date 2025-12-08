@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/navbar :: head(~{::title})">
+    <title>Roupa para Homens - MagicLook</title>
+    <style>
+        .content-wrapper {
+            padding-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+        
+        .category-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            overflow: hidden;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .category-img {
+            height: 200px;
+            background: linear-gradient(45deg, #2575fc, #6a11cb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 4rem;
+        }
+        
+        .item-card {
+            transition: all 0.3s;
+            border: 1px solid #eaeaea;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .item-card:hover {
+            border-color: #6a11cb;
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        .item-img {
+            height: 250px;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-size: 3rem;
+        }
+        
+        .badge-available {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .badge-rented {
+            background-color: #ffc107;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Inclui a navbar -->
+    <div th:replace="fragments/navbar :: navbar"></div>
+    
+    <!-- Conteúdo da página -->
+    <div class="container content-wrapper">
+        <!-- Cabeçalho da Categoria -->
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div class="card border-0" style="background: linear-gradient(135deg, #2575fc, #6a11cb);">
+                    <div class="card-body p-5 text-white">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h1 class="display-6 mb-3"><i class="bi bi-gender-male"></i> Moda Masculina</h1>
+                                <p class="lead mb-0">Trajes elegantes, casacos sofisticados e acessórios premium para o homem moderno.</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="bg-white text-primary rounded p-3 d-inline-block">
+                                    <h4 class="mb-0" th:text="${itemCount != null ? itemCount : 0}">0</h4>
+                                    <small>Itens Disponíveis</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filtros -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Categoria</label>
+                                <select class="form-select">
+                                    <option>Todas as Categorias</option>
+                                    <option>Trajes</option>
+                                    <option>Camisas</option>
+                                    <option>Calças</option>
+                                    <option>Casacos</option>
+                                    <option>Acessórios</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tamanho</label>
+                                <select class="form-select">
+                                    <option>Todos os Tamanhos</option>
+                                    <option>S</option>
+                                    <option>M</option>
+                                    <option>L</option>
+                                    <option>XL</option>
+                                    <option>XXL</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Preço</label>
+                                <select class="form-select">
+                                    <option>Todos os Preços</option>
+                                    <option>€0 - €20</option>
+                                    <option>€20 - €50</option>
+                                    <option>€50+</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">&nbsp;</label>
+                                <button class="btn btn-primary w-100">
+                                    <i class="bi bi-funnel"></i> Filtrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Categorias -->
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <h4 class="mb-4">Categorias Populares</h4>
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card category-card">
+                            <div class="category-img">
+                                <i class="bi bi-suit-club"></i>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Trajes</h5>
+                                <p class="card-text text-muted">Para ocasiões formais</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card category-card">
+                            <div class="category-img">
+                                <i class="bi bi-tshirt"></i>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Camisas</h5>
+                                <p class="card-text text-muted">Formais e casuais</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card category-card">
+                            <div class="category-img">
+                                <i class="bi bi-tag"></i>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Calças</h5>
+                                <p class="card-text text-muted">De ganga e de fato</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card category-card">
+                            <div class="category-img">
+                                <i class="bi bi-watch"></i>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Acessórios</h5>
+                                <p class="card-text text-muted">Gravatas, relógios, etc.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lista de Itens -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">Todos os Itens</h4>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary">
+                            <i class="bi bi-grid"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary">
+                            <i class="bi bi-list"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row g-4">
+                    <!-- Item -->
+                    <div class="col-md-4 col-lg-3" th:each="item : ${items}">
+                        <div class="card item-card h-100">
+                            <div class="item-img">
+                                <i class="bi bi-image"></i>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="card-title mb-0" th:text="${item.name}"></h6>
+                                    <span class="badge" 
+                                          th:classappend="${item.state == 'AVAILABLE'} ? 'badge-available' : 'badge-rented'"
+                                          th:text="${item.state}"></span>
+                                </div>
+                                <p class="card-text text-muted mb-2">
+                                    <small th:text="${item.brand}"></small><br>
+                                    <small>Tamanho: <span th:text="${item.size}"></span></small>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong class="text-primary" th:text="'€' + ${item.priceRent}"></strong>
+                                        <small class="text-muted">/dia</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-primary">
+                                        <i class="bi bi-cart-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Se não houver itens -->
+                    <div class="col-12" th:unless="${items != null and !items.empty}">
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                            <h5 class="mt-3">Nenhum item encontrado</h5>
+                            <p class="text-muted">Não há itens disponíveis nesta categoria no momento.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Paginação -->
+                <div class="d-flex justify-content-center mt-5" th:if="${items != null and !items.empty}">
+                    <nav>
+                        <ul class="pagination">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">Anterior</a>
+                            </li>
+                            <li class="page-item active">
+                                <a class="page-link" href="#">1</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">2</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">3</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Próxima</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
