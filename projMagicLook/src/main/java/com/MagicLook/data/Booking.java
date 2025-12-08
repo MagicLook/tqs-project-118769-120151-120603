@@ -40,4 +40,21 @@ public class Booking implements Serializable{
         this.item = item;
     }
 
+    public UUID getBookingId() { return bookingId; }
+    public void setBookingId(UUID bookingId) { this.bookingId = bookingId; }
+    
+    public Date getBookingDate() { return bookingDate; }
+    public void setBookingDate(Date bookingDate) { this.bookingDate = bookingDate; }
+    
+    public Date getReturnDate() { return returnDate; }
+    public void setReturnDate(Date returnDate) { this.returnDate = returnDate; }
+    
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
+    
+    public Item getItem() { return item; }
+    public void setItem(Item item) { this.item = item; }
+    
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 }
