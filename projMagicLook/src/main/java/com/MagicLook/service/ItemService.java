@@ -10,9 +10,13 @@ import java.util.List;
 @Service
 public class ItemService {
     
-    @Autowired
-    private ItemRepository itemRepository;
+    private final ItemRepository itemRepository;
     
+    @Autowired
+    public ItemService(ItemRepository itemRepository) {
+        this.itemRepository = itemRepository;
+    }
+
     public List<Item> getItemsByShop(Shop shop) {
         return itemRepository.findByShop(shop);
     }
