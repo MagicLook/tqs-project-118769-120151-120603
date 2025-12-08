@@ -4,6 +4,8 @@ import com.MagicLook.dto.UserRegistrationDTO;
 import com.MagicLook.data.User;
 import com.MagicLook.service.UserService;
 import com.MagicLook.dto.LoginDTO;
+import com.MagicLook.service.ItemService;
+import com.MagicLook.data.Item; 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,15 +14,19 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/magiclook")
 public class UserController {
 
     private final UserService userService;
+    private final ItemService itemService;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, ItemService itemService) {
         this.userService = userService;
+        this.itemService = itemService;
     }
 
     // ========== REGISTRO ==========
@@ -84,8 +90,48 @@ public class UserController {
         }
     }
 
-    // ========== DASHBOARD (após login) ==========
-    
+    // ========== ITEMS (Homens e Mulheres) ==========
+
+    @GetMapping("/items/men")
+    public String showMenItems(HttpSession session, Model model) {
+        User user = (User) session.getAttribute("loggedInUser");
+        
+        if (user == null) {
+            return "redirect:/magiclook/login";
+        }
+        
+        // Buscar itens para homens
+        List<Item> menItems = itemService.getItemsByGender("M");
+        
+        model.addAttribute("user", user);
+        model.addAttribute("items", menItems);
+        model.addAttribute("itemCount", menItems.size());
+        model.addAttribute("activePage", "men");
+        
+        return "items/men";
+    }
+
+    @GetMapping("/items/women")
+    public String showWomenItems(HttpSession session, Model model) {
+        User user = (User) session.getAttribute("loggedInUser");
+        
+        if (user == null) {
+            return "redirect:/magiclook/login";
+        }
+        
+        // Buscar itens para mulheres
+        List<Item> womenItems = itemService.getItemsByGender("F");
+        
+        model.addAttribute("user", user);
+        model.addAttribute("items", womenItems);
+        model.addAttribute("itemCount", womenItems.size());
+        model.addAttribute("activePage", "women"); 
+        
+        return "items/women";
+    }
+
+    // ============== DASHBOARD ===============
+
     @GetMapping("/dashboard")
     public String showDashboard(HttpSession session, Model model) {
         User user = (User) session.getAttribute("loggedInUser");
@@ -94,7 +140,13 @@ public class UserController {
             return "redirect:/magiclook/login";
         }
         
+        // Buscar itens recentes
+        List<Item> recentItems = itemService.getRecentItems(6);
+        
         model.addAttribute("user", user);
+        model.addAttribute("recentItems", recentItems);
+        model.addAttribute("cartCount", session.getAttribute("cartCount") != null ? session.getAttribute("cartCount") : 0);
+        model.addAttribute("activePage", "dashboard");
         return "dashboard";
     }
 

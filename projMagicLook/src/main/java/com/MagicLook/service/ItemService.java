@@ -20,4 +20,16 @@ public class ItemService {
     public List<Item> getAllItems() {
         return itemRepository.findAll();
     }
+
+    public List<Item> getItemsByGender(String gender) {
+        return itemRepository.findByItemTypeGender(gender);
+    }
+
+    public List<Item> getRecentItems(int limit) {
+        List<Item> allItems = itemRepository.findAll();
+        if (allItems.size() > limit) {
+            return allItems.subList(0, limit);
+        }
+        return allItems;
+    }
 }
