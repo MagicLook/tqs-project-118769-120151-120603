@@ -50,20 +50,6 @@ public class StaffService {
         return 0;
     }
 
-    // Auxiliar Methods
-    private Item createItem(ItemDTO itemDTO) {
-        Optional<Shop> optionalShop = shopRepository.findById(itemDTO.getShopId());
-        Optional<ItemType> optionalItemType = itemTypeRepository.findById(itemDTO.getItemTypeId());
-
-        if (optionalShop.isEmpty() && optionalItemType.isEmpty())
-            return null;
-
-        Shop shop = optionalShop.get();
-        ItemType itemType = optionalItemType.get();
-
-        return new Item(itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(), itemDTO.getSize(), itemDTO.getPriceRent(), itemDTO.getPriceSale(), shop, itemType);
-    }
-
     @PostConstruct
     public void initializeStaff() {
         if (staffRepository.count() == 0) {
@@ -107,6 +93,20 @@ public class StaffService {
         }
         
         return null;
+    }
+
+    // Auxiliar Methods
+    private Item createItem(ItemDTO itemDTO) {
+        Optional<Shop> optionalShop = shopRepository.findById(itemDTO.getShopId());
+        Optional<ItemType> optionalItemType = itemTypeRepository.findById(itemDTO.getItemTypeId());
+
+        if (optionalShop.isEmpty() && optionalItemType.isEmpty())
+            return null;
+
+        Shop shop = optionalShop.get();
+        ItemType itemType = optionalItemType.get();
+
+        return new Item(itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(), itemDTO.getSize(), itemDTO.getPriceRent(), itemDTO.getPriceSale(), shop, itemType);
     }
     
     public List<Staff> getAllStaff() {
