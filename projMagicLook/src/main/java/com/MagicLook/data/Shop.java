@@ -1,10 +1,13 @@
 package com.MagicLook.data;
 
-import jakarta.persistence.*;;
+import jakarta.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "shop")
-public class Shop {
+public class Shop implements Serializable{
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int shopId;
@@ -22,8 +25,27 @@ public class Shop {
         this.location = location;
     }
 
-    // Setters
-    public void setShopId(Integer shopId) {
+    public int getShopId() {
+        return shopId;
+    }
+
+    public void setShopId(int shopId) {
         this.shopId = shopId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 }

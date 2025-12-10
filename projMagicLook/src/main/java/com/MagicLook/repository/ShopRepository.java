@@ -1,9 +1,8 @@
 package com.MagicLook.repository;
 
-import org.springframework.stereotype.Repository;
+import com.MagicLook.data.Shop;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import com.MagicLook.data.*;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ShopRepository extends JpaRepository<Shop, Integer> {

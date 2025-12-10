@@ -1,18 +1,17 @@
 package com.MagicLook.repository;
 
-import org.springframework.stereotype.Repository;
+import com.MagicLook.data.Item;
+import com.MagicLook.data.Shop;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import com.MagicLook.data.*;
-
+import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface ItemRepository extends JpaRepository <Item, Long> {
-   
-List<Item> findByNameAndMaterialAndColorAndBrandAndSize(
+public interface ItemRepository extends JpaRepository<Item, UUID> {
+    List<Item> findByNameAndMaterialAndColorAndBrandAndSize(
         String name,
         String material,
         String color,
@@ -20,4 +19,10 @@ List<Item> findByNameAndMaterialAndColorAndBrandAndSize(
         String size
     );
 
+    List<Item> findByShop(Shop shop);
+
+    @Query("SELECT i FROM Item i WHERE i.itemType.gender = :gender")
+    List<Item> findByItemTypeGender(@Param("gender") String gender);
+    
+    List<Item> findAll();
 }

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/navbar :: head(~{::title})">
+    <title>Moda Feminina - MagicLook</title>
+    <style>
+        .content-wrapper { 
+            padding-top: 80px; 
+            min-height: calc(100vh - 80px);
+        }
+        
+        .category-img {
+            height: 200px;
+            background: #ff8fb1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: white;
+        }
+        
+        .category-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            overflow: hidden;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Inclui a navbar -->
+    <div th:replace="fragments/navbar :: navbar"></div>
+    
+    <!-- Conteúdo da página -->
+    <div class="container content-wrapper">
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div class="card border-0" style="background:linear-gradient(135deg,#ff6b6b,#ff9ec4);">
+                    <div class="card-body p-5 text-white">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h1 class="display-6 mb-3">
+                                    <i class="bi bi-gender-female"></i> Moda Feminina
+                                </h1>
+                                <p class="lead mb-0">Vestidos, saias, tops e acessórios elegantes.</p>
+                            </div>
+
+                            <div class="col-md-4 text-end">
+                                <div class="bg-white text-danger rounded p-3 d-inline-block">
+                                    <h4 class="mb-0" th:text="${itemCount != null ? itemCount : 0}">0</h4>
+                                    <small>Itens Disponíveis</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categorias -->
+        <h4 class="mb-4">Categorias Populares</h4>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card category-card">
+                    <div class="category-img">
+                        <i class="bi bi-balloon-heart"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Vestidos</h5>
+                        <p class="text-muted">Para festas e eventos</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card category-card">
+                    <div class="category-img" style="background:#ffa6c9;">
+                        <i class="bi bi-bag-heart"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Acessórios</h5>
+                        <p class="text-muted">Bolsas, joias, etc.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card category-card">
+                    <div class="category-img" style="background:#ff8fa3;">
+                        <i class="bi bi-tropical-storm"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Saias</h5>
+                        <p class="text-muted">Para o dia a dia</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card category-card">
+                    <div class="category-img" style="background:#ffb3c1;">
+                        <i class="bi bi-handbag"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Bolsas</h5>
+                        <p class="text-muted">Acessórios elegantes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filtros (similar ao men.html) -->
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Categoria</label>
+                                <select class="form-select">
+                                    <option>Todas as Categorias</option>
+                                    <option>Vestidos</option>
+                                    <option>Saias</option>
+                                    <option>Blusas</option>
+                                    <option>Bolsas</option>
+                                    <option>Joias</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tamanho</label>
+                                <select class="form-select">
+                                    <option>Todos os Tamanhos</option>
+                                    <option>XS</option>
+                                    <option>S</option>
+                                    <option>M</option>
+                                    <option>L</option>
+                                    <option>XL</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Cor</label>
+                                <select class="form-select">
+                                    <option>Todas as Cores</option>
+                                    <option>Preto</option>
+                                    <option>Branco</option>
+                                    <option>Vermelho</option>
+                                    <option>Azul</option>
+                                    <option>Rosa</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">&nbsp;</label>
+                                <button class="btn btn-primary w-100">
+                                    <i class="bi bi-funnel"></i> Filtrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
