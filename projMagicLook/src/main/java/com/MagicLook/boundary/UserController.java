@@ -5,7 +5,8 @@ import com.MagicLook.data.User;
 import com.MagicLook.service.UserService;
 import com.MagicLook.dto.LoginDTO;
 import com.MagicLook.service.ItemService;
-import com.MagicLook.data.Item; 
+import com.MagicLook.data.Item;
+import com.MagicLook.dto.ItemFilterDTO;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,40 +95,89 @@ public class UserController {
 
     @GetMapping("/items/men")
     public String showMenItems(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("loggedInUser");
-        
-        if (user == null) {
-            return "redirect:/magiclook/login";
-        }
-        
-        // Buscar itens para homens
-        List<Item> menItems = itemService.getItemsByGender("M");
-        
-        model.addAttribute("user", user);
-        model.addAttribute("items", menItems);
-        model.addAttribute("itemCount", menItems.size());
-        model.addAttribute("activePage", "men");
-        
-        return "items/men";
+        return showGenderItems(session, model, "M", "men");
     }
 
     @GetMapping("/items/women")
     public String showWomenItems(HttpSession session, Model model) {
+        return showGenderItems(session, model, "F", "women");
+    }
+    
+    private String showGenderItems(HttpSession session, Model model, String gender, String pageName) {
         User user = (User) session.getAttribute("loggedInUser");
         
         if (user == null) {
             return "redirect:/magiclook/login";
         }
         
-        // Buscar itens para mulheres
-        List<Item> womenItems = itemService.getItemsByGender("F");
+        // Buscar itens para o gênero específico (sem filtros)
+        List<Item> items = itemService.getItemsByGender(gender);
+        
+        // Adicionar dados para os filtros
+        model.addAttribute("filter", new ItemFilterDTO());
+        model.addAttribute("colors", itemService.getAllDistinctColors());
+        model.addAttribute("brands", itemService.getAllDistinctBrands());
+        model.addAttribute("materials", itemService.getAllDistinctMaterials());
+        model.addAttribute("categories", itemService.getAllDistinctCategories());
         
         model.addAttribute("user", user);
-        model.addAttribute("items", womenItems);
-        model.addAttribute("itemCount", womenItems.size());
-        model.addAttribute("activePage", "women"); 
+        model.addAttribute("items", items);
+        model.addAttribute("itemCount", items.size());
+        model.addAttribute("activePage", pageName);
+        model.addAttribute("gender", pageName);
         
-        return "items/women";
+        return "items/" + pageName;
+    }
+    
+    // ========== FILTRAR ITENS ==========
+    
+    @PostMapping("/items/{gender}/filter")
+    public String filterItems(@PathVariable String gender,
+                             @ModelAttribute ItemFilterDTO filter,
+                             HttpSession session,
+                             Model model) {
+        
+        User user = (User) session.getAttribute("loggedInUser");
+        
+        if (user == null) {
+            return "redirect:/magiclook/login";
+        }
+        
+        String genderCode = "women".equals(gender) ? "F" : "M";
+        
+        // Buscar itens com filtros
+        List<Item> filteredItems = itemService.searchItemsWithFilters(
+            genderCode,
+            filter.getColor(),
+            filter.getBrand(),
+            filter.getMaterial(),
+            filter.getCategory(),
+            filter.getMinPrice(),
+            filter.getMaxPrice()
+        );
+        
+        // Adicionar dados para os filtros
+        model.addAttribute("filter", filter);
+        model.addAttribute("colors", itemService.getAllDistinctColors());
+        model.addAttribute("brands", itemService.getAllDistinctBrands());
+        model.addAttribute("materials", itemService.getAllDistinctMaterials());
+        model.addAttribute("categories", itemService.getAllDistinctCategories());
+        
+        model.addAttribute("user", user);
+        model.addAttribute("items", filteredItems);
+        model.addAttribute("itemCount", filteredItems.size());
+        model.addAttribute("activePage", gender);
+        model.addAttribute("gender", gender);
+        model.addAttribute("hasFilters", filter.hasFilters());
+        
+        return "items/" + gender;
+    }
+    
+    // ========== LIMPAR FILTROS ==========
+    
+    @GetMapping("/items/{gender}/clear")
+    public String clearFilters(@PathVariable String gender, HttpSession session) {
+        return "redirect:/magiclook/items/" + gender;
     }
 
     // ============== DASHBOARD ===============

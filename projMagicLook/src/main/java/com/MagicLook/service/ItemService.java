@@ -36,4 +36,27 @@ public class ItemService {
         }
         return allItems;
     }
+
+    public List<String> getAllDistinctColors() {
+        return itemRepository.findAllDistinctColors();
+    }
+    
+    public List<String> getAllDistinctBrands() {
+        return itemRepository.findAllDistinctBrands();
+    }
+    
+    public List<String> getAllDistinctMaterials() {
+        return itemRepository.findAllDistinctMaterials();
+    }
+    
+    public List<String> getAllDistinctCategories() {
+        return itemRepository.findAllDistinctCategories();
+    }
+
+    public List<Item> searchItemsWithFilters(String gender, String color, String brand, 
+                                             String material, String category, 
+                                             Double minPrice, Double maxPrice) {
+        return itemRepository.findByGenderAndFilters(gender, color, brand, material, 
+                                                    category, minPrice, maxPrice);
+    }
 }
