@@ -28,6 +28,54 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
+        
+        .item-card {
+            transition: all 0.3s;
+            border: 1px solid #eaeaea;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .item-card:hover {
+            border-color: #ff6b6b;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        .item-img {
+            height: 250px;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-size: 3rem;
+        }
+        
+        .badge-available {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .badge-rented {
+            background-color: #ffc107;
+            color: #000;
+        }
+        
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .active-filters {
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -36,6 +84,7 @@
     
     <!-- Conteúdo da página -->
     <div class="container content-wrapper">
+        <!-- Cabeçalho da Categoria -->
         <div class="row mb-5">
             <div class="col-md-12">
                 <div class="card border-0" style="background:linear-gradient(135deg,#ff6b6b,#ff9ec4);">
@@ -60,105 +109,179 @@
             </div>
         </div>
 
-        <!-- Categorias -->
-        <h4 class="mb-4">Categorias Populares</h4>
-        <div class="row g-4">
-            <div class="col-md-3">
-                <div class="card category-card">
-                    <div class="category-img">
-                        <i class="bi bi-balloon-heart"></i>
-                    </div>
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Vestidos</h5>
-                        <p class="text-muted">Para festas e eventos</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="card category-card">
-                    <div class="category-img" style="background:#ffa6c9;">
-                        <i class="bi bi-bag-heart"></i>
-                    </div>
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Acessórios</h5>
-                        <p class="text-muted">Bolsas, joias, etc.</p>
-                    </div>
-                </div>
-            </div>
+        <!-- Seção de Filtros -->
+        <div class="filter-section">
+            <h4 class="mb-4">
+                <i class="bi bi-funnel"></i> Filtrar Roupas
+                <span th:if="${hasFilters}" class="active-filters ms-2">
+                    <i class="bi bi-check-circle"></i> Filtros Ativos
+                </span>
+            </h4>
             
-            <div class="col-md-3">
-                <div class="card category-card">
-                    <div class="category-img" style="background:#ff8fa3;">
-                        <i class="bi bi-tropical-storm"></i>
+            <form method="post" th:action="@{/magiclook/items/women/filter}">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="color" class="form-label">Cor</label>
+                        <select class="form-select" id="color" name="color">
+                            <option value="">Todas as cores</option>
+                            <option th:each="color : ${colors}" 
+                                    th:value="${color}"
+                                    th:text="${color}"
+                                    th:selected="${filter?.color == color}">
+                            </option>
+                        </select>
                     </div>
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Saias</h5>
-                        <p class="text-muted">Para o dia a dia</p>
+                    
+                    <div class="col-md-3">
+                        <label for="brand" class="form-label">Marca</label>
+                        <select class="form-select" id="brand" name="brand">
+                            <option value="">Todas as marcas</option>
+                            <option th:each="brand : ${brands}" 
+                                    th:value="${brand}"
+                                    th:text="${brand}"
+                                    th:selected="${filter?.brand == brand}">
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="material" class="form-label">Material</label>
+                        <select class="form-select" id="material" name="material">
+                            <option value="">Todos os materiais</option>
+                            <option th:each="material : ${materials}" 
+                                    th:value="${material}"
+                                    th:text="${material}"
+                                    th:selected="${filter?.material == material}">
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="category" class="form-label">Categoria</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">Todas as categorias</option>
+                            <option th:each="category : ${categories}" 
+                                    th:value="${category}"
+                                    th:text="${category}"
+                                    th:selected="${filter?.category == category}">
+                            </option>
+                        </select>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-md-3">
-                <div class="card category-card">
-                    <div class="category-img" style="background:#ffb3c1;">
-                        <i class="bi bi-handbag"></i>
+                
+                <div class="row g-3 mt-2">
+                    <div class="col-md-3">
+                        <label for="minPrice" class="form-label">Preço Mínimo (€)</label>
+                        <input type="number" class="form-control" id="minPrice" 
+                               name="minPrice" th:value="${filter?.minPrice}" 
+                               step="0.01" min="0" placeholder="0.00">
                     </div>
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Bolsas</h5>
-                        <p class="text-muted">Acessórios elegantes</p>
+                    
+                    <div class="col-md-3">
+                        <label for="maxPrice" class="form-label">Preço Máximo (€)</label>
+                        <input type="number" class="form-control" id="maxPrice" 
+                               name="maxPrice" th:value="${filter?.maxPrice}" 
+                               step="0.01" min="0" placeholder="100.00">
+                    </div>
+                    
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-funnel"></i> Aplicar Filtros
+                            </button>
+                            <a th:href="@{/magiclook/items/women/clear}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Limpar Filtros
+                            </a>
+                        </div>
+                        
+                        <div class="ms-auto">
+                            <span class="badge bg-info" th:if="${hasFilters}">
+                                <i class="bi bi-funnel"></i> 
+                                <span th:text="${itemCount} + ' itens encontrados'"></span>
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </form>
         </div>
         
-        <!-- Filtros (similar ao men.html) -->
-        <div class="row mt-5">
+        <!-- Lista de Itens -->
+        <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label">Categoria</label>
-                                <select class="form-select">
-                                    <option>Todas as Categorias</option>
-                                    <option>Vestidos</option>
-                                    <option>Saias</option>
-                                    <option>Blusas</option>
-                                    <option>Bolsas</option>
-                                    <option>Joias</option>
-                                </select>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">Todos os Itens</h4>
+                    <div class="text-muted" th:if="${hasFilters}">
+                        <span th:text="${itemCount} + ' itens encontrados com os filtros aplicados'"></span>
+                    </div>
+                </div>
+                
+                <div class="row g-4">
+                    <!-- Item -->
+                    <div class="col-md-4 col-lg-3" th:each="item : ${items}">
+                        <div class="card item-card h-100">
+                            <div class="item-img">
+                                <i class="bi bi-image"></i>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Tamanho</label>
-                                <select class="form-select">
-                                    <option>Todos os Tamanhos</option>
-                                    <option>XS</option>
-                                    <option>S</option>
-                                    <option>M</option>
-                                    <option>L</option>
-                                    <option>XL</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Cor</label>
-                                <select class="form-select">
-                                    <option>Todas as Cores</option>
-                                    <option>Preto</option>
-                                    <option>Branco</option>
-                                    <option>Vermelho</option>
-                                    <option>Azul</option>
-                                    <option>Rosa</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">&nbsp;</label>
-                                <button class="btn btn-primary w-100">
-                                    <i class="bi bi-funnel"></i> Filtrar
-                                </button>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="card-title mb-0" th:text="${item.name}"></h6>
+                                    <span class="badge" 
+                                          th:classappend="${item.state == 'AVAILABLE'} ? 'badge-available' : 'badge-rented'"
+                                          th:text="${item.state == 'AVAILABLE' ? 'Disponível' : 'Alugado'}"></span>
+                                </div>
+                                <p class="card-text text-muted mb-2">
+                                    <small th:text="${item.brand}"></small><br>
+                                    <small>Tamanho: <span th:text="${item.size}"></span></small><br>
+                                    <small>Cor: <span th:text="${item.color}"></span></small><br>
+                                    <small>Material: <span th:text="${item.material}"></span></small>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong class="text-primary" th:text="'€' + ${item.priceRent}"></strong>
+                                        <small class="text-muted">/dia</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-primary">
+                                        <i class="bi bi-cart-plus"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Se não houver itens -->
+                    <div class="col-12" th:unless="${items != null and !items.empty}">
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                            <h5 class="mt-3">Nenhum item encontrado</h5>
+                            <p class="text-muted">Não há itens disponíveis com os filtros selecionados.</p>
+                            <a th:href="@{/magiclook/items/women/clear}" class="btn btn-outline-primary mt-2">
+                                <i class="bi bi-x-circle"></i> Limpar Filtros
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Paginação -->
+                <div class="d-flex justify-content-center mt-5" th:if="${items != null and !items.empty}">
+                    <nav>
+                        <ul class="pagination">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">Anterior</a>
+                            </li>
+                            <li class="page-item active">
+                                <a class="page-link" href="#">1</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">2</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">3</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Próxima</a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
