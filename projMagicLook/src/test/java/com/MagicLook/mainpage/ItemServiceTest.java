@@ -1,170 +1,161 @@
-package com.MagicLook.mainpage;
+package com.MagicLook.service;
 
 import com.MagicLook.data.Item;
-import com.MagicLook.data.ItemType;
 import com.MagicLook.data.Shop;
 import com.MagicLook.repository.ItemRepository;
-import com.MagicLook.service.ItemService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ItemServiceTest {
-    
+class ItemServiceTest {
+
     @Mock
     private ItemRepository itemRepository;
-    
+
+    @InjectMocks
     private ItemService itemService;
-    
+
+    private Item shirt, pants, dress;
+    private Shop shop;
+
     @BeforeEach
-    public void setUp() {
-        // Agora precisamos passar o repositório no construtor
-        itemService = new ItemService(itemRepository);
+    void setUp() {
+        shop = new Shop("Test Shop", "Location");
+        
+        shirt = createItem("Blue Shirt", "M", "Blue", "Zara", "Cotton", "Shirt", 25.0);
+        pants = createItem("Black Pants", "M", "Black", "H&M", "Denim", "Pants", 35.0);
+        dress = createItem("Red Dress", "F", "Red", "Mango", "Silk", "Dress", 50.0);
     }
-    
+
     @Test
-    public void testGetItemsByGender_Male() {
-        // Arrange
-        Item item1 = createItem("Camisa", "M");
-        Item item2 = createItem("Calça", "M");
-        List<Item> maleItems = Arrays.asList(item1, item2);
+    void testGetAllItems_ReturnsCompleteList() {
+        when(itemRepository.findAll()).thenReturn(Arrays.asList(shirt, pants, dress));
         
-        when(itemRepository.findByItemTypeGender("M")).thenReturn(maleItems);
-        
-        // Act
-        List<Item> result = itemService.getItemsByGender("M");
-        
-        // Assert
-        assertEquals(2, result.size());
-        assertEquals("Camisa", result.get(0).getName());
-        assertEquals("Calça", result.get(1).getName());
-    }
-    
-    @Test
-    public void testGetItemsByGender_Female() {
-        // Arrange
-        Item item1 = createItem("Vestido", "F");
-        Item item2 = createItem("Saia", "F");
-        List<Item> femaleItems = Arrays.asList(item1, item2);
-        
-        when(itemRepository.findByItemTypeGender("F")).thenReturn(femaleItems);
-        
-        // Act
-        List<Item> result = itemService.getItemsByGender("F");
-        
-        // Assert
-        assertEquals(2, result.size());
-        assertEquals("Vestido", result.get(0).getName());
-        assertEquals("Saia", result.get(1).getName());
-    }
-    
-    @Test
-    public void testGetRecentItems_Limit() {
-        // Arrange
-        List<Item> allItems = Arrays.asList(
-            createItem("Item1", "M"),
-            createItem("Item2", "F"),
-            createItem("Item3", "M"),
-            createItem("Item4", "F"),
-            createItem("Item5", "M"),
-            createItem("Item6", "F"),
-            createItem("Item7", "M")
-        );
-        
-        when(itemRepository.findAll()).thenReturn(allItems);
-        
-        // Act
-        List<Item> result = itemService.getRecentItems(5);
-        
-        // Assert
-        assertEquals(5, result.size());
-        assertEquals("Item1", result.get(0).getName());
-        assertEquals("Item5", result.get(4).getName());
-    }
-    
-    @Test
-    public void testGetRecentItems_LessThanLimit() {
-        // Arrange
-        List<Item> allItems = Arrays.asList(
-            createItem("Item1", "M"),
-            createItem("Item2", "F")
-        );
-        
-        when(itemRepository.findAll()).thenReturn(allItems);
-        
-        // Act
-        List<Item> result = itemService.getRecentItems(5);
-        
-        // Assert
-        assertEquals(2, result.size());
-        assertEquals("Item1", result.get(0).getName());
-        assertEquals("Item2", result.get(1).getName());
-    }
-    
-    @Test
-    public void testGetItemsByShop() {
-        // Arrange
-        Shop shop = new Shop();
-        shop.setShopId(1);
-        
-        Item item1 = createItem("Item1", "M");
-        Item item2 = createItem("Item2", "F");
-        List<Item> shopItems = Arrays.asList(item1, item2);
-        
-        when(itemRepository.findByShop(shop)).thenReturn(shopItems);
-        
-        // Act
-        List<Item> result = itemService.getItemsByShop(shop);
-        
-        // Assert
-        assertEquals(2, result.size());
-        verify(itemRepository).findByShop(shop);
-    }
-    
-    @Test
-    public void testGetAllItems() {
-        // Arrange
-        List<Item> allItems = Arrays.asList(
-            createItem("Item1", "M"),
-            createItem("Item2", "F"),
-            createItem("Item3", "M")
-        );
-        
-        when(itemRepository.findAll()).thenReturn(allItems);
-        
-        // Act
         List<Item> result = itemService.getAllItems();
         
-        // Assert
-        assertEquals(3, result.size());
+        assertThat(result).hasSize(3);
         verify(itemRepository).findAll();
     }
-    
-    private Item createItem(String name, String gender) {
+
+    @Test
+    void testGetItemsByGender_ReturnsFilteredByGender() {
+        when(itemRepository.findByItemTypeGender("M")).thenReturn(Arrays.asList(shirt, pants));
+        when(itemRepository.findByItemTypeGender("F")).thenReturn(Arrays.asList(dress));
+        
+        assertThat(itemService.getItemsByGender("M")).hasSize(2);
+        assertThat(itemService.getItemsByGender("F")).hasSize(1);
+    }
+
+    @Test
+    void testGetRecentItems_ReturnsLimitedItems() {
+        List<Item> allItems = Arrays.asList(shirt, pants, dress, 
+            createItem("Item4", "M", "White", "Brand", "Material", "Category", 10.0),
+            createItem("Item5", "F", "Black", "Brand", "Material", "Category", 20.0)
+        );
+        
+        when(itemRepository.findAll()).thenReturn(allItems);
+        
+        List<Item> recent = itemService.getRecentItems(3);
+        assertThat(recent).hasSize(3);
+        assertThat(recent).containsExactly(shirt, pants, dress);
+    }
+
+    @Test
+    void testGetDistinctFilterValues_ReturnsUniqueOptions() {
+        when(itemRepository.findAllDistinctColors()).thenReturn(Arrays.asList("Blue", "Red", "Black"));
+        when(itemRepository.findAllDistinctBrands()).thenReturn(Arrays.asList("Zara", "H&M", "Mango"));
+        when(itemRepository.findAllDistinctMaterials()).thenReturn(Arrays.asList("Cotton", "Silk", "Denim"));
+        when(itemRepository.findAllDistinctCategories()).thenReturn(Arrays.asList("Shirt", "Pants", "Dress"));
+        
+        assertThat(itemService.getAllDistinctColors()).hasSize(3);
+        assertThat(itemService.getAllDistinctBrands()).hasSize(3);
+        assertThat(itemService.getAllDistinctMaterials()).hasSize(3);
+        assertThat(itemService.getAllDistinctCategories()).hasSize(3);
+    }
+
+    @Test
+    void testSearchItemsWithFilters_WithDifferentFilterCombinations() {
+        // Test 1: Filter by color only
+        when(itemRepository.findByGenderAndFilters("M", "Blue", null, null, null, null, null))
+            .thenReturn(Arrays.asList(shirt));
+        
+        List<Item> blueItems = itemService.searchItemsWithFilters("M", "Blue", null, null, null, null, null);
+        assertThat(blueItems).hasSize(1);
+        assertThat(blueItems.get(0).getColor()).isEqualTo("Blue");
+
+        // Test 2: Filter by brand and category
+        when(itemRepository.findByGenderAndFilters("M", null, "Zara", null, "Shirt", null, null))
+            .thenReturn(Arrays.asList(shirt));
+        
+        List<Item> zaraShirts = itemService.searchItemsWithFilters("M", null, "Zara", null, "Shirt", null, null);
+        assertThat(zaraShirts).hasSize(1);
+
+        // Test 3: Filter by price range
+        when(itemRepository.findByGenderAndFilters("M", null, null, null, null, 30.0, 40.0))
+            .thenReturn(Arrays.asList(pants));
+        
+        List<Item> priceFiltered = itemService.searchItemsWithFilters("M", null, null, null, null, 30.0, 40.0);
+        assertThat(priceFiltered).hasSize(1);
+        assertThat(priceFiltered.get(0).getName()).isEqualTo("Black Pants");
+
+        // Test 4: Complex filter combination
+        when(itemRepository.findByGenderAndFilters("F", "Red", "Mango", "Silk", "Dress", 40.0, 60.0))
+            .thenReturn(Arrays.asList(dress));
+        
+        List<Item> complexFilter = itemService.searchItemsWithFilters("F", "Red", "Mango", "Silk", "Dress", 40.0, 60.0);
+        assertThat(complexFilter).hasSize(1);
+    }
+
+    @Test
+    void testSearchItemsWithFilters_WithNullFilters_ReturnsAllGenderItems() {
+        when(itemRepository.findByGenderAndFilters("M", null, null, null, null, null, null))
+            .thenReturn(Arrays.asList(shirt, pants));
+        
+        List<Item> allMaleItems = itemService.searchItemsWithFilters("M", null, null, null, null, null, null);
+        assertThat(allMaleItems).hasSize(2);
+    }
+
+    @Test
+    void testGetItemsByShop_ReturnsShopSpecificItems() {
+        when(itemRepository.findByShop(shop)).thenReturn(Arrays.asList(shirt, pants));
+        
+        List<Item> shopItems = itemService.getItemsByShop(shop);
+        assertThat(shopItems).hasSize(2);
+    }
+
+    @Test
+    void testGetRecentItems_WhenLessItemsThanLimit_ReturnsAll() {
+        when(itemRepository.findAll()).thenReturn(Arrays.asList(shirt, pants));
+        
+        List<Item> recent = itemService.getRecentItems(5);
+        assertThat(recent).hasSize(2);
+    }
+
+    private Item createItem(String name, String gender, String color, String brand, 
+                           String material, String category, double price) {
         Item item = new Item();
-        item.setItemId(UUID.randomUUID());
         item.setName(name);
-        item.setPriceRent(new BigDecimal("10.00"));
-        item.setPriceSale(new BigDecimal("50.00"));
+        item.setColor(color);
+        item.setBrand(brand);
+        item.setMaterial(material);
+        item.setPriceRent(new BigDecimal(price));
         
-        ItemType itemType = new ItemType();
+        com.MagicLook.data.ItemType itemType = new com.MagicLook.data.ItemType();
         itemType.setGender(gender);
+        itemType.setCategory(category);
         item.setItemType(itemType);
-        
-        Shop shop = new Shop();
-        shop.setShopId(1);
-        item.setShop(shop);
         
         return item;
     }
