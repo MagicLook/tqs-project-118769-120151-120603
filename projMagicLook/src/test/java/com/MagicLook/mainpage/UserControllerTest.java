@@ -3,6 +3,7 @@ package com.MagicLook.mainpage;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.MagicLook.dto.ItemFilterDTO;
 import com.MagicLook.boundary.UserController;
 import com.MagicLook.data.User;
 import com.MagicLook.data.Item;
@@ -183,6 +184,52 @@ public class UserControllerTest {
             itemType.setGender(gender);
             item.setItemType(itemType);
             
+            items.add(item);
+        }
+        return items;
+    }
+
+    @Test
+    void testFilterItems_WithValidFilters() {
+        User user = new User();
+        user.setUsername("testuser");
+        session.setAttribute("loggedInUser", user);
+        
+        ItemFilterDTO filter = new ItemFilterDTO();
+        filter.setColor("Blue");
+        
+        List<Item> filteredItems = createTestItems(2);
+        when(itemService.searchItemsWithFilters("M", "Blue", null, null, null, null, null))
+            .thenReturn(filteredItems);
+        
+        String viewName = userController.filterItems("men", filter, session, model);
+        
+        assertEquals("items/men", viewName);
+        verify(model).addAttribute("items", filteredItems);
+        verify(model).addAttribute("hasFilters", true);
+    }
+
+    @Test
+    void testFilterItems_WithoutLoggedInUser_ShouldRedirect() {
+        ItemFilterDTO filter = new ItemFilterDTO();
+        
+        String viewName = userController.filterItems("women", filter, session, model);
+        
+        assertEquals("redirect:/magiclook/login", viewName);
+    }
+    
+    @Test
+    void testClearFilters_ShouldRedirect() {
+        String viewName = userController.clearFilters("women", session);
+        assertEquals("redirect:/magiclook/items/women", viewName);
+    }
+
+    private List<Item> createTestItems(int count) {
+        List<Item> items = new ArrayList<>();
+        for (int i = 1; i <= count; i++) {
+            Item item = new Item();
+            item.setItemId(UUID.randomUUID());
+            item.setName("Item " + i);
             items.add(item);
         }
         return items;
