@@ -2,6 +2,7 @@ package com.MagicLook.service;
 
 import com.MagicLook.data.Item;
 import com.MagicLook.data.Shop;
+import com.MagicLook.service.ItemService;
 import com.MagicLook.repository.ItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

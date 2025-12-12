@@ -2,17 +2,15 @@ package com.MagicLook.data;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.util.UUID;
-import java.io.Serializable;
+import java.util.List;
 
 @Entity
 @Table(name = "item")
-public class Item implements Serializable{
-    private static final long serialVersionUID = 1L;
-    
+// É um grupo de items
+public class Item {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID itemId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer itemId;
     
     private String name;
     private String material;
@@ -20,11 +18,12 @@ public class Item implements Serializable{
     private String brand;
     private String size;
 
-    @Column(columnDefinition = "VARCHAR(20) DEFAULT 'AVAILABLE'")
-    private String state;
-
     private BigDecimal priceRent;
     private BigDecimal priceSale;
+
+    // Caminho da imagem
+    @Column(length = 500)
+    private String imagePath; 
 
     @ManyToOne
     @JoinColumn(name = "shop_id")
@@ -34,8 +33,11 @@ public class Item implements Serializable{
     @JoinColumn(name = "item_type_id")
     private ItemType itemType;
 
-    // Constructors
+    @OneToMany
+    @JoinColumn(name = "item_single_id")
+    private List<ItemSingle> itemSigle;
 
+    // Constructors
     public Item() {
 
     }
@@ -53,9 +55,12 @@ public class Item implements Serializable{
         this.itemType = itemType;
     }
 
-    public UUID getItemId() { return itemId; }
-    public void setItemId(UUID itemId) { this.itemId = itemId; }
-    
+    public Integer getItemId() { return itemId; }
+    public void setItemId(Integer itemId) { this.itemId = itemId; }
+
+    public List<ItemSingle> getItemSigle() { return itemSigle; }
+    public void setItemSigle(List<ItemSingle> itemSigle) { this.itemSigle = itemSigle; }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     
@@ -71,14 +76,14 @@ public class Item implements Serializable{
     public String getSize() { return size; }
     public void setSize(String size) { this.size = size; }
     
-    public String getState() { return state; }
-    public void setState(String state) { this.state = state; }
-    
     public BigDecimal getPriceRent() { return priceRent; }
     public void setPriceRent(BigDecimal priceRent) { this.priceRent = priceRent; }
     
     public BigDecimal getPriceSale() { return priceSale; }
     public void setPriceSale(BigDecimal priceSale) { this.priceSale = priceSale; }
+    
+    public String getImagePath() { return imagePath; }
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
     
     public Shop getShop() { return shop; }
     public void setShop(Shop shop) { this.shop = shop; }

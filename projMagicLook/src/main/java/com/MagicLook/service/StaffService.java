@@ -1,19 +1,19 @@
 package com.MagicLook.service;
 
-import com.MagicLook.data.Staff;
-import com.MagicLook.data.Shop;
-import com.MagicLook.repository.StaffRepository;
-import com.MagicLook.repository.ShopRepository;
+import com.MagicLook.data.*;
+import com.MagicLook.dto.*;
+import com.MagicLook.repository.*;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
 import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.Optional;
 
 @Service
-Transactional
-public class StaffService {
+@Transactional
+public class StaffService extends ClientService {
     
     @Autowired
     private StaffRepository staffRepository;
@@ -24,6 +24,11 @@ public class StaffService {
     @Autowired
     private ItemTypeRepository itemTypeRepository;
     
+    @Autowired
+    private ItemRepository itemRepository;
+
+    private ItemSingleRepository itemSingleRepository;
+
     StaffService (ItemRepository itemRepository, ShopRepository shopRepository, ItemTypeRepository itemTypeRepository) {
         this.itemRepository = itemRepository;
         this.shopRepository = shopRepository;
@@ -31,21 +36,33 @@ public class StaffService {
     }
 
     public int addItem(ItemDTO itemDTO) {
-        // Check if exists
-        List<Item> result = itemRepository.findByNameAndMaterialAndColorAndBrandAndSize(itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(), itemDTO.getSize());
+        // Verificar se os atributos estão certos
 
-        if (!result.isEmpty()) {
+        List<String> sizes = Arrays.asList("XS", "S", "M", "L", "XL");
+        List<String> materials = Arrays.asList("Algodão", "Poliéster", "Lã", "Seda", "Couro", "Nylon", "Linho", "Veludo", "Jeans");
+
+
+        if (!sizes.contains(itemDTO.getSize())) {
             return -1;
         }
 
-        // If not, adds, but before must occur a conversion.
-        Item item = this.createItem(itemDTO);
-
-        if (item == null) {
+        if (!materials.contains(itemDTO.getMaterial())) {
             return -2;
-        } 
+        }
 
-        itemRepository.saveAndFlush(item);
+        List<Item> result = itemRepository.findByNameAndMaterialAndColorAndBrandAndSize(itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(), itemDTO.getSize());
+
+        if (result.isEmpty()) {
+
+            Item item = this.createItem(itemDTO);
+        
+            itemRepository.saveAndFlush(item);
+
+        }
+        
+        ItemSingle itemSingle = new ItemSingle("AVAILABLE", this.createItem(itemDTO));
+
+        itemSingleRepository.saveAndFlush(itemSingle);
         
         return 0;
     }
@@ -100,7 +117,7 @@ public class StaffService {
         Optional<Shop> optionalShop = shopRepository.findById(itemDTO.getShopId());
         Optional<ItemType> optionalItemType = itemTypeRepository.findById(itemDTO.getItemTypeId());
 
-        if (optionalShop.isEmpty() && optionalItemType.isEmpty())
+        if (optionalShop.isEmpty() || optionalItemType.isEmpty())
             return null;
 
         Shop shop = optionalShop.get();

@@ -1,16 +1,18 @@
 package com.MagicLook.boundary;
 
-import com.MagicLook.data.Staff;
-import com.MagicLook.data.Item;
-import com.MagicLook.service.StaffService;
-import com.MagicLook.service.ItemService;
+import com.MagicLook.data.*;
+import com.MagicLook.service.*;
 import com.MagicLook.dto.*;
+
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import java.util.List;
 
 @Controller
@@ -80,12 +82,14 @@ public class StaffController {
         return "staffDashboard";
     }
 
-    @PostMapping("/newitem")
+    @PostMapping("/item")
     public ResponseEntity<String> addItem(@Valid @RequestBody ItemDTO itemDTO) {
         int result = staffService.addItem(itemDTO);
 
-        if (result != 0) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Já existe um item com essas características");
+        if (result == -1) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Item com.");
+        } else if (result == -2) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao criar o item.");
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body("Item adicionado com sucesso.");

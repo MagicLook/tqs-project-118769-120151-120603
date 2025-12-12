@@ -45,7 +45,7 @@ class StaffServiceTest {
         shop.setShopId(1);
 
         itemType = new ItemType();
-        itemType.setItemTypeId(1);
+        itemType.setId(1);
          
         sampleDto = new ItemDTO(
                 "Vestido",

@@ -177,7 +177,7 @@ public class UserControllerTest {
         List<Item> items = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
             Item item = new Item();
-            item.setItemId(UUID.randomUUID());
+            item.setItemId(i);
             item.setName("Item " + i + " " + gender);
             
             com.MagicLook.data.ItemType itemType = new com.MagicLook.data.ItemType();
@@ -228,7 +228,7 @@ public class UserControllerTest {
         List<Item> items = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
             Item item = new Item();
-            item.setItemId(UUID.randomUUID());
+            item.setItemId(i);
             item.setName("Item " + i);
             items.add(item);
         }
