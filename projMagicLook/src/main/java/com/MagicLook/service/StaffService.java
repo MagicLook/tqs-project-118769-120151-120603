@@ -5,8 +5,16 @@ import com.MagicLook.dto.*;
 import com.MagicLook.repository.*;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import jakarta.transaction.Transactional;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.*;
 import java.util.Optional;
@@ -27,12 +35,31 @@ public class StaffService extends ClientService {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Value("${app.upload.dir}")
+    private String uploadDir;
+
     private ItemSingleRepository itemSingleRepository;
 
     StaffService (ItemRepository itemRepository, ShopRepository shopRepository, ItemTypeRepository itemTypeRepository) {
         this.itemRepository = itemRepository;
         this.shopRepository = shopRepository;
         this.itemTypeRepository = itemTypeRepository;
+    }
+
+    public String saveImage(MultipartFile image, Long itemId) throws IOException {
+        if (image.isEmpty()) {
+            return null;
+        }
+
+        Path uploadPath = Paths.get(uploadDir);
+        Files.createDirectories(uploadPath);
+
+        String fileName = String.format("item_%d", itemId);
+        Path filePath = uploadPath.resolve(fileName);
+
+        image.transferTo(filePath);
+
+        return uploadDir + "/" + fileName;
     }
 
     public int addItem(ItemDTO itemDTO) {

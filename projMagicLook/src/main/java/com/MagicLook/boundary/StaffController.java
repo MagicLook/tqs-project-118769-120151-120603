@@ -13,7 +13,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
+import java.math.BigDecimal;
 
 @Controller
 @RequestMapping("/magiclook/staff")
@@ -82,17 +84,76 @@ public class StaffController {
         return "staffDashboard";
     }
 
+    // ========== ADD ITEM ==========
+
     @PostMapping("/item")
-    public ResponseEntity<String> addItem(@Valid @RequestBody ItemDTO itemDTO) {
-        int result = staffService.addItem(itemDTO);
+    public String addItem(
+            @RequestParam String name,
+            @RequestParam String brand,
+            @RequestParam String material,
+            @RequestParam String color,
+            @RequestParam String size,
+            @RequestParam BigDecimal priceRent,
+            @RequestParam BigDecimal priceSale,
+            @RequestParam String gender,
+            @RequestParam String category,
+            @RequestParam Integer shop,
+            @RequestParam(required = false) MultipartFile image,
+            HttpSession session,
+            Model model) {
+        
+        try {
 
-        if (result == -1) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Item com.");
-        } else if (result == -2) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao criar o item.");
+            Staff staff = (Staff) session.getAttribute("loggedInStaff");
+
+            if (staff == null) {
+                return "redirect:/magiclook/staff/login";
+            }
+
+            // Converter em ItemDDTO
+            ItemDTO itemDTO = new ItemDTO(name, material, color, brand, size,
+                                          priceRent, priceSale, shop, gender, category);
+            
+            int result = staffService.addItem(itemDTO);
+        
+            // Resto de validações
+            if (result == -1) {
+                model.addAttribute("error", "Tamanho inválido!");
+                return "staffDashboard";
+            } else if (result == -2) {
+                model.addAttribute("error", "Material inválido!");
+                return "staffDashboard";
+            }
+
+            // Guardar imagem se fornecida
+            String imagePath = null;
+            if (image != null && !image.isEmpty()) {
+                staffService.saveImage(image, 1L);
+            }
+            
+            // Criar novo item
+            Item item = new Item();
+            item.setName(name);
+            item.setBrand(brand);
+            item.setMaterial(material);
+            item.setColor(color);
+            item.setSize(size);
+            item.setPriceRent(priceRent);
+            item.setPriceSale(priceSale);
+            item.setImagePath(imagePath);
+            item.setShop(staff.getShop());
+            
+            // TODO: Buscar ou criar ItemType baseado em gender e category
+            // Por enquanto, isso seria feito no service
+            
+            itemService.save(item);
+            
+            return "redirect:/magiclook/staff/dashboard";
+            
+        } catch (Exception e) {
+            model.addAttribute("error", "Erro ao adicionar item: " + e.getMessage());
+            return "staffDashboard";
         }
-
-        return ResponseEntity.status(HttpStatus.CREATED).body("Item adicionado com sucesso.");
     }
 
     // ========== LOGOUT STAFF ==========

@@ -25,7 +25,11 @@ public class ItemDTO {
     private Integer shopId;
 
     @NotNull
-    private Integer itemTypeId;
+    private String gender;
+
+    @NotNull
+    private String category;
+
 
     // Constructors
     // Needs this??
@@ -34,7 +38,8 @@ public class ItemDTO {
     }
 
     public ItemDTO(String name, String material, String color, String brand, String size,
-                BigDecimal priceRent, BigDecimal priceSale, Integer shopId, Integer itemTypeId) {
+                BigDecimal priceRent, BigDecimal priceSale, Integer shopId, String gender, String category) {
+        
         this.name = name;
         this.material = material;
         this.color = color;
@@ -43,7 +48,8 @@ public class ItemDTO {
         this.priceRent = priceRent;
         this.priceSale = priceSale;
         this.shopId = shopId;
-        this.itemTypeId = itemTypeId;
+        this.gender = gender;
+        this.category = category;
     }
 
     // Getters
@@ -88,7 +94,11 @@ public class ItemDTO {
         return shopId;
     }
 
-    public Integer getItemTypeId() {
-        return itemTypeId;
+    public String getGender() {
+        return gender;
+    }
+
+    public String getCategory() {
+        return category;
     }
 }

@@ -13,9 +13,9 @@ public class Item {
     private Integer itemId;
     
     private String name;
+    private String brand;
     private String material;
     private String color;
-    private String brand;
     private String size;
 
     private BigDecimal priceRent;

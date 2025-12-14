@@ -228,7 +228,7 @@
                             <h5 class="mb-0">
                                 <i class="bi bi-list-check"></i> Itens da Loja
                             </h5>
-                            <button class="btn btn-sm btn-primary">
+                            <button name="addItem" class="btn btn-sm btn-primary">
                                 <i class="bi bi-plus-circle"></i> Adicionar Item
                             </button>
                         </div>
@@ -277,7 +277,7 @@
                                             <td colspan="7" class="text-center text-muted py-4">
                                                 <i class="bi bi-inbox fs-1"></i>
                                                 <p class="mt-2">Nenhum item encontrado nesta loja</p>
-                                                <button class="btn btn-primary mt-2">
+                                                <button data-bs-toggle="modal" data-bs-target="#addItemModal" class="btn btn-primary mt-2">
                                                     <i class="bi bi-plus-circle"></i> Adicionar Primeiro Item
                                                 </button>
                                             </td>
@@ -345,6 +345,103 @@
         </div>
     </div>
     
+    <!-- Modal para Adicionar item -->
+    <div class="modal fade" id="addItemModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adicionar Novo Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="addItemForm" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <!-- Género -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Género da Roupa</label>
+                            <select id="genderSelect" name="gender" class="form-select" required>
+                                <option value="">Selecione o género...</option>
+                                <option value="M">Homem</option>
+                                <option value="F">Mulher</option>
+                            </select>
+                        </div>
+
+                        <!-- Informações Básicas -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nome</label>
+                                <input name="name" class="form-control" placeholder="Ex: Vestido Rosa" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Marca</label>
+                                <input name="brand" class="form-control" placeholder="Ex: Zara">
+                            </div>
+                        </div>
+
+                        <!-- Material e Cor -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Material</label>
+                                <input name="material" class="form-control" placeholder="Ex: Algodão">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Cor</label>
+                                <input name="color" class="form-control" placeholder="Ex: Rosa">
+                            </div>
+                        </div>
+
+                        <!-- Tamanho e Tipo de Roupa -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tamanho</label>
+                                <select name="size" class="form-select" required>
+                                    <option value="">Selecione o tamanho...</option>
+                                    <option value="XS">XS</option>
+                                    <option value="S">S</option>
+                                    <option value="M">M</option>
+                                    <option value="L">L</option>
+                                    <option value="XL">XL</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Roupa</label>
+                                <select id="categorySelect" name="category" class="form-select" required>
+                                    <option value="">Selecione primeiro o género...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Preços -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Preço Original (€)</label>
+                                <input name="priceSale" type="number" class="form-control" step="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Preço de Aluguel (€)</label>
+                                <input name="priceRent" type="number" class="form-control" step="0.01" placeholder="0.00" required>
+                            </div>
+                        </div>
+
+                        <!-- Upload Imagem -->
+                        <div class="mb-3">
+                            <label class="form-label">Imagem do Item</label>
+                            <input type="file" name="image" class="form-control" accept="image/*">
+                            <small class="text-muted">Aceita JPG, PNG ou GIF (máximo 10MB)</small>
+                        </div>
+
+                        <div id="uploadMessage" class="alert" style="display: none;"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-check-circle"></i> Guardar Item
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -362,6 +459,102 @@
         
         setInterval(updateTime, 1000);
         updateTime();
+
+        // Categorias de roupa por género
+        const categories = {
+            'M': ['Camiseta', 'Calça', 'Blazer', 'Jaqueta', 'Sapatos', 'Acessórios'],
+            'F': ['Vestido', 'Saia', 'Blusa', 'Jaqueta', 'Sapatos', 'Acessórios']
+        };
+
+        // Atualizar categorias quando o género muda
+        document.getElementById('genderSelect').addEventListener('change', function() {
+            const gender = this.value;
+            const categorySelect = document.getElementById('categorySelect');
+            
+            if (gender && categories[gender]) {
+                categorySelect.innerHTML = '<option value="">Selecione o tipo de roupa...</option>';
+                categories[gender].forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    categorySelect.appendChild(option);
+                });
+            } else {
+                categorySelect.innerHTML = '<option value="">Selecione primeiro o género...</option>';
+            }
+        });
+
+        // Lidar com submit do formulário com imagem
+        document.getElementById('addItemForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const messageDiv = document.getElementById('uploadMessage');
+            submitBtn.disabled = true;
+            
+            try {
+                // Verificar se há imagem
+                const fileInput = this.querySelector('input[name="image"]');
+                
+                if (fileInput.files.length > 0) {
+                    // Se tem imagem, fazer upload primeiro
+                    const file = fileInput.files[0];
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    const uploadRes = await fetch('/api/upload/item', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!uploadRes.ok) {
+                        throw new Error('Erro ao fazer upload da imagem');
+                    }
+                    
+                    const uploadData = await uploadRes.json();
+                    if (uploadData.success) {
+                        // Adicionar o caminho da imagem ao formulário
+                        const imagePathInput = document.createElement('input');
+                        imagePathInput.type = 'hidden';
+                        imagePathInput.name = 'imagePath';
+                        imagePathInput.value = uploadData.imagePath;
+                        this.appendChild(imagePathInput);
+                    }
+                }
+                
+                // Agora fazer submit do item
+                const itemFormData = new FormData(this);
+                const itemRes = await fetch('/magiclook/staff/item', {
+                    method: 'POST',
+                    body: itemFormData
+                });
+                
+                if (!itemRes.ok) {
+                    const errorText = await itemRes.text();
+                    throw new Error(errorText || 'Erro ao guardar item');
+                }
+                
+                // Sucesso
+                messageDiv.className = 'alert alert-success';
+                messageDiv.textContent = '✓ Item adicionado com sucesso!';
+                messageDiv.style.display = 'block';
+                
+                // Resetar formulário e fechar modal após 1s
+                setTimeout(() => {
+                    this.reset();
+                    document.getElementById('categorySelect').innerHTML = '<option value="">Selecione primeiro o género...</option>';
+                    bootstrap.Modal.getInstance(document.getElementById('addItemModal')).hide();
+                    location.reload(); // Atualizar a tabela de itens
+                }, 1500);
+                
+            } catch (error) {
+                messageDiv.className = 'alert alert-danger';
+                messageDiv.textContent = '✗ ' + error.message;
+                messageDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>

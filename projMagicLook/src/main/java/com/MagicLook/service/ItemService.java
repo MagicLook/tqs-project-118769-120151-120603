@@ -59,4 +59,8 @@ public class ItemService {
         return itemRepository.findByGenderAndFilters(gender, color, brand, material, 
                                                     category, minPrice, maxPrice);
     }
+
+    public Item save(Item item) {
+        return itemRepository.save(item);
+    }
 }
