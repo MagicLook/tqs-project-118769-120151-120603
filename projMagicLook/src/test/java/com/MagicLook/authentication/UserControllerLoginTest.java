@@ -102,7 +102,7 @@ class UserControllerLoginTest {
         String viewName = userController.login(username, password, session, model);
 
         assertEquals("login", viewName);
-        verify(model).addAttribute(eq("error"), eq("Usuário ou senha inválidos!"));
+        verify(model).addAttribute(eq("error"), eq("Utilizador ou palavra-passe inválidos!"));
         verify(model).addAttribute(eq("loginRequest"), any());
         verify(session, never()).setAttribute(anyString(), any());
         verify(userService).login(username, password);
@@ -118,7 +118,7 @@ class UserControllerLoginTest {
         String viewName = userController.login(username, password, session, model);
 
         assertEquals("login", viewName);
-        verify(model).addAttribute(eq("error"), eq("Usuário ou senha inválidos!"));
+        verify(model).addAttribute(eq("error"), eq("Utilizador ou palavra-passe inválidos!"));
         verify(userService).login(username, password);
     }
     

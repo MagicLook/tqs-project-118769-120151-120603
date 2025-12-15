@@ -2,11 +2,12 @@ package com.MagicLook.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class UserRegistrationDTO {
     
-    @NotBlank(message = "Username é obrigatório")
+    @NotBlank(message = "Nome de Utilizador é obrigatório")
     private String username;
     
     @Email(message = "Email inválido")
@@ -18,11 +19,17 @@ public class UserRegistrationDTO {
     private String password;
     
     @NotBlank(message = "Primeiro nome é obrigatório")
+    @Size(min = 2, message = "Primeiro nome deve ter pelo menos 2 letras")
+    @Pattern(regexp = "^[\\p{L}-]+(?: [\\p{L}-]+)*$", message = "Primeiro nome: só letras e hífenes são permitidos")
     private String firstName;
-    
+
     @NotBlank(message = "Último nome é obrigatório")
+    @Size(min = 2, message = "Último nome deve ter pelo menos 2 letras")
+    @Pattern(regexp = "^[\\p{L}-]+(?: [\\p{L}-]+)*$", message = "Último nome: só letras e hífenes são permitidos")
     private String lastName;
-    
+
+    @NotBlank(message = "Telefone é obrigatório")
+    @Pattern(regexp = "^[0-9]{9}$", message = "Telefone deve conter exatamente 9 dígitos numéricos")
     private String telephone;
     
     public UserRegistrationDTO() {}
