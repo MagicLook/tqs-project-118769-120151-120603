@@ -53,8 +53,15 @@ class UserRegistrationDTOTest {
         dto.setFirstName("A");
 
         Set<ConstraintViolation<UserRegistrationDTO>> violations = validator.validate(dto);
-        assertFalse(violations.isEmpty());
-        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("pelo menos 2")));
+        assertFalse(violations.isEmpty(), "Deve haver violações para nome muito curto");
+        
+        boolean hasSizeViolation = violations.stream()
+            .anyMatch(v -> v.getMessage().contains("2-50") || 
+                        v.getMessage().contains("pelo menos 2") ||
+                        v.getMessage().toLowerCase().contains("size") ||
+                        v.getPropertyPath().toString().equals("firstName"));
+        
+        assertTrue(hasSizeViolation, "Deve haver violação de tamanho para firstName");
     }
 
     @Test

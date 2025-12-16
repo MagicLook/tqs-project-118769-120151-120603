@@ -23,6 +23,17 @@ public class UserController {
 
     private final UserService userService;
     private final ItemService itemService;
+    
+    // Constantes para evitar strings duplicadas
+    private static final String VIEW_REGISTER = "register";
+    private static final String VIEW_LOGIN = "login";
+    private static final String ATTR_SUCCESS = "success";
+    private static final String ATTR_ERROR = "error";
+    private static final String ATTR_LOGGED_IN_USER = "loggedInUser";
+    private static final String REDIRECT_LOGIN = "redirect:/magiclook/login";
+    private static final String ATTR_ACTIVE_PAGE = "activePage";
+    private static final String ATTR_CART_COUNT = "cartCount";
+    private static final String VIEW_DASHBOARD = "dashboard";
 
     @Autowired
     public UserController(UserService userService, ItemService itemService) {
@@ -35,7 +46,7 @@ public class UserController {
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
         model.addAttribute("user", new UserRegistrationDTO());
-        return "register";
+        return VIEW_REGISTER;
     }
 
     @PostMapping("/register")
@@ -44,16 +55,16 @@ public class UserController {
                           Model model) {
         
         if (result.hasErrors()) {
-            return "register";
+            return VIEW_REGISTER;
         }
         
         try {
             userService.register(userDTO);
-            model.addAttribute("success", "Registro realizado com sucesso! Faça login.");
-            return "redirect:/magiclook/login?success"; // Redireciona para login
+            model.addAttribute(ATTR_SUCCESS, "Registro realizado com sucesso! Faça login.");
+            return REDIRECT_LOGIN + "?success"; // Redireciona para login
         } catch (RuntimeException e) {
-            model.addAttribute("error", e.getMessage());
-            return "register";
+            model.addAttribute(ATTR_ERROR, e.getMessage());
+            return VIEW_REGISTER;
         }
     }
 
@@ -63,11 +74,11 @@ public class UserController {
     public String showLoginForm(Model model) {
         model.addAttribute("loginRequest", new LoginDTO());
         
-        if (model.containsAttribute("success")) {
-            model.addAttribute("success", "Registro realizado com sucesso!");
+        if (model.containsAttribute(ATTR_SUCCESS)) {
+            model.addAttribute(ATTR_SUCCESS, "Registro realizado com sucesso!");
         }
         
-        return "login";
+        return VIEW_LOGIN;
     }
 
     @PostMapping("/login")
@@ -79,15 +90,15 @@ public class UserController {
         User user = userService.login(username, password);
         
         if (user != null) {
-            session.setAttribute("loggedInUser", user);
+            session.setAttribute(ATTR_LOGGED_IN_USER, user);
             session.setAttribute("userId", user.getUserId());
             session.setAttribute("userName", user.getFirstName());
             
             return "redirect:/magiclook/dashboard";
         } else {
-            model.addAttribute("error", "Utilizador ou palavra-passe inválidos!");
+            model.addAttribute(ATTR_ERROR, "Utilizador ou palavra-passe inválidos!");
             model.addAttribute("loginRequest", new LoginDTO(username, password));
-            return "login";
+            return VIEW_LOGIN;
         }
     }
 
@@ -104,10 +115,10 @@ public class UserController {
     }
     
     private String showGenderItems(HttpSession session, Model model, String gender, String pageName) {
-        User user = (User) session.getAttribute("loggedInUser");
+        User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
         
         if (user == null) {
-            return "redirect:/magiclook/login";
+            return REDIRECT_LOGIN;
         }
         
         // Buscar itens para o gênero específico (sem filtros)
@@ -123,7 +134,7 @@ public class UserController {
         model.addAttribute("user", user);
         model.addAttribute("items", items);
         model.addAttribute("itemCount", items.size());
-        model.addAttribute("activePage", pageName);
+        model.addAttribute(ATTR_ACTIVE_PAGE, pageName);
         model.addAttribute("gender", pageName);
         
         return "items/" + pageName;
@@ -137,10 +148,10 @@ public class UserController {
                              HttpSession session,
                              Model model) {
         
-        User user = (User) session.getAttribute("loggedInUser");
+        User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
         
         if (user == null) {
-            return "redirect:/magiclook/login";
+            return REDIRECT_LOGIN;
         }
         
         String genderCode = "women".equals(gender) ? "F" : "M";
@@ -166,7 +177,7 @@ public class UserController {
         model.addAttribute("user", user);
         model.addAttribute("items", filteredItems);
         model.addAttribute("itemCount", filteredItems.size());
-        model.addAttribute("activePage", gender);
+        model.addAttribute(ATTR_ACTIVE_PAGE, gender);
         model.addAttribute("gender", gender);
         model.addAttribute("hasFilters", filter.hasFilters());
         
@@ -184,10 +195,10 @@ public class UserController {
 
     @GetMapping("/dashboard")
     public String showDashboard(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("loggedInUser");
+        User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
         
         if (user == null) {
-            return "redirect:/magiclook/login";
+            return REDIRECT_LOGIN;
         }
         
         // Buscar itens recentes
@@ -195,9 +206,9 @@ public class UserController {
         
         model.addAttribute("user", user);
         model.addAttribute("recentItems", recentItems);
-        model.addAttribute("cartCount", session.getAttribute("cartCount") != null ? session.getAttribute("cartCount") : 0);
-        model.addAttribute("activePage", "dashboard");
-        return "dashboard";
+        model.addAttribute(ATTR_CART_COUNT, session.getAttribute(ATTR_CART_COUNT) != null ? session.getAttribute(ATTR_CART_COUNT) : 0);
+        model.addAttribute(ATTR_ACTIVE_PAGE, "dashboard");
+        return VIEW_DASHBOARD;
     }
 
     // ========== LOGOUT ==========
@@ -207,6 +218,6 @@ public class UserController {
         if (session != null) {
             session.invalidate();
         }
-        return "redirect:/magiclook/login?logout";
+        return REDIRECT_LOGIN + "?logout";
     }
 }

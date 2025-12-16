@@ -19,13 +19,13 @@ public class UserRegistrationDTO {
     private String password;
     
     @NotBlank(message = "Primeiro nome é obrigatório")
-    @Size(min = 2, message = "Primeiro nome deve ter pelo menos 2 letras")
-    @Pattern(regexp = "^[\\p{L}-]+(?: [\\p{L}-]+)*$", message = "Primeiro nome: só letras e hífenes são permitidos")
+    @Size(min = 2, max = 50, message = "Primeiro nome deve ter 2-50 caracteres")
+    @Pattern(regexp = "^[\\p{L}\\s-]+$", message = "Só letras, espaços e hífenes")
     private String firstName;
 
     @NotBlank(message = "Último nome é obrigatório")
-    @Size(min = 2, message = "Último nome deve ter pelo menos 2 letras")
-    @Pattern(regexp = "^[\\p{L}-]+(?: [\\p{L}-]+)*$", message = "Último nome: só letras e hífenes são permitidos")
+    @Size(min = 2, max = 50, message = "Último nome deve ter 2-50 caracteres")
+    @Pattern(regexp = "^[\\p{L}\\s-]+$", message = "Só letras, espaços e hífenes")
     private String lastName;
 
     @NotBlank(message = "Telefone é obrigatório")
@@ -51,4 +51,15 @@ public class UserRegistrationDTO {
     
     public String getTelephone() { return telephone; }
     public void setTelephone(String telephone) { this.telephone = telephone; }
+
+    /**
+     * Método vazio mantido para compatibilidade futura.
+     * TODO: Implementar lógica específica se necessário.
+     * Este método foi deixado vazio intencionalmente para permitir
+     * extensões futuras sem quebrar a API existente.
+     */
+    public void placeholderMethod() {
+        // Intencionalmente vazio - reservado para funcionalidade futura
+        // throw new UnsupportedOperationException("Método não implementado ainda");
+    }
 }
