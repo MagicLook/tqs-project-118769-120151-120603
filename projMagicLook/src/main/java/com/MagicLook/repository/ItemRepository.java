@@ -1,4 +1,4 @@
-package com.MagicLook.repository;
+package com.magiclook.repository;
 
 import com.MagicLook.data.Item;
 import com.MagicLook.data.Shop;

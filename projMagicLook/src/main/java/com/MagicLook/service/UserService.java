@@ -1,4 +1,4 @@
-package com.MagicLook.service;
+package com.magiclook.service;
 
 import com.MagicLook.dto.UserRegistrationDTO;
 import com.MagicLook.data.User;

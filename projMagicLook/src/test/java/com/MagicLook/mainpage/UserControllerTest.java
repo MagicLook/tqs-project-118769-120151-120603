@@ -1,4 +1,4 @@
-package com.MagicLook.mainpage;
+package com.magiclook.mainpage;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

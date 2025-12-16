@@ -1,4 +1,4 @@
-package com.MagicLook.data;
+package com.magiclook.data;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;

@@ -1,4 +1,4 @@
-package com.MagicLook.dto;
+package com.magiclook.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

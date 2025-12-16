@@ -1,4 +1,4 @@
-package com.MagicLook.data;
+package com.magiclook.data;
 
 import org.junit.jupiter.api.Test;
 

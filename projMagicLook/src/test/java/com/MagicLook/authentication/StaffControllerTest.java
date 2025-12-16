@@ -1,4 +1,4 @@
-package com.MagicLook.authentication;
+package com.magiclook.authentication;
 
 import com.MagicLook.boundary.StaffController;
 import com.MagicLook.data.Staff;

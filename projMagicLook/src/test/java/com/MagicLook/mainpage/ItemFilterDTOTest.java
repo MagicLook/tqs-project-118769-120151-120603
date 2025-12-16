@@ -1,4 +1,4 @@
-package com.MagicLook.dto;
+package com.magiclook.mainpage;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

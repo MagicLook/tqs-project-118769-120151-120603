@@ -1,4 +1,4 @@
-package com.MagicLook.US5_Test;
+package com.magiclook.US5_Test;
 
 import com.MagicLook.data.*;
 import com.MagicLook.service.*;

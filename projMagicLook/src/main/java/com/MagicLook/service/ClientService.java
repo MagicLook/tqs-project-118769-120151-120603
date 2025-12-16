@@ -1,4 +1,4 @@
-package com.MagicLook.service;
+package com.magiclook.service;
 
 public class ClientService implements BaseService {
     public int BookingItem() {

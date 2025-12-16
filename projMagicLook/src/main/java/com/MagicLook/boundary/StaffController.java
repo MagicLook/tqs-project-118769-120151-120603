@@ -1,4 +1,4 @@
-package com.MagicLook.boundary;
+package com.magiclook.boundary;
 
 import com.MagicLook.data.*;
 import com.MagicLook.service.*;

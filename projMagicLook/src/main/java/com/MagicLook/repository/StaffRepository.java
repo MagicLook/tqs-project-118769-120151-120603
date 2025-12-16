@@ -1,4 +1,4 @@
-package com.MagicLook.repository;
+package com.magiclook.repository;
 
 import com.MagicLook.data.Staff;
 import org.springframework.data.jpa.repository.JpaRepository;

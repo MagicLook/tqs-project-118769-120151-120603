@@ -1,4 +1,4 @@
-package com.MagicLook.service;
+package com.magiclook.service;
 
 import com.MagicLook.data.*;
 import com.MagicLook.dto.*;

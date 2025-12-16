@@ -1,4 +1,4 @@
-package com.MagicLook.service;
+package com.magiclook.service;
 
 import com.MagicLook.data.Item;
 import com.MagicLook.data.Shop;

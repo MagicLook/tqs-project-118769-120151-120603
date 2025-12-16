@@ -1,4 +1,4 @@
-package com.MagicLook.boundary;
+package com.magiclook.boundary;
 
 import com.MagicLook.dto.UserRegistrationDTO;
 import com.MagicLook.data.User;

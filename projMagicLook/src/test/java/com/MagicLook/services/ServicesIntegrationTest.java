@@ -1,4 +1,4 @@
-package com.MagicLook.services;
+package com.magiclook.services;
 
 import com.MagicLook.service.ItemService;
 import com.MagicLook.service.StaffService;

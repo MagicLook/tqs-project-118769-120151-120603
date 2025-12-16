@@ -1,4 +1,4 @@
-package com.MagicLook.authentication;
+package com.magiclook.authentication;
 
 import com.MagicLook.dto.StaffLoginDTO;
 import org.junit.jupiter.api.Test;
