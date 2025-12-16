@@ -354,12 +354,13 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form id="addItemForm" enctype="multipart/form-data">
+                    <input type="hidden" name="shop" th:value="${shop.shopId}">
                     <div class="modal-body">
                         <!-- Género -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">Género da Roupa</label>
                             <select id="genderSelect" name="gender" class="form-select" required>
-                                <option value="">Selecione o género...</option>
+                                <option value="" selected>Selecione o género...</option>
                                 <option value="M">Homem</option>
                                 <option value="F">Mulher</option>
                             </select>
@@ -446,43 +447,39 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Atualizar hora atual
-        function updateTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('pt-PT', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            document.getElementById('currentTime').textContent = timeString;
-        }
-        
-        setInterval(updateTime, 1000);
-        updateTime();
-
         // Categorias de roupa por género
         const categories = {
-            'M': ['Camiseta', 'Calça', 'Blazer', 'Jaqueta', 'Sapatos', 'Acessórios'],
-            'F': ['Vestido', 'Saia', 'Blusa', 'Jaqueta', 'Sapatos', 'Acessórios']
+            'F': ['Vestido Curto', 'Vestido Médio', 'Vestido Longo', 'Macacão Curto', 'Macacão Médio', 'Macacão Longo'],
+            'M': ['Fato Simples', 'Fato de três peças']
         };
 
         // Atualizar categorias quando o género muda
-        document.getElementById('genderSelect').addEventListener('change', function() {
-            const gender = this.value;
-            const categorySelect = document.getElementById('categorySelect');
-            
-            if (gender && categories[gender]) {
-                categorySelect.innerHTML = '<option value="">Selecione o tipo de roupa...</option>';
-                categories[gender].forEach(cat => {
-                    const option = document.createElement('option');
-                    option.value = cat;
-                    option.textContent = cat;
-                    categorySelect.appendChild(option);
-                });
-            } else {
-                categorySelect.innerHTML = '<option value="">Selecione primeiro o género...</option>';
-            }
-        });
+        const genderSelect = document.getElementById('genderSelect');
+        console.log('genderSelect elemento:', genderSelect);
+        
+        if (genderSelect) {
+            genderSelect.addEventListener('change', function() {
+                console.log('Mudança de género detectada:', this.value);
+                const gender = this.value;
+                const categorySelect = document.getElementById('categorySelect');
+                
+                if (gender && categories[gender]) {
+                    console.log('Categorias encontradas para:', gender, categories[gender]);
+                    categorySelect.innerHTML = '<option value="">Selecione o tipo de roupa...</option>';
+                    categories[gender].forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat;
+                        option.textContent = cat;
+                        categorySelect.appendChild(option);
+                    });
+                } else {
+                    console.log('Nenhuma categoria para:', gender);
+                    categorySelect.innerHTML = '<option value="">Selecione primeiro o género...</option>';
+                }
+            });
+        } else {
+            console.error('ERRO: genderSelect não encontrado!');
+        }
 
         // Lidar com submit do formulário com imagem
         document.getElementById('addItemForm').addEventListener('submit', async function(e) {
@@ -493,44 +490,16 @@
             submitBtn.disabled = true;
             
             try {
-                // Verificar se há imagem
-                const fileInput = this.querySelector('input[name="image"]');
+                // Enviar todo o formulário diretamente (inclui imagem)
+                const formData = new FormData(this);
                 
-                if (fileInput.files.length > 0) {
-                    // Se tem imagem, fazer upload primeiro
-                    const file = fileInput.files[0];
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    
-                    const uploadRes = await fetch('/api/upload/item', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    if (!uploadRes.ok) {
-                        throw new Error('Erro ao fazer upload da imagem');
-                    }
-                    
-                    const uploadData = await uploadRes.json();
-                    if (uploadData.success) {
-                        // Adicionar o caminho da imagem ao formulário
-                        const imagePathInput = document.createElement('input');
-                        imagePathInput.type = 'hidden';
-                        imagePathInput.name = 'imagePath';
-                        imagePathInput.value = uploadData.imagePath;
-                        this.appendChild(imagePathInput);
-                    }
-                }
-                
-                // Agora fazer submit do item
-                const itemFormData = new FormData(this);
-                const itemRes = await fetch('/magiclook/staff/item', {
+                const response = await fetch('/magiclook/staff/item', {
                     method: 'POST',
-                    body: itemFormData
+                    body: formData  // multipart/form-data automático
                 });
                 
-                if (!itemRes.ok) {
-                    const errorText = await itemRes.text();
+                if (!response.ok) {
+                    const errorText = await response.text();
                     throw new Error(errorText || 'Erro ao guardar item');
                 }
                 
@@ -539,12 +508,12 @@
                 messageDiv.textContent = '✓ Item adicionado com sucesso!';
                 messageDiv.style.display = 'block';
                 
-                // Resetar formulário e fechar modal após 1s
+                // Resetar formulário e fechar modal após 1.5s
                 setTimeout(() => {
                     this.reset();
                     document.getElementById('categorySelect').innerHTML = '<option value="">Selecione primeiro o género...</option>';
                     bootstrap.Modal.getInstance(document.getElementById('addItemModal')).hide();
-                    location.reload(); // Atualizar a tabela de itens
+                    location.reload();
                 }, 1500);
                 
             } catch (error) {
