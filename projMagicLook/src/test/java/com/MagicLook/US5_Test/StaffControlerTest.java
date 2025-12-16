@@ -1,11 +1,11 @@
 package com.magiclook.US5_Test;
 
-import com.MagicLook.data.Staff;
-import com.MagicLook.data.Shop;
-import com.MagicLook.dto.ItemDTO;
-import com.MagicLook.service.StaffService;
-import com.MagicLook.service.ItemService;
-import com.MagicLook.boundary.StaffController;
+import com.magiclook.data.Staff;
+import com.magiclook.data.Shop;
+import com.magiclook.dto.ItemDTO;
+import com.magiclook.service.StaffService;
+import com.magiclook.service.ItemService;
+import com.magiclook.boundary.StaffController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;

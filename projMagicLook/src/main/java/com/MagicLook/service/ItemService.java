@@ -1,8 +1,8 @@
 package com.magiclook.service;
 
-import com.MagicLook.data.Item;
-import com.MagicLook.data.Shop;
-import com.MagicLook.repository.ItemRepository;
+import com.magiclook.data.Item;
+import com.magiclook.data.Shop;
+import com.magiclook.repository.ItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.MagicLook.dto.ItemFilterDTO;
+import com.magiclook.dto.ItemFilterDTO;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

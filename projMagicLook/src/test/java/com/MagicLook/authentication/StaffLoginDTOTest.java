@@ -1,6 +1,6 @@
 package com.magiclook.authentication;
 
-import com.MagicLook.dto.StaffLoginDTO;
+import com.magiclook.dto.StaffLoginDTO;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

@@ -1,9 +1,9 @@
 package com.magiclook.US5_Test;
 
-import com.MagicLook.data.*;
-import com.MagicLook.service.*;
-import com.MagicLook.dto.ItemDTO;
-import com.MagicLook.repository.*;
+import com.magiclook.data.*;
+import com.magiclook.service.*;
+import com.magiclook.dto.ItemDTO;
+import com.magiclook.repository.*;
 
 import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;

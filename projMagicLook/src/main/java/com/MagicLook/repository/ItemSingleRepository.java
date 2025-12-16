@@ -1,6 +1,6 @@
 package com.magiclook.repository;
 
-import com.MagicLook.data.ItemSingle;
+import com.magiclook.data.ItemSingle;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.UUID;

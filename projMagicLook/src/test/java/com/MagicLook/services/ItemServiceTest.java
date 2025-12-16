@@ -1,9 +1,9 @@
 package com.magiclook.services;
 
-import com.MagicLook.data.Item;
-import com.MagicLook.data.Shop;
-import com.MagicLook.service.ItemService;
-import com.MagicLook.repository.ItemRepository;
+import com.magiclook.data.Item;
+import com.magiclook.data.Shop;
+import com.magiclook.service.ItemService;
+import com.magiclook.repository.ItemRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

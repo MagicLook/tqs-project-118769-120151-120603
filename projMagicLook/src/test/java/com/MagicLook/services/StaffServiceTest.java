@@ -1,10 +1,10 @@
 package com.magiclook.services;
 
-import com.MagicLook.data.Staff;
-import com.MagicLook.data.Shop;
-import com.MagicLook.repository.StaffRepository;
-import com.MagicLook.repository.ShopRepository;
-import com.MagicLook.service.StaffService;
+import com.magiclook.data.Staff;
+import com.magiclook.data.Shop;
+import com.magiclook.repository.StaffRepository;
+import com.magiclook.repository.ShopRepository;
+import com.magiclook.service.StaffService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

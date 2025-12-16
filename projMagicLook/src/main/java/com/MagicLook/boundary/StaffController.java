@@ -1,8 +1,8 @@
 package com.magiclook.boundary;
 
-import com.MagicLook.data.*;
-import com.MagicLook.service.*;
-import com.MagicLook.dto.*;
+import com.magiclook.data.*;
+import com.magiclook.service.*;
+import com.magiclook.dto.*;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -35,7 +35,7 @@ public class StaffController {
     
     @GetMapping("/login")
     public String showStaffLoginForm(Model model) {
-        model.addAttribute("staffLogin", new com.MagicLook.dto.StaffLoginDTO());
+        model.addAttribute("staffLogin", new com.magiclook.dto.StaffLoginDTO());
         return "staffLogin";
     }
 

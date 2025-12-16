@@ -3,12 +3,12 @@ package com.magiclook.mainpage;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.MagicLook.dto.ItemFilterDTO;
-import com.MagicLook.boundary.UserController;
-import com.MagicLook.data.User;
-import com.MagicLook.data.Item;
-import com.MagicLook.service.UserService;
-import com.MagicLook.service.ItemService;
+import com.magiclook.dto.ItemFilterDTO;
+import com.magiclook.boundary.UserController;
+import com.magiclook.data.User;
+import com.magiclook.data.Item;
+import com.magiclook.service.UserService;
+import com.magiclook.service.ItemService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -180,7 +180,7 @@ public class UserControllerTest {
             item.setItemId(i);
             item.setName("Item " + i + " " + gender);
             
-            com.MagicLook.data.ItemType itemType = new com.MagicLook.data.ItemType();
+            com.magiclook.data.ItemType itemType = new com.magiclook.data.ItemType();
             itemType.setGender(gender);
             item.setItemType(itemType);
             

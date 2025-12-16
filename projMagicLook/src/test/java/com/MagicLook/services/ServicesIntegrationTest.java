@@ -1,8 +1,8 @@
 package com.magiclook.services;
 
-import com.MagicLook.service.ItemService;
-import com.MagicLook.service.StaffService;
-import com.MagicLook.service.UserService;
+import com.magiclook.service.ItemService;
+import com.magiclook.service.StaffService;
+import com.magiclook.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

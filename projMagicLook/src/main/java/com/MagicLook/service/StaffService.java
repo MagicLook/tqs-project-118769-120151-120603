@@ -1,8 +1,8 @@
 package com.magiclook.service;
 
-import com.MagicLook.data.*;
-import com.MagicLook.dto.*;
-import com.MagicLook.repository.*;
+import com.magiclook.data.*;
+import com.magiclook.dto.*;
+import com.magiclook.repository.*;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
