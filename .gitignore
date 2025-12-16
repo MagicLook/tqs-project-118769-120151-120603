@@ -19,8 +19,9 @@
 *.tar.gz
 *.rar
 
-projMagicLook/pom.xml
-pom.xml
+# Github Actions não consegue ver depois :(
+# projMagicLook/pom.xml
+# pom.xml
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
