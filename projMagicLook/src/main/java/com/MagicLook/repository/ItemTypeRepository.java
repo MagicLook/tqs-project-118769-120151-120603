@@ -7,5 +7,7 @@ import com.MagicLook.data.*;
 
 @Repository
 public interface ItemTypeRepository extends JpaRepository<ItemType, Integer>{
-    
+
+    public ItemType findByGenderAndCategoryAndSubcategory(String gender, String category, String subcategory);
+
 }

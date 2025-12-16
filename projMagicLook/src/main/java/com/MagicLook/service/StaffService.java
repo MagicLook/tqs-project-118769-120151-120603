@@ -35,39 +35,61 @@ public class StaffService extends ClientService {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Autowired
+    private ItemSingleRepository itemSingleRepository;
+
     @Value("${app.upload.dir}")
     private String uploadDir;
 
-    private ItemSingleRepository itemSingleRepository;
-
-    StaffService (ItemRepository itemRepository, ShopRepository shopRepository, ItemTypeRepository itemTypeRepository) {
+    StaffService (ItemRepository itemRepository, ShopRepository shopRepository, ItemTypeRepository itemTypeRepository, ItemSingleRepository itemSingleRepository) {
         this.itemRepository = itemRepository;
         this.shopRepository = shopRepository;
         this.itemTypeRepository = itemTypeRepository;
+        this.itemSingleRepository = itemSingleRepository;
     }
 
-    public String saveImage(MultipartFile image, Long itemId) throws IOException {
-        if (image.isEmpty()) {
+    public String saveImage(MultipartFile image, Integer itemId) throws IOException {
+        System.out.println("=== SAVE IMAGE ===");
+        System.out.println("Image null? " + (image == null));
+        
+        if (image == null || image.isEmpty()) {
+            System.out.println("Imagem vazia ou null, retornando null");
             return null;
         }
 
-        Path uploadPath = Paths.get(uploadDir);
-        Files.createDirectories(uploadPath);
+        System.out.println("Nome original: " + image.getOriginalFilename());
+        System.out.println("Tamanho: " + image.getSize() + " bytes");
+        System.out.println("Content-Type: " + image.getContentType());
+        System.out.println("Upload dir: " + uploadDir);
 
-        String fileName = String.format("item_%d", itemId);
+        Path uploadPath = Paths.get(uploadDir);
+        System.out.println("Upload path: " + uploadPath.toAbsolutePath());
+        
+        Files.createDirectories(uploadPath);
+        System.out.println("Diretório criado/verificado");
+
+        String safeOriginal = image.getOriginalFilename() == null ? "file" : image.getOriginalFilename().replaceAll("[^a-zA-Z0-9._-]", "_");
+        String idPart = (itemId != null) ? String.valueOf(itemId) : UUID.randomUUID().toString().substring(0,8);
+        String fileName = String.format("item_%s_%s", idPart, safeOriginal);
+        System.out.println("Nome do ficheiro: " + fileName);
+        
         Path filePath = uploadPath.resolve(fileName);
+        System.out.println("Caminho completo: " + filePath.toAbsolutePath());
 
         image.transferTo(filePath);
+        System.out.println("Ficheiro guardado com sucesso!");
 
-        return uploadDir + "/" + fileName;
+        String returnPath = uploadDir + "/" + fileName;
+        System.out.println("Caminho retornado: " + returnPath);
+        
+        return returnPath;
     }
 
     public int addItem(ItemDTO itemDTO) {
+
         // Verificar se os atributos estão certos
-
         List<String> sizes = Arrays.asList("XS", "S", "M", "L", "XL");
-        List<String> materials = Arrays.asList("Algodão", "Poliéster", "Lã", "Seda", "Couro", "Nylon", "Linho", "Veludo", "Jeans");
-
+        List<String> materials = Arrays.asList("Algodão", "Poliéster", "Seda", "Couro","Veludo");
 
         if (!sizes.contains(itemDTO.getSize())) {
             return -1;
@@ -77,25 +99,41 @@ public class StaffService extends ClientService {
             return -2;
         }
 
-        List<Item> result = itemRepository.findByNameAndMaterialAndColorAndBrandAndSize(itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(), itemDTO.getSize());
+        List<Item> found = itemRepository.findByNameAndMaterialAndColorAndBrandAndSize(
+            itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(), itemDTO.getSize());
 
-        if (result.isEmpty()) {
-
-            Item item = this.createItem(itemDTO);
-        
-            itemRepository.saveAndFlush(item);
-
+        Item itemToUse;
+        if (found.isEmpty()) {
+            Item created = this.createItem(itemDTO);
+            
+            if (created == null) {
+                // Shop inexistente ou itemType não encontrado
+                return -3;
+            }
+            if (itemDTO.getImagePath() != null && !itemDTO.getImagePath().isEmpty()) {
+                created.setImagePath(itemDTO.getImagePath());
+            }
+            itemToUse = itemRepository.saveAndFlush(created);
+        } else {
+            itemToUse = found.get(0);
         }
-        
-        ItemSingle itemSingle = new ItemSingle("AVAILABLE", this.createItem(itemDTO));
+
+        // Criar unidade individual para o item (stock)
+        ItemSingle itemSingle = new ItemSingle("AVAILABLE", itemToUse);
 
         itemSingleRepository.saveAndFlush(itemSingle);
-        
+
+        if (itemToUse.getItemId() != null) {
+            itemDTO.setItemId(itemToUse.getItemId());
+        }
+
         return 0;
     }
 
     @PostConstruct
     public void initializeStaff() {
+        seedDefaultItemTypes();
+
         if (staffRepository.count() == 0) {
             // Criar lojas se não existirem
             List<Shop> shops = Arrays.asList(
@@ -114,6 +152,40 @@ public class StaffService extends ClientService {
             
             staffRepository.saveAll(staffList);
             System.out.println("Staff inicializado com 3 administradores");
+        }
+    }
+
+    private void seedDefaultItemTypes() {
+        // Estrutura: gender -> categoria -> lista de subcategorias
+        Map<String, Map<String, List<String>>> defaults = new HashMap<>();
+        
+        // MULHER
+        Map<String, List<String>> female = new HashMap<>();
+        female.put("Vestidos", Arrays.asList("Curto", "Médio", "Longo"));
+        female.put("Macacões", Arrays.asList("Curto", "Médio", "Longo"));
+        defaults.put("F", female);
+        
+        // HOMEM
+        Map<String, List<String>> male = new HashMap<>();
+        male.put("Fatos", Arrays.asList("Simples", "Três Peças"));
+        defaults.put("M", male);
+
+        int created = 0;
+        for (Map.Entry<String, Map<String, List<String>>> genderEntry : defaults.entrySet()) {
+            String gender = genderEntry.getKey();
+            for (Map.Entry<String, List<String>> categoryEntry : genderEntry.getValue().entrySet()) {
+                String category = categoryEntry.getKey();
+                for (String subcategory : categoryEntry.getValue()) {
+                    ItemType existing = itemTypeRepository.findByGenderAndCategoryAndSubcategory(gender, category, subcategory);
+                    if (existing == null) {
+                        itemTypeRepository.save(new ItemType(gender, category, subcategory));
+                        created++;
+                    }
+                }
+            }
+        }
+        if (created > 0) {
+            System.out.println("Seeded " + created + " ItemType(s)");
         }
     }
     
@@ -142,13 +214,12 @@ public class StaffService extends ClientService {
     // Auxiliar Methods
     private Item createItem(ItemDTO itemDTO) {
         Optional<Shop> optionalShop = shopRepository.findById(itemDTO.getShopId());
-        Optional<ItemType> optionalItemType = itemTypeRepository.findById(itemDTO.getItemTypeId());
+        ItemType itemType = itemTypeRepository.findByGenderAndCategoryAndSubcategory(itemDTO.getGender(), itemDTO.getCategory(), itemDTO.getSubcategory());
 
-        if (optionalShop.isEmpty() || optionalItemType.isEmpty())
+        if (optionalShop.isEmpty() || itemType == null)
             return null;
 
         Shop shop = optionalShop.get();
-        ItemType itemType = optionalItemType.get();
 
         return new Item(itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(), itemDTO.getSize(), itemDTO.getPriceRent(), itemDTO.getPriceSale(), shop, itemType);
     }

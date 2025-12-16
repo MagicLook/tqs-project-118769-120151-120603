@@ -1,14 +1,12 @@
 package com.MagicLook.dto;
 
-import com.MagicLook.data.*;
-
 import java.math.BigDecimal;
-import java.util.UUID;
+
 import jakarta.validation.constraints.*;
 
 public class ItemDTO {
 
-    private UUID itemId;
+    private Integer itemId;
     
     private String name;
     private String material;
@@ -29,16 +27,18 @@ public class ItemDTO {
 
     @NotNull
     private String category;
+    
+    @NotNull
+    private String subcategory;
+    
+    private String imagePath;
 
-
-    // Constructors
-    // Needs this??
     public ItemDTO() {
 
     }
 
     public ItemDTO(String name, String material, String color, String brand, String size,
-                BigDecimal priceRent, BigDecimal priceSale, Integer shopId, String gender, String category) {
+                BigDecimal priceRent, BigDecimal priceSale, Integer shopId, String gender, String category, String subcategory) {
         
         this.name = name;
         this.material = material;
@@ -50,11 +50,12 @@ public class ItemDTO {
         this.shopId = shopId;
         this.gender = gender;
         this.category = category;
+        this.subcategory = subcategory;
     }
 
     // Getters
     
-    public UUID getItemId() {
+    public Integer getItemId() {
         return itemId;
     }
 
@@ -100,5 +101,71 @@ public class ItemDTO {
 
     public String getCategory() {
         return category;
+    }
+
+    public String getSubcategory() {
+        return subcategory;
+    }
+    
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    // Setters
+    public void setItemId(Integer itemId) {
+        this.itemId = itemId;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setMaterial(String material) {
+        this.material = material;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public void setPriceRent(BigDecimal priceRent) {
+        this.priceRent = priceRent;
+    }
+
+    public void setPriceSale(BigDecimal priceSale) {
+        this.priceSale = priceSale;
+    }
+
+    public void setShopId(Integer shopId) {
+        this.shopId = shopId;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public void setSubcategory(String subcategory) {
+        this.subcategory = subcategory;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 }

@@ -97,60 +97,85 @@ public class StaffController {
             @RequestParam BigDecimal priceSale,
             @RequestParam String gender,
             @RequestParam String category,
+            @RequestParam String subcategory,
             @RequestParam Integer shop,
             @RequestParam(required = false) MultipartFile image,
             HttpSession session,
             Model model) {
         
         try {
+            System.out.println("=== ADICIONAR ITEM ===");
+            System.out.println("Name: " + name);
+            System.out.println("Brand: " + brand);
+            System.out.println("Material: " + material);
+            System.out.println("Color: " + color);
+            System.out.println("Size: " + size);
+            System.out.println("Gender: " + gender);
+            System.out.println("Category: " + category);
+            System.out.println("Subcategory: " + subcategory);
+            System.out.println("Shop ID: " + shop);
 
             Staff staff = (Staff) session.getAttribute("loggedInStaff");
 
             if (staff == null) {
+                System.out.println("ERRO: Staff não está logado");
                 return "redirect:/magiclook/staff/login";
             }
-
-            // Converter em ItemDDTO
-            ItemDTO itemDTO = new ItemDTO(name, material, color, brand, size,
-                                          priceRent, priceSale, shop, gender, category);
             
+            System.out.println("Staff logado: " + staff.getName());
+
+            // Converter em ItemDTO
+            ItemDTO itemDTO = new ItemDTO(
+                name,       
+                material,   
+                color,      
+                brand,      
+                size,       
+                priceRent,  
+                priceSale,  
+                shop,
+                gender,     
+                category,
+                subcategory 
+            );
+            
+            System.out.println("Chamando staffService.addItem()...");
             int result = staffService.addItem(itemDTO);
-        
+            System.out.println("Resultado: " + result);
+            
             // Resto de validações
             if (result == -1) {
+                System.out.println("ERRO: Tamanho inválido");
                 model.addAttribute("error", "Tamanho inválido!");
                 return "staffDashboard";
+
             } else if (result == -2) {
+                System.out.println("ERRO: Material inválido");
                 model.addAttribute("error", "Material inválido!");
+                return "staffDashboard";
+
+            } else if (result == -3) {
+                System.out.println("ERRO: Shop ou ItemType inválido");
+                model.addAttribute("error", "Shop ou ItemType inválido!");
                 return "staffDashboard";
             }
 
             // Guardar imagem se fornecida
             String imagePath = null;
             if (image != null && !image.isEmpty()) {
-                staffService.saveImage(image, 1L);
+                System.out.println("Upload de imagem: " + image.getOriginalFilename());
+                imagePath = staffService.saveImage(image, itemDTO.getItemId());
+                System.out.println("Imagem guardada em: " + imagePath);
             }
             
-            // Criar novo item
-            Item item = new Item();
-            item.setName(name);
-            item.setBrand(brand);
-            item.setMaterial(material);
-            item.setColor(color);
-            item.setSize(size);
-            item.setPriceRent(priceRent);
-            item.setPriceSale(priceSale);
-            item.setImagePath(imagePath);
-            item.setShop(staff.getShop());
+            itemDTO.setImagePath(imagePath);
             
-            // TODO: Buscar ou criar ItemType baseado em gender e category
-            // Por enquanto, isso seria feito no service
-            
-            itemService.save(item);
-            
+            System.out.println("Item adicionado com sucesso!");
             return "redirect:/magiclook/staff/dashboard";
             
         } catch (Exception e) {
+            System.err.println("ERRO AO ADICIONAR ITEM: " + e.getMessage());
+            e.printStackTrace();
             model.addAttribute("error", "Erro ao adicionar item: " + e.getMessage());
             return "staffDashboard";
         }

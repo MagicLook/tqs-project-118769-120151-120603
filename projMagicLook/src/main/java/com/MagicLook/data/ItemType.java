@@ -14,15 +14,17 @@ public class ItemType implements Serializable{
 
     private String gender;
     private String category;
+    private String subcategory;
 
     // Constructors
     public ItemType() {
 
     }
 
-    public ItemType(String gender, String category) {
+    public ItemType(String gender, String category, String subcategory) {
         this.gender = gender;
         this.category = category;
+        this.subcategory = subcategory;
     }
 
     // Setters
@@ -48,5 +50,13 @@ public class ItemType implements Serializable{
 
     public void setCategory(String category) {
         this.category = category;
+    }
+    
+    public String getSubcategory() {
+        return subcategory;
+    }
+
+    public void setSubcategory(String subcategory) {
+        this.subcategory = subcategory;
     }
 }
