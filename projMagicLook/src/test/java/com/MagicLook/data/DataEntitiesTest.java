@@ -81,7 +81,7 @@ class AllDataEntitiesTest {
         assertEquals("M", itemType.getGender());
         assertEquals("Camiseta", itemType.getCategory());
 
-        ItemType itemType2 = new ItemType("F", "Vestido");
+        ItemType itemType2 = new ItemType("F", "Vestido", "Curto");
         assertEquals("F", itemType2.getGender());
         assertEquals("Vestido", itemType2.getCategory());
 
