@@ -159,15 +159,15 @@ public class StaffService extends ClientService {
         // Estrutura: gender -> categoria -> lista de subcategorias
         Map<String, Map<String, List<String>>> defaults = new HashMap<>();
         
-        // MULHER
+        // MULHER (usar nomes no singular para corresponder ao frontend)
         Map<String, List<String>> female = new HashMap<>();
-        female.put("Vestidos", Arrays.asList("Curto", "Médio", "Longo"));
-        female.put("Macacões", Arrays.asList("Curto", "Médio", "Longo"));
+        female.put("Vestido", Arrays.asList("Curto", "Médio", "Longo"));
+        female.put("Macacão", Arrays.asList("Curto", "Médio", "Longo"));
         defaults.put("F", female);
         
-        // HOMEM
+        // HOMEM (usar nomes no singular para corresponder ao frontend)
         Map<String, List<String>> male = new HashMap<>();
-        male.put("Fatos", Arrays.asList("Simples", "Três Peças"));
+        male.put("Fato", Arrays.asList("Simples", "Três peças"));
         defaults.put("M", male);
 
         int created = 0;
