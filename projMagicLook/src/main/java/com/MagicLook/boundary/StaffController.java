@@ -21,6 +21,7 @@ public class StaffController {
     // Constants
     private static final String STAFF_DASHBOARD_VIEW = "staffDashboard";
     private static final String STAFF_LOGIN_VIEW = "staffLogin";
+    private static final String ERROR = "error";
 
     @Autowired
     private StaffService staffService;
@@ -38,7 +39,7 @@ public class StaffController {
     
     @GetMapping("/login")
     public String showStaffLoginForm(Model model) {
-        model.addAttribute("staffLogin", new com.magiclook.dto.StaffLoginDTO());
+        model.addAttribute(STAFF_LOGIN_VIEW, new com.magiclook.dto.StaffLoginDTO());
         return STAFF_LOGIN_VIEW;
     }
 
@@ -107,21 +108,9 @@ public class StaffController {
             Model model) {
         
         try {
-            System.out.println("=== ADICIONAR ITEM ===");
-            System.out.println("Name: " + name);
-            System.out.println("Brand: " + brand);
-            System.out.println("Material: " + material);
-            System.out.println("Color: " + color);
-            System.out.println("Size: " + size);
-            System.out.println("Gender: " + gender);
-            System.out.println("Category: " + category);
-            System.out.println("Subcategory: " + subcategory);
-            System.out.println("Shop ID: " + shop);
-
             Staff staff = (Staff) session.getAttribute("loggedInStaff");
 
             if (staff == null) {
-                System.out.println("ERRO: Staff não está logado");
                 return "redirect:/magiclook/staff/login";
             }
             
@@ -141,24 +130,19 @@ public class StaffController {
                 subcategory 
             );
             
-            System.out.println("Chamando staffService.addItem()...");
             int result = staffService.addItem(itemDTO, size);
-            System.out.println("Resultado: " + result);
             
             // Resto de validações
             if (result == -1) {
-                System.out.println("ERRO: Tamanho inválido");
-                model.addAttribute("error", "Tamanho inválido!");
+                model.addAttribute(ERROR, "Tamanho inválido!");
                 return STAFF_DASHBOARD_VIEW;
 
             } else if (result == -2) {
-                System.out.println("ERRO: Material inválido");
-                model.addAttribute("error", "Material inválido!");
+                model.addAttribute(ERROR, "Material inválido!");
                 return STAFF_DASHBOARD_VIEW;
 
             } else if (result == -3) {
-                System.out.println("ERRO: Shop ou ItemType inválido");
-                model.addAttribute("error", "Shop ou ItemType inválido!");
+                model.addAttribute(ERROR, "Shop ou ItemType inválido!");
                 return STAFF_DASHBOARD_VIEW;
             }
 
@@ -177,7 +161,7 @@ public class StaffController {
             
         } catch (Exception e) {
             System.err.println("ERRO AO ADICIONAR ITEM: " + e.getMessage());
-            model.addAttribute("error", "Erro ao adicionar item: " + e.getMessage());
+            model.addAttribute(ERROR, "Erro ao adicionar item: " + e.getMessage());
             return STAFF_DASHBOARD_VIEW;
         }
     }
