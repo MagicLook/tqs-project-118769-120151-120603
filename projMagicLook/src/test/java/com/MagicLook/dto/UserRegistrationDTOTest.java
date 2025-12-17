@@ -33,6 +33,7 @@ class UserRegistrationDTOTest {
         dto.setUsername("testuser");
         dto.setEmail("test@example.com");
         dto.setPassword("password123");
+        dto.setConfirmPassword("password123");
         dto.setFirstName("Ana");
         dto.setLastName("Silva");
         dto.setTelephone("912345678");

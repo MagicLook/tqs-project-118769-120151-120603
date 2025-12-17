@@ -34,6 +34,7 @@ class UserServiceTest {
         registrationDTO.setUsername("testuser");
         registrationDTO.setEmail("test@example.com");
         registrationDTO.setPassword("password123");
+        registrationDTO.setConfirmPassword("password123"); // ADICIONADO
         registrationDTO.setFirstName("John");
         registrationDTO.setLastName("Doe");
         registrationDTO.setTelephone("912345678");
@@ -73,6 +74,19 @@ class UserServiceTest {
         verify(userRepository).existsByUsername(registrationDTO.getUsername());
         verify(userRepository).existsByEmail(registrationDTO.getEmail());
         verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void testRegister_WithMismatchingPasswords_ShouldThrowException() {
+        registrationDTO.setConfirmPassword("differentpassword");
+
+        RuntimeException exception = assertThrows(RuntimeException.class, 
+            () -> userService.register(registrationDTO));
+        
+        assertEquals("As palavras-passe não coincidem", exception.getMessage());
+        verify(userRepository, never()).existsByUsername(anyString());
+        verify(userRepository, never()).existsByEmail(anyString());
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
