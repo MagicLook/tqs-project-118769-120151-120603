@@ -26,20 +26,32 @@ jobs:
                     distribution: 'temurin'
                     cache: maven
                     
-            - name: Verify
-              run: mvn -B -U clean verify
+            - name: Build with tests and coverage
+              run: |
+                mvn -B -U clean verify
+                echo "=== Verificando relatório JaCoCo ==="
+                ls -la target/site/jacoco/ || echo "Diretório jacoco não encontrado"
+                ls -la target/*.exec || echo "Arquivo .exec não encontrado"
 
             - name: Generate JaCoCo Coverage Report
-              run: mvn jacoco:report
+              run: |
+                echo "=== Gerando relatório JaCoCo ==="
+                mvn jacoco:report
+                echo "=== Conteúdo do relatório ==="
+                if [ -f "target/site/jacoco/jacoco.xml" ]; then
+                  echo "Arquivo jacoco.xml encontrado"
+                  head -50 target/site/jacoco/jacoco.xml
+                else
+                  echo "ERRO: jacoco.xml não encontrado!"
+                  find target -name "*.xml" -type f | head -10
+                fi
               
             - name: Publish JaCoCo Coverage to PR
               uses: actions/upload-artifact@v4
               with:
                 name: jacoco-report
                 path: projMagicLook/target/site/jacoco/
-
-            - name: Generate JaCoCo Coverage Report
-              run: mvn jacoco:report
+              if: always()
 
             - name: Cache SonarQube packages
               uses: actions/cache@v4
@@ -53,12 +65,41 @@ jobs:
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-              run: mvn -B -U sonar:sonar "-Dsonar.projectKey=MagicLook_tqs-project-118769-120151-120603" "-Dsonar.organization=magiclook" "-Dsonar.qualitygate.wait=true" "-Dsonar.host.url=https://sonarcloud.io"
+              run: |
+                echo "=== Iniciando análise SonarCloud ==="
+                echo "Diretório atual: $(pwd)"
+                echo "Conteúdo do target:"
+                ls -la target/ || echo "target não existe"
+                
+                # Verificar se o relatório JaCoCo existe
+                if [ -f "target/site/jacoco/jacoco.xml" ]; then
+                  echo "jacoco.xml encontrado!"
+                  echo "Tamanho: $(stat -c%s target/site/jacoco/jacoco.xml) bytes"
+                else
+                  echo "ERRO CRÍTICO: jacoco.xml não encontrado!"
+                  echo "Procurando arquivos .exec:"
+                  find . -name "*.exec" -type f 2>/dev/null || true
+                  echo "Procurando qualquer arquivo jacoco:"
+                  find . -name "*jacoco*" -type f 2>/dev/null || true
+                fi
+                
+                # Executar análise SonarCloud com configurações explícitas
+                mvn -B -U sonar:sonar \
+                  "-Dsonar.projectKey=MagicLook_tqs-project-118769-120151-120603" \
+                  "-Dsonar.organization=magiclook" \
+                  "-Dsonar.qualitygate.wait=true" \
+                  "-Dsonar.host.url=https://sonarcloud.io" \
+                  "-Dsonar.java.coveragePlugin=jacoco" \
+                  "-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml" \
+                  "-Dsonar.sources=src/main/java" \
+                  "-Dsonar.tests=src/test/java" \
+                  "-Dsonar.java.binaries=target/classes" \
+                  "-Dsonar.java.test.binaries=target/test-classes" \
+                  "-Dsonar.verbose=true"
                     
             - name: Push results to Xray on Jira Cloud
               env:
                     XRAY_CLIENT_ID: ${{ secrets.XRAYCLOUD_CLIENT_ID }}
                     XRAY_CLIENT_SECRET: ${{ secrets.XRAYCLOUD_CLIENT_SECRET }}
-                    
               run: mvn -B xray:import-results
               continue-on-error: true
