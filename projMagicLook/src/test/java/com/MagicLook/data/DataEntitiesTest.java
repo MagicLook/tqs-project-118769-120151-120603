@@ -1,4 +1,4 @@
-package com.MagicLook.data;
+package com.magiclook.data;
 
 import org.junit.jupiter.api.Test;
 
@@ -81,32 +81,27 @@ class AllDataEntitiesTest {
         assertEquals("M", itemType.getGender());
         assertEquals("Camiseta", itemType.getCategory());
 
-        ItemType itemType2 = new ItemType("F", "Vestido");
+        ItemType itemType2 = new ItemType("F", "Vestido", "Curto");
         assertEquals("F", itemType2.getGender());
         assertEquals("Vestido", itemType2.getCategory());
 
         // Testar Item
         Item item = new Item();
-        UUID itemId = UUID.randomUUID();
-        item.setItemId(itemId);
+        item.setItemId(1);
         item.setName("Camiseta");
         item.setMaterial("Algodão");
         item.setColor("Azul");
         item.setBrand("Marca");
-        item.setSize("M");
-        item.setState("AVAILABLE");
         item.setPriceRent(new BigDecimal("10.00"));
         item.setPriceSale(new BigDecimal("50.00"));
         item.setShop(shop);
         item.setItemType(itemType);
 
-        assertEquals(itemId, item.getItemId());
+        assertEquals(1, item.getItemId());
         assertEquals("Camiseta", item.getName());
         assertEquals("Algodão", item.getMaterial());
         assertEquals("Azul", item.getColor());
         assertEquals("Marca", item.getBrand());
-        assertEquals("M", item.getSize());
-        assertEquals("AVAILABLE", item.getState());
         assertEquals(new BigDecimal("10.00"), item.getPriceRent());
         assertEquals(new BigDecimal("50.00"), item.getPriceSale());
         assertEquals(shop, item.getShop());

@@ -38,6 +38,9 @@ jobs:
                 name: jacoco-report
                 path: projMagicLook/target/site/jacoco/
 
+            - name: Generate JaCoCo Coverage Report
+              run: mvn jacoco:report
+
             - name: Cache SonarQube packages
               uses: actions/cache@v4
               with:

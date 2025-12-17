@@ -1,8 +1,8 @@
-package com.MagicLook.service;
+package com.magiclook.service;
 
-import com.MagicLook.dto.UserRegistrationDTO;
-import com.MagicLook.data.User;
-import com.MagicLook.repository.UserRepository;
+import com.magiclook.dto.UserRegistrationDTO;
+import com.magiclook.data.User;
+import com.magiclook.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

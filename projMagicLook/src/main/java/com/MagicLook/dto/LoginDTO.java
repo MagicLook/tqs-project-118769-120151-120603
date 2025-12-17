@@ -1,4 +1,4 @@
-package com.MagicLook.dto;
+package com.magiclook.dto;
 
 public class LoginDTO {
     private String username;

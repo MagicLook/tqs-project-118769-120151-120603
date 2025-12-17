@@ -1,20 +1,27 @@
-package com.MagicLook.boundary;
+package com.magiclook.boundary;
 
-import com.MagicLook.data.Staff;
-import com.MagicLook.data.Item;
-import com.MagicLook.service.StaffService;
-import com.MagicLook.service.ItemService;
+import com.magiclook.data.*;
+import com.magiclook.service.*;
+import com.magiclook.dto.*;
+
 import jakarta.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
+import java.math.BigDecimal;
 
 @Controller
 @RequestMapping("/magiclook/staff")
 public class StaffController {
+
+    // Constants
+    private static final String STAFF_DASHBOARD_VIEW = "staffDashboard";
+    private static final String STAFF_LOGIN_VIEW = "staffLogin";
+    private static final String ERROR = "error";
 
     @Autowired
     private StaffService staffService;
@@ -22,12 +29,18 @@ public class StaffController {
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    public StaffController(StaffService staffService, ItemService itemService) {
+        this.staffService = staffService;
+        this.itemService = itemService;
+    }
+
     // ========== LOGIN STAFF ==========
     
     @GetMapping("/login")
     public String showStaffLoginForm(Model model) {
-        model.addAttribute("staffLogin", new com.MagicLook.dto.StaffLoginDTO());
-        return "staffLogin";
+        model.addAttribute(STAFF_LOGIN_VIEW, new com.magiclook.dto.StaffLoginDTO());
+        return STAFF_LOGIN_VIEW;
     }
 
     @PostMapping("/login")
@@ -50,7 +63,7 @@ public class StaffController {
             return "redirect:/magiclook/staff/dashboard";
         } else {
             model.addAttribute("error", "Credenciais inválidas para staff!");
-            return "staffLogin";
+            return STAFF_LOGIN_VIEW;
         }
     }
 
@@ -72,7 +85,79 @@ public class StaffController {
         model.addAttribute("items", items);
         model.addAttribute("itemCount", items.size());
         
-        return "staffDashboard";
+        return STAFF_DASHBOARD_VIEW;
+    }
+
+    // ========== ADD ITEM ==========
+
+    @PostMapping("/item")
+    public String addItem(
+            @RequestParam String name,
+            @RequestParam String brand,
+            @RequestParam String material,
+            @RequestParam String color,
+            @RequestParam String size,
+            @RequestParam BigDecimal priceRent,
+            @RequestParam BigDecimal priceSale,
+            @RequestParam String gender,
+            @RequestParam String category,
+            @RequestParam String subcategory,
+            @RequestParam Integer shop,
+            @RequestParam(required = false) MultipartFile image,
+            HttpSession session,
+            Model model) {
+        
+        try {
+            Staff staff = (Staff) session.getAttribute("loggedInStaff");
+
+            if (staff == null) {
+                return "redirect:/magiclook/staff/login";
+            }
+            
+            // Converter em ItemDTO
+            ItemDTO itemDTO = new ItemDTO(
+                name,       
+                material,   
+                color,      
+                brand,      
+                priceRent,  
+                priceSale,  
+                shop,
+                gender,     
+                category,
+                subcategory 
+            );
+            
+            int result = staffService.addItem(itemDTO, size);
+            
+            // Resto de validações
+            if (result == -1) {
+                model.addAttribute(ERROR, "Tamanho inválido!");
+                return STAFF_DASHBOARD_VIEW;
+
+            } else if (result == -2) {
+                model.addAttribute(ERROR, "Material inválido!");
+                return STAFF_DASHBOARD_VIEW;
+
+            } else if (result == -3) {
+                model.addAttribute(ERROR, "Shop ou ItemType inválido!");
+                return STAFF_DASHBOARD_VIEW;
+            }
+
+            // Guardar imagem se fornecida
+            String imagePath = null;
+            if (image != null && !image.isEmpty()) {
+                imagePath = staffService.saveImage(image, itemDTO.getItemId());
+            }
+            
+            itemDTO.setImagePath(imagePath);
+            
+            return "redirect:/magiclook/staff/dashboard";
+            
+        } catch (Exception e) {
+            model.addAttribute(ERROR, "Erro ao adicionar item: " + e.getMessage());
+            return STAFF_DASHBOARD_VIEW;
+        }
     }
 
     // ========== LOGOUT STAFF ==========
