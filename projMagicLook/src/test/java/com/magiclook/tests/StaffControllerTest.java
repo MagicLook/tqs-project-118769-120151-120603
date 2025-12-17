@@ -515,4 +515,356 @@ class StaffControllerTest {
             ), eq("M"));
         }
     }
+
+    // ==================== GET ITEMS TESTS ====================
+
+    @Nested
+    @DisplayName("Get Items (List View) Tests")
+    class GetItemsTests {
+
+        @Test
+        @DisplayName("GET /item without authentication should redirect to login")
+        void getItems_withoutAuthentication_shouldRedirectToLogin() {
+            when(session.getAttribute("loggedInStaff")).thenReturn(null);
+
+            String viewName = staffController.getItems(session, model, null, null);
+
+            assertEquals("redirect:/magiclook/staff/login", viewName);
+            verifyNoInteractions(itemService);
+        }
+
+        @Test
+        @DisplayName("GET /item with logged staff should return items page")
+        void getItems_withLoggedStaff_shouldReturnItemsPage() {
+            List<Item> items = Arrays.asList(testItem);
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemsByShop(testShop)).thenReturn(items);
+            when(itemService.getItems(testItem.getItemId())).thenReturn(new ArrayList<>());
+
+            String viewName = staffController.getItems(session, model, null, null);
+
+            assertEquals("staffItem", viewName);
+            verify(model).addAttribute("staff", testStaff);
+            verify(model).addAttribute("shop", testShop);
+            verify(model).addAttribute("items", items);
+            verify(model).addAttribute("itemCount", 1);
+        }
+
+        @Test
+        @DisplayName("GET /item with empty items list should show zero count")
+        void getItems_withEmptyItemsList_shouldShowZeroCount() {
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemsByShop(testShop)).thenReturn(Collections.emptyList());
+
+            String viewName = staffController.getItems(session, model, null, null);
+
+            assertEquals("staffItem", viewName);
+            verify(model).addAttribute("itemCount", 0);
+            verify(model).addAttribute("items", Collections.emptyList());
+        }
+
+        @Test
+        @DisplayName("GET /item with search query should filter items by name")
+        void getItems_withSearchQuery_shouldFilterByName() {
+            Item item2 = new Item("Blue Shirt", "Cotton", "Blue", "Brand", 
+                                 new BigDecimal("40.00"), new BigDecimal("150.00"), testShop, testItemType);
+            item2.setItemId(2);
+            
+            List<Item> allItems = Arrays.asList(testItem, item2);
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemsByShop(testShop)).thenReturn(allItems);
+            when(itemService.getItems(anyInt())).thenReturn(new ArrayList<>());
+
+            String viewName = staffController.getItems(session, model, null, "Blue");
+
+            assertEquals("staffItem", viewName);
+            verify(model).addAttribute("q", "Blue");
+            verify(itemService).getItemsByShop(testShop);
+        }
+
+        @Test
+        @DisplayName("GET /item with state filter should filter by item state")
+        void getItems_withStateFilter_shouldFilterByState() {
+            List<Item> filteredItems = Arrays.asList(testItem);
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getAllItemsByState("AVAILABLE")).thenReturn(filteredItems);
+            when(itemService.getItems(testItem.getItemId())).thenReturn(new ArrayList<>());
+
+            String viewName = staffController.getItems(session, model, "AVAILABLE", null);
+
+            assertEquals("staffItem", viewName);
+            verify(model).addAttribute("selectedState", "AVAILABLE");
+            verify(itemService).getAllItemsByState("AVAILABLE");
+        }
+
+        @Test
+        @DisplayName("GET /item with both search and state filter should apply both")
+        void getItems_withSearchAndStateFilter_shouldApplyBoth() {
+            List<Item> filteredItems = Arrays.asList(testItem);
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getAllItemsByState("RENTED")).thenReturn(filteredItems);
+            when(itemService.getItems(testItem.getItemId())).thenReturn(new ArrayList<>());
+
+            String viewName = staffController.getItems(session, model, "RENTED", "Test");
+
+            assertEquals("staffItem", viewName);
+            verify(model).addAttribute("q", "Test");
+            verify(model).addAttribute("selectedState", "RENTED");
+        }
+
+        @Test
+        @DisplayName("GET /item should populate itemSizes map for each item")
+        void getItems_shouldPopulateItemSizesMap() {
+            ItemSingle single1 = new ItemSingle("AVAILABLE", testItem, "M");
+            ItemSingle single2 = new ItemSingle("AVAILABLE", testItem, "L");
+            List<ItemSingle> singles = Arrays.asList(single1, single2);
+            
+            List<Item> items = Arrays.asList(testItem);
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemsByShop(testShop)).thenReturn(items);
+            when(itemService.getItems(testItem.getItemId())).thenReturn(singles);
+
+            String viewName = staffController.getItems(session, model, null, null);
+
+            assertEquals("staffItem", viewName);
+            verify(model).addAttribute(eq("itemSizes"), argThat(map ->
+                ((Map<Integer, List<String>>) map).containsKey(testItem.getItemId()) &&
+                ((Map<Integer, List<String>>) map).get(testItem.getItemId()).containsAll(Arrays.asList("L", "M"))
+            ));
+        }
+
+        @Test
+        @DisplayName("GET /item with multiple items should create sizes map for all")
+        void getItems_withMultipleItems_shouldCreateSizesForAll() {
+            Item item2 = new Item("Pants", "Cotton", "Black", "Brand", 
+                                 new BigDecimal("60.00"), new BigDecimal("250.00"), testShop, testItemType);
+            item2.setItemId(2);
+            
+            ItemSingle single1 = new ItemSingle("AVAILABLE", testItem, "M");
+            ItemSingle single2 = new ItemSingle("AVAILABLE", item2, "S");
+            
+            List<Item> items = Arrays.asList(testItem, item2);
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemsByShop(testShop)).thenReturn(items);
+            when(itemService.getItems(testItem.getItemId())).thenReturn(Arrays.asList(single1));
+            when(itemService.getItems(item2.getItemId())).thenReturn(Arrays.asList(single2));
+
+            String viewName = staffController.getItems(session, model, null, null);
+
+            assertEquals("staffItem", viewName);
+            verify(model).addAttribute(eq("itemSizes"), argThat(map ->
+                ((Map<Integer, List<String>>) map).size() == 2
+            ));
+        }
+
+        @Test
+        @DisplayName("GET /item with case-insensitive search should find items")
+        void getItems_withCaseInsensitiveSearch_shouldFindItems() {
+            List<Item> allItems = Arrays.asList(testItem);
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemsByShop(testShop)).thenReturn(allItems);
+            when(itemService.getItems(anyInt())).thenReturn(new ArrayList<>());
+
+            String viewName = staffController.getItems(session, model, null, "TEST");
+
+            assertEquals("staffItem", viewName);
+            verify(model).addAttribute("q", "TEST");
+        }
+
+        @Test
+        @DisplayName("GET /item with blank search should not filter")
+        void getItems_withBlankSearch_shouldNotFilter() {
+            List<Item> items = Arrays.asList(testItem);
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemsByShop(testShop)).thenReturn(items);
+            when(itemService.getItems(testItem.getItemId())).thenReturn(new ArrayList<>());
+
+            String viewName = staffController.getItems(session, model, null, "   ");
+
+            assertEquals("staffItem", viewName);
+        }
+
+        @Test
+        @DisplayName("GET /item with blank state should not filter by state")
+        void getItems_withBlankState_shouldNotFilterByState() {
+            List<Item> items = Arrays.asList(testItem);
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemsByShop(testShop)).thenReturn(items);
+            when(itemService.getItems(testItem.getItemId())).thenReturn(new ArrayList<>());
+
+            String viewName = staffController.getItems(session, model, "   ", null);
+
+            assertEquals("staffItem", viewName);
+            verify(itemService, never()).getAllItemsByState(anyString());
+        }
+    }
+
+    // ==================== GET ITEM DETAILS TESTS ====================
+
+    @Nested
+    @DisplayName("Get Item Details Tests")
+    class GetItemDetailsTests {
+
+        @Test
+        @DisplayName("GET /item/{id} without authentication should redirect to login")
+        void getItemDetails_withoutAuthentication_shouldRedirectToLogin() {
+            when(session.getAttribute("loggedInStaff")).thenReturn(null);
+
+            String viewName = staffController.getItemDetails(1, session, model);
+
+            assertEquals("redirect:/magiclook/staff/login", viewName);
+            verifyNoInteractions(itemService);
+        }
+
+        @Test
+        @DisplayName("GET /item/{id} with logged staff should return details view")
+        void getItemDetails_withLoggedStaff_shouldReturnDetailsView() {
+            List<ItemSingle> singles = Arrays.asList(
+                new ItemSingle("AVAILABLE", testItem, "M"),
+                new ItemSingle("AVAILABLE", testItem, "L")
+            );
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemById(1)).thenReturn(testItem);
+            when(itemService.getItems(1)).thenReturn(singles);
+
+            String viewName = staffController.getItemDetails(1, session, model);
+
+            assertEquals("staffItemDetails", viewName);
+            verify(model).addAttribute("staff", testStaff);
+            verify(model).addAttribute("shop", testShop);
+            verify(model).addAttribute("item", testItem);
+            verify(model).addAttribute("itemSingles", singles);
+        }
+
+        @Test
+        @DisplayName("GET /item/{id} should fetch correct item by ID")
+        void getItemDetails_shouldFetchItemById() {
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemById(42)).thenReturn(testItem);
+            when(itemService.getItems(42)).thenReturn(Collections.emptyList());
+
+            String viewName = staffController.getItemDetails(42, session, model);
+
+            assertEquals("staffItemDetails", viewName);
+            verify(itemService).getItemById(42);
+        }
+
+        @Test
+        @DisplayName("GET /item/{id} with no item singles should show empty list")
+        void getItemDetails_withNoItemSingles_shouldShowEmptyList() {
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemById(1)).thenReturn(testItem);
+            when(itemService.getItems(1)).thenReturn(Collections.emptyList());
+
+            String viewName = staffController.getItemDetails(1, session, model);
+
+            assertEquals("staffItemDetails", viewName);
+            verify(model).addAttribute("itemSingles", Collections.emptyList());
+        }
+
+        @Test
+        @DisplayName("GET /item/{id} with multiple item singles should display all")
+        void getItemDetails_withMultipleItemSingles_shouldDisplayAll() {
+            List<ItemSingle> singles = Arrays.asList(
+                new ItemSingle("AVAILABLE", testItem, "XS"),
+                new ItemSingle("AVAILABLE", testItem, "S"),
+                new ItemSingle("RENTED", testItem, "M"),
+                new ItemSingle("DAMAGED", testItem, "L"),
+                new ItemSingle("LAUNDRY", testItem, "XL")
+            );
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemById(1)).thenReturn(testItem);
+            when(itemService.getItems(1)).thenReturn(singles);
+
+            String viewName = staffController.getItemDetails(1, session, model);
+
+            assertEquals("staffItemDetails", viewName);
+            verify(model).addAttribute("itemSingles", singles);
+            verify(itemService).getItems(1);
+        }
+
+        @Test
+        @DisplayName("GET /item/{id} should pass staff and shop to model")
+        void getItemDetails_shouldPassStaffAndShopToModel() {
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemById(1)).thenReturn(testItem);
+            when(itemService.getItems(1)).thenReturn(new ArrayList<>());
+
+            staffController.getItemDetails(1, session, model);
+
+            verify(model).addAttribute("staff", testStaff);
+            verify(model).addAttribute("shop", testStaff.getShop());
+        }
+
+        @Test
+        @DisplayName("GET /item/{id} with different items should fetch correct item")
+        void getItemDetails_withDifferentItems_shouldFetchCorrectOne() {
+            Item item1 = new Item("Item 1", "Cotton", "Red", "Brand", 
+                                 new BigDecimal("50.00"), new BigDecimal("200.00"), testShop, testItemType);
+            item1.setItemId(1);
+            
+            Item item2 = new Item("Item 2", "Silk", "Blue", "Brand", 
+                                 new BigDecimal("100.00"), new BigDecimal("400.00"), testShop, testItemType);
+            item2.setItemId(2);
+            
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemById(2)).thenReturn(item2);
+            when(itemService.getItems(2)).thenReturn(Collections.emptyList());
+
+            String viewName = staffController.getItemDetails(2, session, model);
+
+            assertEquals("staffItemDetails", viewName);
+            verify(model).addAttribute("item", item2);
+            verify(itemService).getItemById(2);
+        }
+
+        @Test
+        @DisplayName("GET /item/{id} should call itemService.getItems with correct item ID")
+        void getItemDetails_shouldCallGetItemsWithCorrectId() {
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemById(99)).thenReturn(testItem);
+            when(itemService.getItems(99)).thenReturn(Collections.emptyList());
+
+            staffController.getItemDetails(99, session, model);
+
+            verify(itemService).getItems(99);
+        }
+
+        @Test
+        @DisplayName("GET /item/{id} with item singles of different states should display all states")
+        void getItemDetails_withDifferentStates_shouldDisplayAll() {
+            List<ItemSingle> singles = Arrays.asList(
+                new ItemSingle("AVAILABLE", testItem, "M"),
+                new ItemSingle("RENTED", testItem, "L"),
+                new ItemSingle("LAUNDRY", testItem, "XL")
+            );
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemById(1)).thenReturn(testItem);
+            when(itemService.getItems(1)).thenReturn(singles);
+
+            String viewName = staffController.getItemDetails(1, session, model);
+
+            assertEquals("staffItemDetails", viewName);
+            verify(model).addAttribute(eq("itemSingles"), argThat(list ->
+                ((List<?>) list).size() == 3
+            ));
+        }
+
+        @Test
+        @DisplayName("GET /item/{id} should populate all required model attributes")
+        void getItemDetails_shouldPopulateAllModelAttributes() {
+            List<ItemSingle> singles = Arrays.asList(new ItemSingle("AVAILABLE", testItem, "M"));
+            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemById(1)).thenReturn(testItem);
+            when(itemService.getItems(1)).thenReturn(singles);
+
+            staffController.getItemDetails(1, session, model);
+
+            verify(model, times(4)).addAttribute(anyString(), any());
+            verify(model).addAttribute("staff", testStaff);
+            verify(model).addAttribute("shop", testShop);
+            verify(model).addAttribute("item", testItem);
+            verify(model).addAttribute("itemSingles", singles);
+        }
+    }
 }

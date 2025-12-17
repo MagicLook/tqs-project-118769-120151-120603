@@ -194,10 +194,22 @@ public class StaffController {
             items = itemService.getAllItemsByState(state);
         }
 
+        // Build map of itemId -> list of sizes
+        java.util.Map<Integer, List<String>> itemSizes = new java.util.HashMap<>();
+        for (Item item : items) {
+            List<String> sizes = itemService.getItems(item.getItemId()).stream()
+                    .map(ItemSingle::getSize)
+                    .distinct()
+                    .sorted()
+                    .toList();
+            itemSizes.put(item.getItemId(), sizes);
+        }
+
         model.addAttribute("staff", staff);
         model.addAttribute("shop", staff.getShop());
         model.addAttribute("items", items);
         model.addAttribute("itemCount", items.size());
+        model.addAttribute("itemSizes", itemSizes);
 
         // Bind filter values back to the view
         model.addAttribute("selectedState", state);
@@ -229,7 +241,6 @@ public class StaffController {
 
         return STAFF_ITEM_DETAILS_VIEW;
     }
-
 
     // ========== LOGOUT STAFF ==========
     

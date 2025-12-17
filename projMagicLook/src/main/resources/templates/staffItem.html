@@ -193,6 +193,13 @@
                                                 <span th:text="${item.brand}">Marca</span>
                                             </div>
                                         </div>
+                                        <div class="mb-2">
+                                            <div><strong>Tamanhos:</strong></div>
+                                            <div class="d-flex gap-1 flex-wrap">
+                                                <span th:each="size : ${itemSizes.get(item.itemId)}" class="badge bg-secondary" th:text="${size}">M</span>
+                                                <span th:if="${itemSizes.get(item.itemId).isEmpty()}" class="badge bg-light text-dark">Sem tamanhos</span>
+                                            </div>
+                                        </div>
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="text-primary fw-bold" th:text="'€' + ${item.priceRent}">€50</span>
                                             <small class="text-muted" th:text="'Venda: €' + ${item.priceSale}">Venda: €200</small>
