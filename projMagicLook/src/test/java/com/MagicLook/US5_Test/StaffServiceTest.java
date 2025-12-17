@@ -310,4 +310,45 @@ class StaffServiceTest {
             });
         }
     }
+
+    @Test
+    @DisplayName("Shop constructor and setters should work correctly")
+    void shopConstructorAndSetters_shouldWork() {
+        // Test parameterized constructor
+        Shop shop1 = new Shop("Test Shop", "Test Location");
+        assertEquals("Test Shop", shop1.getName());
+        assertEquals("Test Location", shop1.getLocation());
+        
+        // Test default constructor + setters
+        Shop shop2 = new Shop();
+        shop2.setShopId(5);
+        shop2.setName("Another Shop");
+        shop2.setLocation("Another Location");
+        
+        assertEquals(5, shop2.getShopId());
+        assertEquals("Another Shop", shop2.getName());
+        assertEquals("Another Location", shop2.getLocation());
+    }
+
+    @Test
+    @DisplayName("ItemType constructor and setters should work correctly")
+    void itemTypeConstructorAndSetters_shouldWork() {
+        // Test parameterized constructor
+        ItemType type1 = new ItemType("F", "Vestido", "Curto");
+        assertEquals("F", type1.getGender());
+        assertEquals("Vestido", type1.getCategory());
+        assertEquals("Curto", type1.getSubcategory());
+        
+        // Test default constructor + setters
+        ItemType type2 = new ItemType();
+        type2.setId(10);
+        type2.setGender("M");
+        type2.setCategory("Fato");
+        type2.setSubcategory("Três peças");
+
+        assertEquals(10, type2.getId());
+        assertEquals("M", type2.getGender());
+        assertEquals("Fato", type2.getCategory());
+        assertEquals("Três peças", type2.getSubcategory());
+    }
 }

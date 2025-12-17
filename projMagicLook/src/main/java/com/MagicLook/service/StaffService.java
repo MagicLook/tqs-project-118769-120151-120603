@@ -51,38 +51,24 @@ public class StaffService extends ClientService {
     }
 
     public String saveImage(MultipartFile image, Integer itemId) throws IOException {
-        System.out.println("=== SAVE IMAGE ===");
-        System.out.println("Image null? " + (image == null));
         
         if (image == null || image.isEmpty()) {
-            System.out.println("Imagem vazia ou null, retornando null");
             return null;
         }
 
-        System.out.println("Nome original: " + image.getOriginalFilename());
-        System.out.println("Tamanho: " + image.getSize() + " bytes");
-        System.out.println("Content-Type: " + image.getContentType());
-        System.out.println("Upload dir: " + uploadDir);
-
         Path uploadPath = Paths.get(uploadDir);
-        System.out.println("Upload path: " + uploadPath.toAbsolutePath());
         
         Files.createDirectories(uploadPath);
-        System.out.println("Diretório criado/verificado");
 
         String safeOriginal = image.getOriginalFilename() == null ? "file" : image.getOriginalFilename().replaceAll("[^a-zA-Z0-9._-]", "_");
         String idPart = (itemId != null) ? String.valueOf(itemId) : UUID.randomUUID().toString().substring(0,8);
         String fileName = String.format("item_%s_%s", idPart, safeOriginal);
-        System.out.println("Nome do ficheiro: " + fileName);
         
         Path filePath = uploadPath.resolve(fileName);
-        System.out.println("Caminho completo: " + filePath.toAbsolutePath());
 
         image.transferTo(filePath);
-        System.out.println("Ficheiro guardado com sucesso!");
 
         String returnPath = uploadDir + "/" + fileName;
-        System.out.println("Caminho retornado: " + returnPath);
         
         return returnPath;
     }
@@ -154,7 +140,6 @@ public class StaffService extends ClientService {
             );
             
             staffRepository.saveAll(staffList);
-            System.out.println("Staff inicializado com 3 administradores");
         }
     }
 

@@ -114,8 +114,6 @@ public class StaffController {
                 return "redirect:/magiclook/staff/login";
             }
             
-            System.out.println("Staff logado: " + staff.getName());
-
             // Converter em ItemDTO
             ItemDTO itemDTO = new ItemDTO(
                 name,       
@@ -149,18 +147,14 @@ public class StaffController {
             // Guardar imagem se fornecida
             String imagePath = null;
             if (image != null && !image.isEmpty()) {
-                System.out.println("Upload de imagem: " + image.getOriginalFilename());
                 imagePath = staffService.saveImage(image, itemDTO.getItemId());
-                System.out.println("Imagem guardada em: " + imagePath);
             }
             
             itemDTO.setImagePath(imagePath);
             
-            System.out.println("Item adicionado com sucesso!");
             return "redirect:/magiclook/staff/dashboard";
             
         } catch (Exception e) {
-            System.err.println("ERRO AO ADICIONAR ITEM: " + e.getMessage());
             model.addAttribute(ERROR, "Erro ao adicionar item: " + e.getMessage());
             return STAFF_DASHBOARD_VIEW;
         }
