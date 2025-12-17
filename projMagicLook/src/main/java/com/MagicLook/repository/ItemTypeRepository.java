@@ -8,6 +8,6 @@ import com.magiclook.data.*;
 @Repository
 public interface ItemTypeRepository extends JpaRepository<ItemType, Integer>{
 
-    public ItemType findByGenderAndCategoryAndSubcategory(String gender, String category, String subcategory);
+    ItemType findByGenderAndCategoryAndSubcategory(String gender, String category, String subcategory);
 
 }

@@ -87,24 +87,21 @@ class AllDataEntitiesTest {
 
         // Testar Item
         Item item = new Item();
-        UUID itemId = UUID.randomUUID();
         item.setItemId(1);
         item.setName("Camiseta");
         item.setMaterial("Algodão");
         item.setColor("Azul");
         item.setBrand("Marca");
-        item.setSize("M");
         item.setPriceRent(new BigDecimal("10.00"));
         item.setPriceSale(new BigDecimal("50.00"));
         item.setShop(shop);
         item.setItemType(itemType);
 
-        assertEquals(itemId, item.getItemId());
+        assertEquals(1, item.getItemId());
         assertEquals("Camiseta", item.getName());
         assertEquals("Algodão", item.getMaterial());
         assertEquals("Azul", item.getColor());
         assertEquals("Marca", item.getBrand());
-        assertEquals("M", item.getSize());
         assertEquals(new BigDecimal("10.00"), item.getPriceRent());
         assertEquals(new BigDecimal("50.00"), item.getPriceSale());
         assertEquals(shop, item.getShop());

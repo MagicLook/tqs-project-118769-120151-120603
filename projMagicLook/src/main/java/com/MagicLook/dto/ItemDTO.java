@@ -12,7 +12,6 @@ public class ItemDTO {
     private String material;
     private String color;
     private String brand;
-    private String size;
 
     private String state;
 
@@ -37,14 +36,13 @@ public class ItemDTO {
 
     }
 
-    public ItemDTO(String name, String material, String color, String brand, String size,
+    public ItemDTO(String name, String material, String color, String brand,
                 BigDecimal priceRent, BigDecimal priceSale, Integer shopId, String gender, String category, String subcategory) {
         
         this.name = name;
         this.material = material;
         this.color = color;
         this.brand = brand;
-        this.size = size;
         this.priceRent = priceRent;
         this.priceSale = priceSale;
         this.shopId = shopId;
@@ -73,10 +71,6 @@ public class ItemDTO {
 
     public String getBrand() {
         return brand;
-    }
-
-    public String getSize() {
-        return size;
     }
 
     public String getState() {
@@ -131,10 +125,6 @@ public class ItemDTO {
 
     public void setBrand(String brand) {
         this.brand = brand;
-    }
-
-    public void setSize(String size) {
-        this.size = size;
     }
 
     public void setState(String state) {

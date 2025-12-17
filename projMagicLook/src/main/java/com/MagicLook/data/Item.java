@@ -16,7 +16,6 @@ public class Item {
     private String brand;
     private String material;
     private String color;
-    private String size;
 
     private BigDecimal priceRent;
     private BigDecimal priceSale;
@@ -42,13 +41,12 @@ public class Item {
 
     }
 
-    public Item(String name, String material, String color, String brand, String size,
+    public Item(String name, String material, String color, String brand,
                 BigDecimal priceRent, BigDecimal priceSale, Shop shop, ItemType itemType) {
         this.name = name;
         this.material = material;
         this.color = color;
         this.brand = brand;
-        this.size = size;
         this.priceRent = priceRent;
         this.priceSale = priceSale;
         this.shop = shop;
@@ -72,9 +70,6 @@ public class Item {
     
     public String getBrand() { return brand; }
     public void setBrand(String brand) { this.brand = brand; }
-    
-    public String getSize() { return size; }
-    public void setSize(String size) { this.size = size; }
     
     public BigDecimal getPriceRent() { return priceRent; }
     public void setPriceRent(BigDecimal priceRent) { this.priceRent = priceRent; }

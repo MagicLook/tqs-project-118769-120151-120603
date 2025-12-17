@@ -16,19 +16,21 @@ public class ItemSingle implements Serializable {
     @Column(columnDefinition = "VARCHAR(20) DEFAULT 'AVAILABLE'")
     private String state; // Estado atual
 
+    private String size; // Tamanho do item
+
     @ManyToOne
     @JoinColumn(name = "item_id")
-    private transient Item item;
+    private Item item;
 
     public ItemSingle() {
 
     }
 
-    public ItemSingle(String state, Item item) {
+    public ItemSingle(String state, Item item, String size) {
         this.state = state;
         this.item = item;
+        this.size = size;
     }
-
 
     public String getState() { return state; }
     public void setState(String state) { this.state = state; }
@@ -36,4 +38,6 @@ public class ItemSingle implements Serializable {
     public Item getItem() { return item; }
     public void setItem(Item item) { this.item = item; }
 
+    public String getSize() { return size; }
+    public void setSize(String size) { this.size = size; }
 }

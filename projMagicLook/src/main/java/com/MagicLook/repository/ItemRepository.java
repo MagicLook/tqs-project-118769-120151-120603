@@ -2,21 +2,23 @@ package com.magiclook.repository;
 
 import com.magiclook.data.Item;
 import com.magiclook.data.Shop;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, UUID> {
-    List<Item> findByNameAndMaterialAndColorAndBrandAndSize(
+    List<Item> findByNameAndMaterialAndColorAndBrand(
         String name,
         String material,
         String color,
-        String brand,
-        String size
+        String brand
     );
 
     List<Item> findByShop(Shop shop);
@@ -52,5 +54,23 @@ public interface ItemRepository extends JpaRepository<Item, UUID> {
             @Param("minPrice") Double minPrice,
             @Param("maxPrice") Double maxPrice);
             
+    @Query("SELECT i FROM Item i WHERE i.name = :name " +
+           "AND i.material = :material " +
+           "AND i.color = :color " +
+           "AND i.brand = :brand " +
+           "AND i.itemType.gender = :gender " +
+           "AND i.itemType.category = :category " +
+           "AND i.itemType.subcategory = :subcategory " +
+           "AND i.shop.shopId = :shopId")
+    Optional<Item> findByAllCharacteristics(
+            @Param("name") String name,
+            @Param("material") String material,
+            @Param("color") String color,
+            @Param("brand") String brand,
+            @Param("gender") String gender,
+            @Param("category") String category,
+            @Param("subcategory") String subcategory,
+            @Param("shopId") Integer shopId);
+    
     List<Item> findAll();
 }

@@ -41,7 +41,9 @@ public class StaffService extends ClientService {
     @Value("${app.upload.dir}")
     private String uploadDir;
 
-    StaffService (ItemRepository itemRepository, ShopRepository shopRepository, ItemTypeRepository itemTypeRepository, ItemSingleRepository itemSingleRepository) {
+    @Autowired
+    StaffService (StaffRepository staffRepository, ItemRepository itemRepository, ShopRepository shopRepository, ItemTypeRepository itemTypeRepository, ItemSingleRepository itemSingleRepository) {
+        this.staffRepository = staffRepository;
         this.itemRepository = itemRepository;
         this.shopRepository = shopRepository;
         this.itemTypeRepository = itemTypeRepository;
@@ -85,13 +87,13 @@ public class StaffService extends ClientService {
         return returnPath;
     }
 
-    public int addItem(ItemDTO itemDTO) {
+    public int addItem(ItemDTO itemDTO, String size) {
 
         // Verificar se os atributos estão certos
         List<String> sizes = Arrays.asList("XS", "S", "M", "L", "XL");
         List<String> materials = Arrays.asList("Algodão", "Poliéster", "Seda", "Couro","Veludo");
 
-        if (!sizes.contains(itemDTO.getSize())) {
+        if (!sizes.contains(size)) {
             return -1;
         }
 
@@ -99,8 +101,9 @@ public class StaffService extends ClientService {
             return -2;
         }
 
-        List<Item> found = itemRepository.findByNameAndMaterialAndColorAndBrandAndSize(
-            itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(), itemDTO.getSize());
+        Optional<Item> found = itemRepository.findByAllCharacteristics(
+            itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(),
+            itemDTO.getGender(), itemDTO.getCategory(), itemDTO.getSubcategory(), itemDTO.getShopId());
 
         Item itemToUse;
         if (found.isEmpty()) {
@@ -115,11 +118,11 @@ public class StaffService extends ClientService {
             }
             itemToUse = itemRepository.saveAndFlush(created);
         } else {
-            itemToUse = found.get(0);
+            itemToUse = found.get();
         }
 
         // Criar unidade individual para o item (stock)
-        ItemSingle itemSingle = new ItemSingle("AVAILABLE", itemToUse);
+        ItemSingle itemSingle = new ItemSingle("AVAILABLE", itemToUse, size);
 
         itemSingleRepository.saveAndFlush(itemSingle);
 
@@ -221,7 +224,7 @@ public class StaffService extends ClientService {
 
         Shop shop = optionalShop.get();
 
-        return new Item(itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(), itemDTO.getSize(), itemDTO.getPriceRent(), itemDTO.getPriceSale(), shop, itemType);
+        return new Item(itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(), itemDTO.getPriceRent(), itemDTO.getPriceSale(), shop, itemType);
     }
     
     public List<Staff> getAllStaff() {

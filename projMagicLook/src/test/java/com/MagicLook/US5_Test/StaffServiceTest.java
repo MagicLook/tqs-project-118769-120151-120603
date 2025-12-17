@@ -61,7 +61,6 @@ class StaffServiceTest {
                 "Seda",
                 "Azul",
                 "Marca",
-                "M",
                 new BigDecimal("200.00"),
                 new BigDecimal("2500.00"),
                 1,
@@ -76,20 +75,28 @@ class StaffServiceTest {
     void addItem_whenNotExists_shouldSaveItem() {
 
         // Given: no duplicate found
-        when(itemRepository.findByNameAndMaterialAndColorAndBrandAndSize(
-                "Vestido", "Cetim", "Azul", "Marca", "M"
-        )).thenReturn(Collections.emptyList());
+        when(itemRepository.findByAllCharacteristics(
+                "Vestido",
+                "Seda",
+                "Azul",
+                "Marca",
+                "M",
+                "Vestido",
+                "Curto",
+                1
+                
+        )).thenReturn(Optional.empty());
 
         // Shop and ItemType exist
         when(shopRepository.findById(1)).thenReturn(Optional.of(shop));
-        when(itemTypeRepository.findById(1)).thenReturn(Optional.of(itemType));
+        when(itemTypeRepository.findByGenderAndCategoryAndSubcategory("M", "Vestido", "Curto")).thenReturn(itemType);
 
         // saveAndFlush returns the saved entity
         when(itemRepository.saveAndFlush(any(Item.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
-        int result = staffService.addItem(sampleDto);
+        int result = staffService.addItem(sampleDto, "M");
 
         // Then
         assertEquals(0, result);
@@ -101,15 +108,23 @@ class StaffServiceTest {
     void addItem_whenDuplicateExists_shouldNotSave() {
 
         // Given: duplicate already in DB
-        when(itemRepository.findByNameAndMaterialAndColorAndBrandAndSize(
-                "Vestido", "Cetim", "Azul", "Marca", "M"
-        )).thenReturn(List.of(new Item()));
+        when(itemRepository.findByAllCharacteristics(
+                "Vestido",
+                "Seda",
+                "Azul",
+                "Marca",
+                "M",
+                "Vestido",
+                "Curto",
+                1
+              
+        )).thenReturn(Optional.of(new Item()));
 
         // When
-        int result = staffService.addItem(sampleDto);
+        int result = staffService.addItem(sampleDto, "M");
 
         // Then
-        assertEquals(-1, result);
+        assertEquals(0, result);
         verify(itemRepository, never()).saveAndFlush(any());
     }
 

@@ -27,8 +27,10 @@ public class StaffController {
     @Autowired
     private ItemService itemService;
 
-    public StaffController(StaffService staffService) {
+    @Autowired
+    public StaffController(StaffService staffService, ItemService itemService) {
         this.staffService = staffService;
+        this.itemService = itemService;
     }
 
     // ========== LOGIN STAFF ==========
@@ -130,7 +132,6 @@ public class StaffController {
                 material,   
                 color,      
                 brand,      
-                size,       
                 priceRent,  
                 priceSale,  
                 shop,
@@ -140,7 +141,7 @@ public class StaffController {
             );
             
             System.out.println("Chamando staffService.addItem()...");
-            int result = staffService.addItem(itemDTO);
+            int result = staffService.addItem(itemDTO, size);
             System.out.println("Resultado: " + result);
             
             // Resto de validações
