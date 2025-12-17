@@ -48,25 +48,6 @@ jobs:
               with:
                 name: jacoco-report
                 path: projMagicLook/target/site/jacoco/
-                
-            - name: Comment PR with Coverage Info
-              uses: actions/github-script@v7
-              with:
-                script: |
-                  const fs = require('fs');
-                  const path = '${{ github.workspace }}/projMagicLook/target/site/jacoco/index.html';
-                  try {
-                    if (fs.existsSync(path)) {
-                      github.rest.issues.createComment({
-                        issue_number: context.issue.number,
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        body: '✅ **JaCoCo Coverage Report Generated**\n\nView the full report in the artifacts or check SonarCloud for coverage details.'
-                      });
-                    }
-                  } catch (e) {
-                    console.log('Could not post comment:', e);
-                  }
                     
             - name: Push results to Xray on Jira Cloud
               env:
