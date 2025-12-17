@@ -1,9 +1,10 @@
-package com.magiclook.authentication;
+package com.MagicLook.authentication;
 
-import com.magiclook.boundary.UserController;
-import com.magiclook.data.User;
-import com.magiclook.dto.UserRegistrationDTO;
-import com.magiclook.service.UserService;
+import com.MagicLook.dto.LoginDTO;
+import com.MagicLook.boundary.UserController;
+import com.MagicLook.data.User;
+import com.MagicLook.dto.UserRegistrationDTO;
+import com.MagicLook.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,9 +72,9 @@ class UserControllerLoginTest {
         String viewName = userController.login(username, password, session, model);
 
         assertEquals("redirect:/magiclook/dashboard", viewName);
-        verify(session).setAttribute(eq("loggedInUser"), eq(testUser));
-        verify(session).setAttribute(eq("userId"), eq(testUser.getUserId()));
-        verify(session).setAttribute(eq("userName"), eq(testUser.getFirstName()));
+        verify(session).setAttribute("loggedInUser", testUser);
+        verify(session).setAttribute("userId", testUser.getUserId());
+        verify(session).setAttribute("userName", testUser.getFirstName());
         verify(userService).login(username, password);
         verifyNoInteractions(model);
     }
@@ -88,7 +89,7 @@ class UserControllerLoginTest {
         String viewName = userController.login(email, password, session, model);
 
         assertEquals("redirect:/magiclook/dashboard", viewName);
-        verify(session).setAttribute(eq("loggedInUser"), eq(testUser));
+        verify(session).setAttribute("loggedInUser", testUser);
         verify(userService).login(email, password);
     }
 
@@ -102,8 +103,8 @@ class UserControllerLoginTest {
         String viewName = userController.login(username, password, session, model);
 
         assertEquals("login", viewName);
-        verify(model).addAttribute(eq("error"), eq("Usuário ou senha inválidos!"));
-        verify(model).addAttribute(eq("loginRequest"), any());
+        verify(model).addAttribute(eq("error"), eq("Utilizador ou palavra-passe inválidos!"));
+        verify(model).addAttribute(eq("loginRequest"), any(LoginDTO.class));  // <-- ALTERADO: adiciona eq() e any(LoginDTO.class)
         verify(session, never()).setAttribute(anyString(), any());
         verify(userService).login(username, password);
     }
@@ -118,7 +119,7 @@ class UserControllerLoginTest {
         String viewName = userController.login(username, password, session, model);
 
         assertEquals("login", viewName);
-        verify(model).addAttribute(eq("error"), eq("Usuário ou senha inválidos!"));
+        verify(model).addAttribute("error", "Utilizador ou palavra-passe inválidos!");
         verify(userService).login(username, password);
     }
     
@@ -146,7 +147,7 @@ class UserControllerLoginTest {
         String viewName = userController.register(registrationDTO, bindingResult, model);
 
         assertEquals("register", viewName);
-        verify(model).addAttribute(eq("error"), eq("Email já está em uso"));
+        verify(model).addAttribute("error", "Email já está em uso");
         verify(userService).register(any(UserRegistrationDTO.class));
     }
 
@@ -159,6 +160,6 @@ class UserControllerLoginTest {
         String viewName = userController.register(registrationDTO, bindingResult, model);
 
         assertEquals("register", viewName);
-        verify(model).addAttribute(eq("error"), eq("Erro inesperado"));
+        verify(model).addAttribute("error", "Erro inesperado");
     }
 }

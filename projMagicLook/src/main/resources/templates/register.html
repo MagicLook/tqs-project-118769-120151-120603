@@ -85,7 +85,7 @@
                 
                 <!-- Username -->
                 <div class="form-group">
-                    <label for="username">Username *</label>
+                        <label for="username">Utilizador *</label>
                     <input type="text" class="form-control" id="username" 
                            th:field="*{username}" 
                            th:classappend="${#fields.hasErrors('username') ? 'is-invalid' : ''}"
@@ -145,7 +145,7 @@
                 
                 <!-- Password -->
                 <div class="form-group">
-                    <label for="password">Password *</label>
+                    <label for="password">Palavra-passe *</label>
                     <input type="password" class="form-control" id="password" 
                            th:field="*{password}"
                            th:classappend="${#fields.hasErrors('password') ? 'is-invalid' : ''}"
