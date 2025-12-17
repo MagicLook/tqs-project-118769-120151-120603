@@ -40,13 +40,22 @@ jobs:
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
               run: mvn -B -U clean verify sonar:sonar "-Dsonar.projectKey=MagicLook_tqs-project-118769-120151-120603" "-Dsonar.organization=magiclook" "-Dsonar.qualitygate.wait=true" "-Dsonar.host.url=https://sonarcloud.io"
                 
-            - name: Test Coverage Check
-              run: |
-                mvn -B jacoco:report
-                perl -ne 'if (/<counter type="LINE"[^>]*covered="(\d+)"[^>]*missed="(\d+)"/) {
-                    $total = $1 + $2;
-                    $perc = $total ? int($1*100/$total) : 0;
-                    print "Test Coverage: $perc%\n";
-                    exit 1 if $perc < 80;
-                    }' target/site/jacoco/jacoco.xml || echo "Test Coverage OK"
-
+            - name: Coverage Information to PR
+              id: jacoco-pr
+              uses: madrapps/jacoco-report@v1.7.1
+              if: github.event_name == 'pull_request'
+              with:
+                paths: |
+                  ${{ github.workspace }}/**/target/site/jacoco-merged-test-coverage-report/jacoco.xml 
+                token: ${{ secrets.GITHUB_TOKEN }}
+                min-coverage-overall: 80
+                min-coverage-changed-files: 80
+                    
+            - name: Push results to Xray on Jira Cloud
+              env:
+                    XRAYCLOUD_CLIENT_ID: ${{ secrets.XRAYCLOUD_CLIENT_ID }}
+                    XRAYCLOUD_CLIENT_SECRET: ${{ secrets.XRAYCLOUD_CLIENT_SECRET }}
+                    XRAYCLOUD_TEST_PLAN_KEY: ${{ vars.XRAYCLOUD_TEST_PLAN_KEY }}
+                    REVISON: ${{ github.ref_name}}
+                    TEST_ENVIRONMENT: java${{ matrix.java }}
+              run: mvn -Dxray.clientId=${{ env.XRAYCLOUD_CLIENT_ID }} -Dxray.clientSecret=${{ env.XRAYCLOUD_CLIENT_SECRET }} -Dxray.testEnvironment=${{ env.TEST_ENVIRONMENT }} -Dxray.testPlanKey=${{ env.XRAYCLOUD_TEST_PLAN_KEY }} -Dxray.revision=${{ env.REVISON }} xray:import-results
