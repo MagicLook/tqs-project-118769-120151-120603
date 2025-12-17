@@ -51,6 +51,14 @@ jobs:
                 min-coverage-overall: 80
                 min-coverage-changed-files: 80
 
+            - name: Debug - list surefire reports
+              run: |
+                echo "Workspace: $GITHUB_WORKSPACE"
+                pwd
+                ls -la
+                echo "Listing surefire reports in projMagicLook/target/surefire-reports:" 
+                ls -la $GITHUB_WORKSPACE/projMagicLook/target/surefire-reports || true
+
             - name: List surefire reports
               run: ls -l target/surefire-reports || true
                     
@@ -68,7 +76,7 @@ jobs:
                   -Dxray.testEnvironment=${{ env.TEST_ENVIRONMENT }} \
                   -Dxray.testPlanKey=${{ env.XRAYCLOUD_TEST_PLAN_KEY }} \
                   -Dxray.revision=${{ env.REVISON }} \
-                  -Dxray.reportFile=target/surefire-reports/*.xml \
-                  -Dxray.reportFilePattern=true \
-                  -Dxray.reportFormat=junit \
+                  -DreportFile=${{ github.workspace }}/projMagicLook/target/surefire-reports/*.xml \
+                  -DreportFilePattern=true \
+                  -DreportFormat=junit \
                   xray:import-results
