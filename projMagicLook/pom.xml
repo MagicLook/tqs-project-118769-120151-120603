@@ -33,7 +33,7 @@
 		<xray-junit-extensions.version>0.9.0</xray-junit-extensions.version>
 		<xray-maven-plugin.version>0.9.0</xray-maven-plugin.version>
 		<xray.report.format>junit</xray.report.format>
-		<xray.report.file>${project.build.directory}/surefire-reports/TEST-*.xml</xray.report.file>
+		<xray.report.file>${project.build.directory}/surefire-reports/*.xml</xray.report.file>
 		<xray.clientId>${env.XRAY_CLIENT_ID}</xray.clientId>
 		<xray.clientSecret>${env.XRAY_CLIENT_SECRET}</xray.clientSecret>
 	</properties>
