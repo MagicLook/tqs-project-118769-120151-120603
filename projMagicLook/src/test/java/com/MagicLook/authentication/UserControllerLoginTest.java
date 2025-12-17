@@ -1,10 +1,10 @@
-package com.MagicLook.authentication;
+package com.magiclook.authentication;
 
-import com.MagicLook.dto.LoginDTO;
-import com.MagicLook.boundary.UserController;
-import com.MagicLook.data.User;
-import com.MagicLook.dto.UserRegistrationDTO;
-import com.MagicLook.service.UserService;
+import com.magiclook.dto.LoginDTO;
+import com.magiclook.boundary.UserController;
+import com.magiclook.data.User;
+import com.magiclook.dto.UserRegistrationDTO;
+import com.magiclook.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

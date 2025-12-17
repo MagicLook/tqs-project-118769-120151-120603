@@ -1,12 +1,12 @@
-package com.MagicLook.boundary;
+package com.magiclook.boundary;
 
-import com.MagicLook.dto.UserRegistrationDTO;
-import com.MagicLook.data.User;
-import com.MagicLook.service.UserService;
-import com.MagicLook.dto.LoginDTO;
-import com.MagicLook.service.ItemService;
-import com.MagicLook.data.Item;
-import com.MagicLook.dto.ItemFilterDTO;
+import com.magiclook.dto.UserRegistrationDTO;
+import com.magiclook.data.User;
+import com.magiclook.service.UserService;
+import com.magiclook.dto.LoginDTO;
+import com.magiclook.service.ItemService;
+import com.magiclook.data.Item;
+import com.magiclook.dto.ItemFilterDTO;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
