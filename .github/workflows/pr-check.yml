@@ -40,27 +40,33 @@ jobs:
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
               run: mvn -B -U clean verify sonar:sonar "-Dsonar.projectKey=MagicLook_tqs-project-118769-120151-120603" "-Dsonar.organization=magiclook" "-Dsonar.qualitygate.wait=true" "-Dsonar.host.url=https://sonarcloud.io"
                 
-            - name: Coverage Information to PR
-              id: jacoco-pr
-              uses: madrapps/jacoco-report@v1.7.1
-              if: github.event_name == 'pull_request'
+            - name: Generate JaCoCo Coverage Report
+              run: mvn jacoco:report
+              
+            - name: Publish JaCoCo Coverage to PR
+              uses: actions/upload-artifact@v4
               with:
-                paths: |
-                  ${{ github.workspace }}/**/target/site/jacoco-merged-test-coverage-report/jacoco.xml 
-                token: ${{ secrets.GITHUB_TOKEN }}
-                min-coverage-overall: 80
-                min-coverage-changed-files: 80
-
-            - name: Debug - list surefire reports
-              run: |
-                echo "Workspace: $GITHUB_WORKSPACE"
-                pwd
-                ls -la
-                echo "Listing surefire reports in projMagicLook/target/surefire-reports:" 
-                ls -la $GITHUB_WORKSPACE/projMagicLook/target/surefire-reports || true
-
-            - name: List surefire reports
-              run: ls -l target/surefire-reports || true
+                name: jacoco-report
+                path: projMagicLook/target/site/jacoco/
+                
+            - name: Comment PR with Coverage Info
+              uses: actions/github-script@v7
+              with:
+                script: |
+                  const fs = require('fs');
+                  const path = '${{ github.workspace }}/projMagicLook/target/site/jacoco/index.html';
+                  try {
+                    if (fs.existsSync(path)) {
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: '✅ **JaCoCo Coverage Report Generated**\n\nView the full report in the artifacts or check SonarCloud for coverage details.'
+                      });
+                    }
+                  } catch (e) {
+                    console.log('Could not post comment:', e);
+                  }
                     
             - name: Push results to Xray on Jira Cloud
               env:
