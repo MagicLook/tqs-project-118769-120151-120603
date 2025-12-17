@@ -71,4 +71,7 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
             @Param("shopId") Integer shopId);
     
     List<Item> findAll();
+
+    @Query("SELECT DISTINCT isg.item FROM ItemSingle isg  WHERE isg.state = :state")
+    List<Item> findByItemSinglesState(@Param("state") String state);
 }

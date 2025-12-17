@@ -1,8 +1,11 @@
 package com.magiclook.service;
 
 import com.magiclook.data.Item;
+import com.magiclook.data.ItemSingle;
 import com.magiclook.data.Shop;
 import com.magiclook.repository.ItemRepository;
+import com.magiclook.repository.ItemSingleRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -12,10 +15,12 @@ import java.util.stream.Collectors;
 public class ItemService {
     
     private final ItemRepository itemRepository;
+    private ItemSingleRepository itemSingleRepository;
     
     @Autowired
-    public ItemService(ItemRepository itemRepository) {
+    public ItemService(ItemRepository itemRepository, ItemSingleRepository itemSingleRepository) {
         this.itemRepository = itemRepository;
+        this.itemSingleRepository = itemSingleRepository;
     }
 
     public List<Item> getItemsByShop(Shop shop) {
@@ -59,10 +64,18 @@ public class ItemService {
                                                     category, minPrice, maxPrice);
     }
 
+    public List<Item> getAllItemsByState(String state) {
+        return itemRepository.findByItemSinglesState(state);
+    }
+
     public Item save(Item item) {
         return itemRepository.save(item);
     }
 
+    public List<ItemSingle> getItems(Integer itemId) {
+        return itemSingleRepository.findByItem_ItemId(itemId);
+    }
+    
     public Item getItemById(Integer itemId) {
         if (itemId == null) {
             return null;
