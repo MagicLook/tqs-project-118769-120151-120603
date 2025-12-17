@@ -55,6 +55,11 @@ jobs:
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
               run: mvn -B -U sonar:sonar "-Dsonar.projectKey=MagicLook_tqs-project-118769-120151-120603" "-Dsonar.organization=magiclook" "-Dsonar.qualitygate.wait=true" "-Dsonar.host.url=https://sonarcloud.io" "-Dsonar.coverage.jacoco.xmlReportPaths=$(pwd)/target/site/jacoco/jacoco.xml"
                     
+            - name: List IT test reports
+              run: |
+                    echo "Listing all IT test reports:"
+                    ls -la target/surefire-reports/TEST-*IT.xml || echo "No IT test files found"
+                    
             - name: Push results to Xray on Jira Cloud
               env:
                     XRAY_CLIENT_ID: ${{ secrets.XRAYCLOUD_CLIENT_ID }}
