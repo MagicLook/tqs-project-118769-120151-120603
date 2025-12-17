@@ -65,7 +65,7 @@ jobs:
                   -Dxray.testEnvironment=${{ env.TEST_ENVIRONMENT }} \
                   -Dxray.testPlanKey=${{ env.XRAYCLOUD_TEST_PLAN_KEY }} \
                   -Dxray.revision=${{ env.REVISON }} \
-                  -Dxray.reportFile=target/surefire-reports/TEST-*.xml \
+                  -Dxray.reportFile=target/surefire-reports/*.xml \
                   -Dxray.reportFilePattern=true \
                   -Dxray.reportFormat=junit \
                   xray:import-results
