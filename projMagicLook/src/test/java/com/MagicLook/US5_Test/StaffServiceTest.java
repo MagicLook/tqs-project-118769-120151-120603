@@ -167,8 +167,6 @@ class StaffServiceTest {
             // Given
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("test-image.jpg");
-            when(mockFile.getSize()).thenReturn(1024L);
-            when(mockFile.getContentType()).thenReturn("image/jpeg");
             doNothing().when(mockFile).transferTo(any(Path.class));
 
             // When
@@ -187,8 +185,6 @@ class StaffServiceTest {
             // Given
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("photo.png");
-            when(mockFile.getSize()).thenReturn(2048L);
-            when(mockFile.getContentType()).thenReturn("image/png");
             doNothing().when(mockFile).transferTo(any(Path.class));
 
             // When
@@ -209,7 +205,6 @@ class StaffServiceTest {
             // Given
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("my image!@#$%^&*()+file.jpg");
-            when(mockFile.getSize()).thenReturn(1024L);
             doNothing().when(mockFile).transferTo(any(Path.class));
 
             // When
@@ -252,7 +247,6 @@ class StaffServiceTest {
             // Given
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn(null);
-            when(mockFile.getSize()).thenReturn(1024L);
             doNothing().when(mockFile).transferTo(any(Path.class));
 
             // When
@@ -273,7 +267,6 @@ class StaffServiceTest {
             
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("test.jpg");
-            when(mockFile.getSize()).thenReturn(1024L);
             doNothing().when(mockFile).transferTo(any(Path.class));
 
             // When
@@ -301,7 +294,6 @@ class StaffServiceTest {
             // Given
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("test.jpg");
-            when(mockFile.getSize()).thenReturn(1024L);
             doThrow(new IOException("Transfer failed")).when(mockFile).transferTo(any(Path.class));
 
             // When & Then
