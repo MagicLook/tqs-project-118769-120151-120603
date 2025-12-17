@@ -96,7 +96,7 @@ public class UserController {
             
             return "redirect:/magiclook/dashboard";
         } else {
-            model.addAttribute(ATTR_ERROR, "Utilizador ou palavra-passe inválidos!");
+            model.addAttribute(ATTR_ERROR, "Username ou palavra-passe inválidos!");
             model.addAttribute("loginRequest", new LoginDTO(username, password));
             return VIEW_LOGIN;
         }

@@ -57,6 +57,7 @@ class UserControllerLoginTest {
         registrationDTO.setUsername("testuser");
         registrationDTO.setEmail("test@example.com");
         registrationDTO.setPassword("password123");
+        registrationDTO.setConfirmPassword("password123");
         registrationDTO.setFirstName("Test");
         registrationDTO.setLastName("User");
         registrationDTO.setTelephone("912345678");
@@ -103,8 +104,8 @@ class UserControllerLoginTest {
         String viewName = userController.login(username, password, session, model);
 
         assertEquals("login", viewName);
-        verify(model).addAttribute(eq("error"), eq("Utilizador ou palavra-passe inválidos!"));
-        verify(model).addAttribute(eq("loginRequest"), any(LoginDTO.class));  // <-- ALTERADO: adiciona eq() e any(LoginDTO.class)
+        verify(model).addAttribute(eq("error"), eq("Username ou palavra-passe inválidos!"));
+        verify(model).addAttribute(eq("loginRequest"), any(LoginDTO.class));
         verify(session, never()).setAttribute(anyString(), any());
         verify(userService).login(username, password);
     }
@@ -119,7 +120,7 @@ class UserControllerLoginTest {
         String viewName = userController.login(username, password, session, model);
 
         assertEquals("login", viewName);
-        verify(model).addAttribute("error", "Utilizador ou palavra-passe inválidos!");
+        verify(model).addAttribute("error", "Username ou palavra-passe inválidos!");
         verify(userService).login(username, password);
     }
     
@@ -161,5 +162,30 @@ class UserControllerLoginTest {
 
         assertEquals("register", viewName);
         verify(model).addAttribute("error", "Erro inesperado");
+    }
+
+    @Test
+    void testRegister_WithPasswordsNotMatching_ShouldShowError() {
+        when(bindingResult.hasErrors()).thenReturn(false);
+        registrationDTO.setConfirmPassword("differentpassword");
+        when(userService.register(any(UserRegistrationDTO.class)))
+                .thenThrow(new RuntimeException("As palavras-passe não coincidem"));
+
+        String viewName = userController.register(registrationDTO, bindingResult, model);
+
+        assertEquals("register", viewName);
+        verify(model).addAttribute("error", "As palavras-passe não coincidem");
+        verify(userService).register(any(UserRegistrationDTO.class));
+    }
+    @Test
+    void testRegister_WithNameNotStartingWithUppercase_ShouldShowError() {
+        registrationDTO.setFirstName("test");
+        registrationDTO.setLastName("user");
+        when(bindingResult.hasErrors()).thenReturn(true);
+
+        String viewName = userController.register(registrationDTO, bindingResult, model);
+
+        assertEquals("register", viewName);
+        verify(userService, never()).register(any(UserRegistrationDTO.class));
     }
 }

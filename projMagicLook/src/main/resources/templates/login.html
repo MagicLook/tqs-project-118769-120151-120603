@@ -82,7 +82,7 @@
             <form th:action="@{/magiclook/login}" method="post">
                 
                 <div class="form-group">
-                    <label for="username">Utilizador ou Email</label>
+                    <label for="username">Username ou Email</label>
                     <input type="text" class="form-control" id="username" 
                            name="username" 
                            th:value="${loginRequest != null ? loginRequest.username : ''}"
