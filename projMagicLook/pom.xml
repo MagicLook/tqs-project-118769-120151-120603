@@ -30,6 +30,8 @@
 	    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
   		<sonar.organization>magiclook</sonar.organization>
 		<java.version>21</java.version>
+		<xray-junit-extensions.version>0.9.0</xray-junit-extensions.version>
+		<xray-maven-plugin.version>0.9.0</xray-maven-plugin.version>
 	</properties>
 
 	<pluginRepositories>
@@ -62,7 +64,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
@@ -92,6 +93,17 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>app.getxray</groupId>
+			<artifactId>xray-junit-extensions</artifactId>
+			<version>${xray-junit-extensions.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>app.getxray</groupId>
+			<artifactId>xray-maven-plugin</artifactId>
+			<version>${xray-maven-plugin.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -135,6 +147,17 @@
 				</execution>
 				
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>app.getxray</groupId>
+				<artifactId>xray-maven-plugin</artifactId>
+				<version>${xray-maven-plugin.version}</version>
+				<configuration>
+					<cloud>true</cloud>
+					<projectKey>ST</projectKey>
+					<reportFormat>junit</reportFormat>
+					<reportFile>reports/TEST-junit-jupiter.xml</reportFile>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
