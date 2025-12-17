@@ -32,6 +32,10 @@
 		<java.version>21</java.version>
 		<xray-junit-extensions.version>0.9.0</xray-junit-extensions.version>
 		<xray-maven-plugin.version>0.9.0</xray-maven-plugin.version>
+		<xray.report.format>junit</xray.report.format>
+		<xray.report.file>${project.build.directory}/surefire-reports/TEST-*.xml</xray.report.file>
+		<xray.clientId>${env.XRAY_CLIENT_ID}</xray.clientId>
+		<xray.clientSecret>${env.XRAY_CLIENT_SECRET}</xray.clientSecret>
 	</properties>
 
 	<pluginRepositories>
@@ -155,9 +159,21 @@
 				<configuration>
 					<cloud>true</cloud>
 					<projectKey>ST</projectKey>
-					<reportFormat>junit</reportFormat>
-					<reportFile>reports/TEST-junit-jupiter.xml</reportFile>
+					<reportFormat>${xray.report.format}</reportFormat>
+					<reportFile>${xray.report.file}</reportFile>
+					<reportFilePattern>true</reportFilePattern>
+					<clientId>${xray.clientId}</clientId>
+					<clientSecret>${xray.clientSecret}</clientSecret>
 				</configuration>
+				<executions>
+					<execution>
+						<id>upload-xray-results</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>uploadResults</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
