@@ -40,4 +40,6 @@ public class ItemSingle implements Serializable {
 
     public String getSize() { return size; }
     public void setSize(String size) { this.size = size; }
+
+    public UUID getId() { return id; }
 }

@@ -88,4 +88,7 @@ public class Item implements Serializable{
     
     public ItemType getItemType() { return itemType; }
     public void setItemType(ItemType itemType) { this.itemType = itemType; }
+
+    public List<ItemSingle> getItemSingles() { return itemSigle; }
+    public void sItemSingles(List<ItemSingle> itemSigle) { this.itemSigle = itemSigle; }
 }

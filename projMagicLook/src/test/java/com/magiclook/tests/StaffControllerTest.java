@@ -1,4 +1,4 @@
-package com.magiclook.US5_Test;
+package com.magiclook.tests;
 
 import com.magiclook.boundary.StaffController;
 import com.magiclook.data.*;

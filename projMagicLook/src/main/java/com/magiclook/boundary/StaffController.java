@@ -21,6 +21,8 @@ public class StaffController {
     // Constants
     private static final String STAFF_DASHBOARD_VIEW = "staffDashboard";
     private static final String STAFF_LOGIN_VIEW = "staffLogin";
+    private static final String STAFF_ITEM_VIEW = "staffItem";
+    private static final String STAFF_ITEM_DETAILS_VIEW = "staffItemDetails";
     private static final String ERROR = "error";
 
     @Autowired
@@ -144,10 +146,11 @@ public class StaffController {
                 return STAFF_DASHBOARD_VIEW;
             }
 
-            // Guardar imagem se fornecida
+            // Guardar imagem se fornecida e persistir no item
             String imagePath = null;
             if (image != null && !image.isEmpty()) {
                 imagePath = staffService.saveImage(image, itemDTO.getItemId());
+                staffService.updateItemImage(itemDTO.getItemId(), imagePath);
             }
             
             itemDTO.setImagePath(imagePath);
@@ -159,6 +162,74 @@ public class StaffController {
             return STAFF_DASHBOARD_VIEW;
         }
     }
+
+    // ========== VIEW ITEMS ============
+
+    @GetMapping("/item") 
+    public String getItems(
+            HttpSession session,
+            Model model,
+            @RequestParam(name = "state", required = false) String state,
+            @RequestParam(name = "q", required = false) String q) {
+
+        Staff staff = (Staff) session.getAttribute("loggedInStaff");
+        if (staff == null) {
+            return "redirect:/magiclook/staff/login";
+        }
+
+        // Base list: items from this staff's shop
+        List<Item> items = itemService.getItemsByShop(staff.getShop());
+
+        // Optional name search
+        if (q != null && !q.isBlank()) {
+            String needle = q.trim().toLowerCase();
+            items = items.stream()
+                .filter(i -> i.getName() != null && i.getName().toLowerCase().contains(needle))
+                .toList();
+        }
+
+        // Optional state filter: keep items that have at least one ItemSingle in that state
+        if (state != null && !state.isBlank()) {
+            state = state.trim().toUpperCase();
+            items = itemService.getAllItemsByState(state);
+        }
+
+        model.addAttribute("staff", staff);
+        model.addAttribute("shop", staff.getShop());
+        model.addAttribute("items", items);
+        model.addAttribute("itemCount", items.size());
+
+        // Bind filter values back to the view
+        model.addAttribute("selectedState", state);
+        model.addAttribute("q", q);
+
+        return STAFF_ITEM_VIEW;
+    }
+
+    // ========== VIEW ITEM DETAILS =====
+
+    @GetMapping("/item/{itemId}")
+    public String getItemDetails(
+            @PathVariable Integer itemId,
+            HttpSession session,
+            Model model) {
+
+        Staff staff = (Staff) session.getAttribute("loggedInStaff");
+        if (staff == null) {
+            return "redirect:/magiclook/staff/login";
+        }
+        
+        Item item = itemService.getItemById(itemId);
+        List<ItemSingle> itemsList = itemService.getItems(itemId);
+
+        model.addAttribute("staff", staff);
+        model.addAttribute("shop", staff.getShop());
+        model.addAttribute("item", item);
+        model.addAttribute("itemSingles", itemsList);
+
+        return STAFF_ITEM_DETAILS_VIEW;
+    }
+
 
     // ========== LOGOUT STAFF ==========
     
