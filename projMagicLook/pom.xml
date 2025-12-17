@@ -170,7 +170,7 @@
 						<id>upload-xray-results</id>
 						<phase>verify</phase>
 						<goals>
-							<goal>uploadResults</goal>
+							<goal>import-results</goal>
 						</goals>
 					</execution>
 				</executions>
