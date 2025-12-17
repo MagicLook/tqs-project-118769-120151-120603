@@ -25,6 +25,18 @@ jobs:
                     java-version: '21'
                     distribution: 'temurin'
                     cache: maven
+                    
+            - name: Verify
+              run: mvn -B -U clean verify
+
+            - name: Generate JaCoCo Coverage Report
+              run: mvn jacoco:report
+              
+            - name: Publish JaCoCo Coverage to PR
+              uses: actions/upload-artifact@v4
+              with:
+                name: jacoco-report
+                path: projMagicLook/target/site/jacoco/
 
             - name: Generate JaCoCo Coverage Report
               run: mvn jacoco:report
@@ -42,9 +54,6 @@ jobs:
                 key: ${{ runner.os }}-sonar-${{ hashFiles('**/pom.xml') }}
                 restore-keys: |
                   ${{ runner.os }}-sonar-
-
-            - name: Verify
-              run: mvn -B clean verify
 
             - name: SonarCloud Scan
               env:
