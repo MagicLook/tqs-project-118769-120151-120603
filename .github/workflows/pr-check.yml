@@ -40,12 +40,6 @@ jobs:
 
             - name: Generate JaCoCo Coverage Report
               run: mvn jacoco:report
-              
-            - name: Publish JaCoCo Coverage to PR
-              uses: actions/upload-artifact@v4
-              with:
-                name: jacoco-report
-                path: projMagicLook/target/site/jacoco/
 
             - name: Cache SonarQube packages
               uses: actions/cache@v4
