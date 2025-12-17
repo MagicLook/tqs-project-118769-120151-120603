@@ -25,6 +25,18 @@ jobs:
                     java-version: '21'
                     distribution: 'temurin'
                     cache: maven
+                    
+            - name: Verify
+              run: mvn -B -U clean verify
+
+            - name: Generate JaCoCo Coverage Report
+              run: mvn jacoco:report
+              
+            - name: Publish JaCoCo Coverage to PR
+              uses: actions/upload-artifact@v4
+              with:
+                name: jacoco-report
+                path: projMagicLook/target/site/jacoco/
 
             - name: Cache SonarQube packages
               uses: actions/cache@v4
@@ -34,20 +46,11 @@ jobs:
                 restore-keys: |
                   ${{ runner.os }}-sonar-
 
-            - name: Verify and SonarCloud Scan
+            - name: SonarCloud Scan
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-              run: mvn -B -U clean verify sonar:sonar "-Dsonar.projectKey=MagicLook_tqs-project-118769-120151-120603" "-Dsonar.organization=magiclook" "-Dsonar.qualitygate.wait=true" "-Dsonar.host.url=https://sonarcloud.io"
-                
-            - name: Generate JaCoCo Coverage Report
-              run: mvn jacoco:report
-              
-            - name: Publish JaCoCo Coverage to PR
-              uses: actions/upload-artifact@v4
-              with:
-                name: jacoco-report
-                path: projMagicLook/target/site/jacoco/
+              run: mvn -B -U sonar:sonar "-Dsonar.projectKey=MagicLook_tqs-project-118769-120151-120603" "-Dsonar.organization=magiclook" "-Dsonar.qualitygate.wait=true" "-Dsonar.host.url=https://sonarcloud.io"
                     
             - name: Push results to Xray on Jira Cloud
               env:
