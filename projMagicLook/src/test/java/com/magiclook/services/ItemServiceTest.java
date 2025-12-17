@@ -76,4 +76,31 @@ class ItemServiceTest {
         assertTrue(result.isEmpty());
         verify(itemRepository, times(1)).findByShop(shop);
     }
+
+    @Test
+    void testGetItemsByState_ReturnsList() {
+        String state = "AVAILABLE";
+        Item item1 = new Item();
+        Item item2 = new Item();
+        List<Item> items = Arrays.asList(item1, item2);
+
+        when(itemRepository.findByItemSinglesState(state)).thenReturn(items);
+
+        List<Item> result = itemService.getAllItemsByState(state);
+
+        assertEquals(2, result.size());
+        verify(itemRepository, times(1)).findByItemSinglesState(state);
+    }
+
+    @Test
+    void testGetItemsByState_ReturnsEmptyList() {
+        String state = "AVAILABLE";
+
+        when(itemRepository.findByItemSinglesState(state)).thenReturn(Collections.emptyList());
+
+        List<Item> result = itemService.getAllItemsByState(state);
+
+        assertTrue(result.isEmpty());
+        verify(itemRepository, times(1)).findByItemSinglesState(state);
+    }
 }
