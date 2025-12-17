@@ -68,12 +68,27 @@ jobs:
                     XRAYCLOUD_CLIENT_SECRET: ${{ secrets.XRAYCLOUD_CLIENT_SECRET }}
                     XRAYCLOUD_TEST_PLAN_KEY: ${{ vars.XRAYCLOUD_TEST_PLAN_KEY }}
                     REVISON: ${{ github.ref_name}}
+              shell: bash
               run: |
-                mvn \
-                  -Dxray.clientId=${{ env.XRAYCLOUD_CLIENT_ID }} \
-                  -Dxray.clientSecret=${{ env.XRAYCLOUD_CLIENT_SECRET }} \
-                  -Dxray.testPlanKey=${{ env.XRAYCLOUD_TEST_PLAN_KEY }} \
-                  -Dxray.revision=${{ env.REVISON }} \
-                  -DreportFile=${{ github.workspace }}/projMagicLook/target/surefire-reports/*.xml \
-                  -DreportFormat=junit \
-                  xray:import-results
+                set -euo pipefail
+                echo "Importing JUnit reports into Xray..."
+                found=false
+                for f in target/surefire-reports/TEST-*.xml; do
+                  if [ -f "$f" ]; then
+                    found=true
+                    echo "Importing $f"
+                    mvn -B \
+                      -Dxray.clientId="${XRAYCLOUD_CLIENT_ID}" \
+                      -Dxray.clientSecret="${XRAYCLOUD_CLIENT_SECRET}" \
+                      -Dxray.testPlanKey="${XRAYCLOUD_TEST_PLAN_KEY}" \
+                      -Dxray.revision="${REVISON}" \
+                      -DreportFile="$f" \
+                      -DreportFormat=junit \
+                      xray:import-results
+                  fi
+                done
+                if [ "$found" = false ]; then
+                  echo "No JUnit XML files found under target/surefire-reports. Listing directory for diagnostics:" >&2
+                  ls -la target/surefire-reports || true
+                  exit 1
+                fi
