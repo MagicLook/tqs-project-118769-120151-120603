@@ -26,20 +26,6 @@ jobs:
                     distribution: 'temurin'
                     cache: maven
 
-            - name: Cache SonarQube packages
-              uses: actions/cache@v4
-              with:
-                path: ~/.sonar/cache
-                key: ${{ runner.os }}-sonar-${{ hashFiles('**/pom.xml') }}
-                restore-keys: |
-                  ${{ runner.os }}-sonar-
-
-            - name: Verify and SonarCloud Scan
-              env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-              run: mvn -B -U clean verify sonar:sonar "-Dsonar.projectKey=MagicLook_tqs-project-118769-120151-120603" "-Dsonar.organization=magiclook" "-Dsonar.qualitygate.wait=true" "-Dsonar.host.url=https://sonarcloud.io"
-                
             - name: Generate JaCoCo Coverage Report
               run: mvn jacoco:report
               
@@ -48,6 +34,23 @@ jobs:
               with:
                 name: jacoco-report
                 path: projMagicLook/target/site/jacoco/
+
+            - name: Cache SonarQube packages
+              uses: actions/cache@v4
+              with:
+                path: ~/.sonar/cache
+                key: ${{ runner.os }}-sonar-${{ hashFiles('**/pom.xml') }}
+                restore-keys: |
+                  ${{ runner.os }}-sonar-
+
+            - name: Verify
+              run: mvn -B clean verify
+
+            - name: SonarCloud Scan
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+              run: mvn -B -U sonar:sonar "-Dsonar.projectKey=MagicLook_tqs-project-118769-120151-120603" "-Dsonar.organization=magiclook" "-Dsonar.qualitygate.wait=true" "-Dsonar.host.url=https://sonarcloud.io"
                     
             - name: Push results to Xray on Jira Cloud
               env:
