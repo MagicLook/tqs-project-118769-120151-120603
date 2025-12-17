@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com</groupId>
-	<artifactId>MagicLook</artifactId>
+	<artifactId>magiclook</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>MagicLook</name>
+	<name>magiclook</name>
 	<description>MagicLook - App for Booking Ceremony Clothes</description>
 	<url/>
 	<licenses>
