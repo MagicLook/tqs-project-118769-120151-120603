@@ -1,8 +1,8 @@
-package com.MagicLook.service;
+package com.magiclook.service;
 
-import com.MagicLook.data.Item;
-import com.MagicLook.data.Shop;
-import com.MagicLook.repository.ItemRepository;
+import com.magiclook.data.Item;
+import com.magiclook.data.Shop;
+import com.magiclook.repository.ItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -58,5 +58,9 @@ public class ItemService {
                                              Double minPrice, Double maxPrice) {
         return itemRepository.findByGenderAndFilters(gender, color, brand, material, 
                                                     category, minPrice, maxPrice);
+    }
+
+    public Item save(Item item) {
+        return itemRepository.save(item);
     }
 }

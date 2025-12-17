@@ -1,4 +1,4 @@
-package com.MagicLook;
+package com.magiclook;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

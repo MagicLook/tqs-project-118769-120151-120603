@@ -1,4 +1,4 @@
-package com.MagicLook.dto;
+package com.magiclook.dto;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;

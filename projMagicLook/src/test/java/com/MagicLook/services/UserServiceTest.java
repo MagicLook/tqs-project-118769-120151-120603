@@ -1,9 +1,9 @@
-package com.MagicLook.services;
+package com.magiclook.services;
 
-import com.MagicLook.data.User;
-import com.MagicLook.dto.UserRegistrationDTO;
-import com.MagicLook.repository.UserRepository;
-import com.MagicLook.service.UserService;
+import com.magiclook.data.User;
+import com.magiclook.dto.UserRegistrationDTO;
+import com.magiclook.repository.UserRepository;
+import com.magiclook.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,10 +1,10 @@
-package com.MagicLook.authentication;
+package com.magiclook.authentication;
 
-import com.MagicLook.boundary.StaffController;
-import com.MagicLook.data.Staff;
-import com.MagicLook.data.Shop;
-import com.MagicLook.service.StaffService;
-import com.MagicLook.service.ItemService;
+import com.magiclook.boundary.StaffController;
+import com.magiclook.data.Staff;
+import com.magiclook.data.Shop;
+import com.magiclook.service.StaffService;
+import com.magiclook.service.ItemService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,8 +1,9 @@
-package com.MagicLook.service;
+package com.magiclook.mainpage;
 
-import com.MagicLook.data.Item;
-import com.MagicLook.data.Shop;
-import com.MagicLook.repository.ItemRepository;
+import com.magiclook.data.Item;
+import com.magiclook.data.Shop;
+import com.magiclook.service.ItemService;
+import com.magiclook.repository.ItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -152,7 +153,7 @@ class ItemServiceTest {
         item.setMaterial(material);
         item.setPriceRent(new BigDecimal(price));
         
-        com.MagicLook.data.ItemType itemType = new com.MagicLook.data.ItemType();
+        com.magiclook.data.ItemType itemType = new com.magiclook.data.ItemType();
         itemType.setGender(gender);
         itemType.setCategory(category);
         item.setItemType(itemType);
