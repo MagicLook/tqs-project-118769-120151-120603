@@ -168,7 +168,7 @@
 					<cloud>true</cloud>
 					<projectKey>ST</projectKey>
 					<reportFormat>junit</reportFormat>
-					<reportFile>target/surefire-reports/TEST-*IT.xml</reportFile>
+					<reportFile>target/surefire-reports/TEST-**IT.xml</reportFile>
 					<clientId>${xray.clientId}</clientId>
 					<clientSecret>${xray.clientSecret}</clientSecret>
 				</configuration>
