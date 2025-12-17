@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/navbar :: head(~{::title})">
+    <title>Reservar Item - MagicLook</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .content-wrapper {
+            padding-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+        
+        .magic-card {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .btn-magic {
+            background-color: #b8860b;
+            border-color: #b8860b;
+            color: white;
+        }
+        
+        .btn-magic:hover {
+            background-color: #8b6f3d;
+            border-color: #8b6f3d;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="fragments/navbar :: navbar"></div>
+    
+    <div class="container content-wrapper">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="bi bi-calendar-plus text-warning"></i> Reservar Item
+            </h1>
+            <a th:href="@{/magiclook/dashboard}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+        
+        <!-- Mensagem de erro se houver -->
+        <div th:if="${error}" class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <!-- Informações do Item -->
+                <div class="card magic-card mb-4">
+                    <div class="card-body">
+                        <h4 th:text="${item.name}"></h4>
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <p><strong class="text-warning">Preço de aluguer:</strong><br>
+                                   <span class="h4">€<span th:text="${item.priceRent}"></span></span>/dia</p>
+                            </div>
+                            <div class="col-6">
+                            </div>
+                        </div>
+                        <hr>
+                        <p><strong>Marca:</strong> <span th:text="${item.brand}"></span></p>
+                        <p><strong>Cor:</strong> <span th:text="${item.color}"></span></p>
+                        <p><strong>Material:</strong> <span th:text="${item.material}"></span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <!-- Formulário SIMPLIFICADO -->
+                <div class="card magic-card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-calendar-date"></i> Datas da Reserva
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- FORMULÁRIO SIMPLES sem th:object -->
+                        <form th:action="@{/magiclook/booking/create}" method="post">
+                            <!-- Campo hidden com itemId -->
+                            <input type="hidden" name="itemId" th:value="${item.itemId}" />
+                            
+                            <div class="mb-3">
+                                <label for="startUseDate" class="form-label">
+                                    <i class="bi bi-calendar-event"></i> Data de início de uso*
+                                </label>
+                                <input type="date" name="startUseDate" class="form-control" 
+                                       id="startUseDate" required 
+                                       min="[[${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}]]">
+                                <small class="text-muted">Primeiro dia em que vai usar o item</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="endUseDate" class="form-label">
+                                    <i class="bi bi-calendar-event-fill"></i> Data de fim de uso*
+                                </label>
+                                <input type="date" name="endUseDate" class="form-control" 
+                                       id="endUseDate" required>
+                                <small class="text-muted">Último dia em que vai usar o item</small>
+                            </div>
+                            
+                            <!-- Botões -->
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-magic">
+                                    <i class="bi bi-calendar-check"></i> Confirmar Reserva
+                                </button>
+                                <a th:href="@{/magiclook/dashboard}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Cancelar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informações importantes -->
+        <div class="alert alert-info mt-4">
+            <h6><i class="bi bi-info-circle"></i> Como funciona a reserva:</h6>
+            <ul class="mb-0">
+                <li>Período total da reserva = <strong>1 dia antes</strong> + <strong>dias de uso</strong> + <strong>1 dia depois</strong></li>
+                <li>Você só paga pelos <strong>dias de uso efectivo</strong></li>
+                <li>Exemplo: 2 dias de uso = 4 dias reservados, paga 2 diárias</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const startDateInput = document.getElementById('startUseDate');
+            const endDateInput = document.getElementById('endUseDate');
+            const submitButton = document.querySelector('button[type="submit"]');
+            const itemId = document.querySelector('input[name="itemId"]').value;
+            
+            // Função para verificar disponibilidade
+            function checkAvailability() {
+                if (startDateInput.value && endDateInput.value) {
+                    // Desabilitar botão enquanto verifica
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verificando...';
+                    
+                    // Fazer requisição para verificar disponibilidade
+                    fetch(`/magiclook/api/items/${itemId}/check?start=${startDateInput.value}&end=${endDateInput.value}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.available) {
+                                // Habilitar botão
+                                submitButton.disabled = false;
+                                submitButton.innerHTML = '<i class="bi bi-calendar-check"></i> Confirmar Reserva';
+                                
+                                // Mostrar mensagem de sucesso
+                                showAvailabilityMessage('success', '✅ Item disponível nestas datas!');
+                            } else {
+                                // Manter botão desabilitado
+                                submitButton.disabled = true;
+                                submitButton.innerHTML = '<i class="bi bi-calendar-x"></i> Datas Indisponíveis';
+                                
+                                // Mostrar mensagem de erro com conflitos
+                                let message = '❌ Item não disponível nestas datas. ';
+                                if (data.conflicts && data.conflicts.length > 0) {
+                                    message += 'Conflitos com reservas existentes.';
+                                }
+                                showAvailabilityMessage('danger', message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro:', error);
+                            submitButton.disabled = false;
+                            submitButton.innerHTML = '<i class="bi bi-calendar-check"></i> Confirmar Reserva';
+                        });
+                }
+            }
+            
+            // Criar elemento para mensagens
+            function showAvailabilityMessage(type, text) {
+                let messageDiv = document.getElementById('availabilityMessage');
+                if (!messageDiv) {
+                    messageDiv = document.createElement('div');
+                    messageDiv.id = 'availabilityMessage';
+                    messageDiv.className = 'alert mt-3';
+                    submitButton.parentNode.insertBefore(messageDiv, submitButton);
+                }
+                
+                messageDiv.className = `alert alert-${type} mt-3`;
+                messageDiv.innerHTML = `<i class="bi ${type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}"></i> ${text}`;
+            }
+            
+            // Event listeners
+            if (startDateInput) {
+                startDateInput.min = new Date().toISOString().split('T')[0];
+                
+                startDateInput.addEventListener('change', function() {
+                    if (this.value && endDateInput) {
+                        endDateInput.min = this.value;
+                        if (endDateInput.value && endDateInput.value < this.value) {
+                            endDateInput.value = '';
+                        }
+                        checkAvailability();
+                    }
+                });
+            }
+            
+            if (endDateInput) {
+                endDateInput.addEventListener('change', checkAvailability);
+            }
+        });
+    </script>
+</body>
+</html>

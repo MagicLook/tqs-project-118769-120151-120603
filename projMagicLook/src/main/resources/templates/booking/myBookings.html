@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/navbar :: head(~{::title})">
+    <title>Minhas Reservas - MagicLook</title>
+    <style>
+        .content-wrapper {
+            padding-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+        
+        .booking-card {
+            border-radius: 10px;
+            border: 1px solid #eaeaea;
+            transition: all 0.3s;
+        }
+        
+        .booking-card:hover {
+            border-color: #b8860b;
+            box-shadow: 0 5px 15px rgba(184, 134, 11, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        .date-badge {
+            background: #fff9e6;
+            color: #8b6f3d;
+            border-left: 3px solid #b8860b;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar igual às outras páginas -->
+    <div th:replace="fragments/navbar :: navbar"></div>
+    
+    <div class="container content-wrapper">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="bi bi-calendar-check"></i> Minhas Reservas</h1>
+            <a th:href="@{/magiclook/dashboard}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+        
+        <div th:if="${bookings == null or bookings.isEmpty()}">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-calendar-x" style="font-size: 4rem; color: #ccc;"></i>
+                    <h5 class="mt-3">Você ainda não tem reservas</h5>
+                    <p class="text-muted">Quando fizer uma reserva, ela aparecerá aqui.</p>
+                    <div class="mt-3">
+                        <a th:href="@{/magiclook/items/men}" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-search"></i> Explorar Itens para Homens
+                        </a>
+                        <a th:href="@{/magiclook/items/women}" class="btn btn-outline-primary">
+                            <i class="bi bi-search"></i> Explorar Itens para Mulheres
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row" th:each="booking : ${bookings}">
+            <div class="col-12 mb-4">
+                <div class="card booking-card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0" th:text="${booking.item.name}"></h5>
+                            <span class="badge" 
+                                th:classappend="${booking.state == 'CONFIRMED' ? 'bg-success' : 
+                                                booking.state == 'PENDING' ? 'bg-warning' : 'bg-secondary'}"
+                                th:text="${booking.state}">
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <th:block th:if="${booking.item.imagePath}">
+                                        <img th:src="@{${booking.item.imagePath}}" alt="Item" class="img-fluid rounded" style="max-height: 150px;">
+                                    </th:block>
+                                    <th:block th:unless="${booking.item.imagePath}">
+                                        <div class="rounded bg-light p-4">
+                                            <i class="bi bi-image" style="font-size: 3rem; color: #ccc;"></i>
+                                        </div>
+                                    </th:block>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <!-- Datas -->
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <div class="date-badge p-2 rounded">
+                                            <small class="text-muted d-block">Levantamento</small>
+                                            <strong th:text="${#dates.format(booking.pickupDate, 'dd/MM/yyyy')}"></strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="date-badge p-2 rounded">
+                                            <small class="text-muted d-block">Início Uso</small>
+                                            <strong th:text="${#dates.format(booking.startUseDate, 'dd/MM/yyyy')}"></strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="date-badge p-2 rounded">
+                                            <small class="text-muted d-block">Fim Uso</small>
+                                            <strong th:text="${#dates.format(booking.endUseDate, 'dd/MM/yyyy')}"></strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="date-badge p-2 rounded">
+                                            <small class="text-muted d-block">Devolução</small>
+                                            <strong th:text="${#dates.format(booking.returnDate, 'dd/MM/yyyy')}"></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Informações -->
+                                <div class="row mt-3">
+                                    <div class="col-md-4">
+                                        <p><strong>Dias de uso:</strong> <span th:text="${booking.totalDays}"></span></p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p><strong>Preço total:</strong> <span class="text-success fw-bold">€<span th:text="${booking.totalPrice}"></span></span></p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p><strong>Reservado em:</strong> <span th:text="${#dates.format(booking.createdAt, 'dd/MM/yyyy HH:mm')}"></span></p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Detalhes do Item -->
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <p><strong>Item:</strong> <span th:text="${booking.item.name}"></span></p>
+                                        <div class="d-flex gap-3">
+                                            <span><strong>Marca:</strong> <span th:text="${booking.item.brand}"></span></span>
+                                            <span><strong>Cor:</strong> <span th:text="${booking.item.color}"></span></span>
+                                            <span><strong>Material:</strong> <span th:text="${booking.item.material}"></span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <a th:href="@{/magiclook/dashboard}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -4,10 +4,10 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.List;
 import java.io.Serializable;
+import java.util.Date;
 
 @Entity
 @Table(name = "item")
-// É um grupo de items
 public class Item implements Serializable{
     private static final Long serialVersionUID = 1L;
 
@@ -23,9 +23,14 @@ public class Item implements Serializable{
     private BigDecimal priceRent;
     private BigDecimal priceSale;
 
-    // Caminho da imagem
     @Column(length = 500)
-    private String imagePath; 
+    private String imagePath;
+
+    @Column(name = "is_available")
+    private boolean available = true;
+
+    @Column(name = "next_available_date")
+    private Date nextAvailableDate;
 
     @ManyToOne
     @JoinColumn(name = "shop_id")
@@ -35,14 +40,10 @@ public class Item implements Serializable{
     @JoinColumn(name = "item_type_id")
     private ItemType itemType;
 
-    @OneToMany
-    @JoinColumn(name = "item_single_id")
-    private List<ItemSingle> itemSigle;
+    @OneToMany(mappedBy = "item", fetch = FetchType.LAZY)
+    private List<ItemSingle> itemSingles;
 
-    // Constructors
-    public Item() {
-
-    }
+    public Item() {}
 
     public Item(String name, String material, String color, String brand,
                 BigDecimal priceRent, BigDecimal priceSale, Shop shop, ItemType itemType) {
@@ -56,11 +57,9 @@ public class Item implements Serializable{
         this.itemType = itemType;
     }
 
+    // Getters and setters
     public Integer getItemId() { return itemId; }
     public void setItemId(Integer itemId) { this.itemId = itemId; }
-
-    public List<ItemSingle> getItemSigle() { return itemSigle; }
-    public void setItemSigle(List<ItemSingle> itemSigle) { this.itemSigle = itemSigle; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -88,4 +87,13 @@ public class Item implements Serializable{
     
     public ItemType getItemType() { return itemType; }
     public void setItemType(ItemType itemType) { this.itemType = itemType; }
+
+    public List<ItemSingle> getItemSingles() { return itemSingles; }
+    public void setItemSingles(List<ItemSingle> itemSingles) { this.itemSingles = itemSingles; }
+
+    public boolean isAvailable() { return available; }
+    public void setAvailable(boolean available) { this.available = available; }
+
+    public Date getNextAvailableDate() { return nextAvailableDate; }
+    public void setNextAvailableDate(Date nextAvailableDate) { this.nextAvailableDate = nextAvailableDate; }
 }

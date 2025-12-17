@@ -154,12 +154,9 @@
                 <!-- Right Side - User Actions -->
                 <div class="d-flex align-items-center">
                     <!-- Shopping Cart -->
-                    <div class="position-relative me-3">
-                        <button class="btn btn-cart">
-                            <i class="bi bi-cart3"></i> Carrinho
-                            <span class="cart-count" th:text="${cartCount != null ? cartCount : 0}">0</span>
-                        </button>
-                    </div>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/magiclook/my-bookings}">Reservas</a>
+                    </li>
                     
                     <!-- User Profile Dropdown -->
                     <div class="dropdown" th:if="${user}">
