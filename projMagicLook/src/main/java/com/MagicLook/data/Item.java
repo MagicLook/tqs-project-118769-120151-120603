@@ -3,11 +3,14 @@ package com.magiclook.data;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.List;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "item")
 // É um grupo de items
-public class Item {
+public class Item implements Serializable{
+    private static final Long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer itemId;
