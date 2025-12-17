@@ -4,6 +4,8 @@ import com.magiclook.data.*;
 import com.magiclook.repository.*;
 import com.magiclook.service.*;
 
+import app.getxray.xray.junit.customjunitxml.annotations.Requirement;
+
 import org.assertj.core.api.Assertions;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -65,6 +67,7 @@ class StaffControllerIT {
         }
 
         @Test
+        @Requirement("SCRUM-8")
         @DisplayName("POST /magiclook/staff/item → success creates item and redirects")
         void addItem_success_createsItemAndRedirectsToDashboard() {
                 //Login and capture session
@@ -141,6 +144,7 @@ class StaffControllerIT {
         }
 
         @Test
+        @Requirement("SCRUM-8")
         @DisplayName("POST /magiclook/staff/item → invalid size returns error on dashboard")
         void addItem_invalidSize_showsErrorOnDashboard() {
                 loginAsStaff(seededUsername, seededPassword);
@@ -187,6 +191,7 @@ class StaffControllerIT {
         }
 
         @Test
+        @Requirement("SCRUM-8")
         @DisplayName("POST /magiclook/staff/item → not logged in redirects to login")
         void addItem_notLoggedIn_redirectsToLogin() {
                 // Don't login - use fresh client
@@ -203,6 +208,7 @@ class StaffControllerIT {
         }
 
         @Test
+        @Requirement("SCRUM-8")
         @DisplayName("POST /magiclook/staff/item → with image saves to filesystem")
         void addItem_withImage_savesImageFile() {
                 loginAsStaff(seededUsername, seededPassword);

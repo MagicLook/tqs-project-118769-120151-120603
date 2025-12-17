@@ -5,14 +5,11 @@ import com.magiclook.service.*;
 import com.magiclook.dto.*;
 
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.math.BigDecimal;
@@ -20,6 +17,10 @@ import java.math.BigDecimal;
 @Controller
 @RequestMapping("/magiclook/staff")
 public class StaffController {
+
+    // Constants
+    private static final String STAFF_DASHBOARD_VIEW = "staffDashboard";
+    private static final String STAFF_LOGIN_VIEW = "staffLogin";
 
     @Autowired
     private StaffService staffService;
@@ -38,7 +39,7 @@ public class StaffController {
     @GetMapping("/login")
     public String showStaffLoginForm(Model model) {
         model.addAttribute("staffLogin", new com.magiclook.dto.StaffLoginDTO());
-        return "staffLogin";
+        return STAFF_LOGIN_VIEW;
     }
 
     @PostMapping("/login")
@@ -61,7 +62,7 @@ public class StaffController {
             return "redirect:/magiclook/staff/dashboard";
         } else {
             model.addAttribute("error", "Credenciais inválidas para staff!");
-            return "staffLogin";
+            return STAFF_LOGIN_VIEW;
         }
     }
 
@@ -83,7 +84,7 @@ public class StaffController {
         model.addAttribute("items", items);
         model.addAttribute("itemCount", items.size());
         
-        return "staffDashboard";
+        return STAFF_DASHBOARD_VIEW;
     }
 
     // ========== ADD ITEM ==========
@@ -148,17 +149,17 @@ public class StaffController {
             if (result == -1) {
                 System.out.println("ERRO: Tamanho inválido");
                 model.addAttribute("error", "Tamanho inválido!");
-                return "staffDashboard";
+                return STAFF_DASHBOARD_VIEW;
 
             } else if (result == -2) {
                 System.out.println("ERRO: Material inválido");
                 model.addAttribute("error", "Material inválido!");
-                return "staffDashboard";
+                return STAFF_DASHBOARD_VIEW;
 
             } else if (result == -3) {
                 System.out.println("ERRO: Shop ou ItemType inválido");
                 model.addAttribute("error", "Shop ou ItemType inválido!");
-                return "staffDashboard";
+                return STAFF_DASHBOARD_VIEW;
             }
 
             // Guardar imagem se fornecida
@@ -176,9 +177,8 @@ public class StaffController {
             
         } catch (Exception e) {
             System.err.println("ERRO AO ADICIONAR ITEM: " + e.getMessage());
-            e.printStackTrace();
             model.addAttribute("error", "Erro ao adicionar item: " + e.getMessage());
-            return "staffDashboard";
+            return STAFF_DASHBOARD_VIEW;
         }
     }
 
