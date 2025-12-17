@@ -50,6 +50,9 @@ jobs:
                 token: ${{ secrets.GITHUB_TOKEN }}
                 min-coverage-overall: 80
                 min-coverage-changed-files: 80
+
+            - name: List surefire reports
+              run: ls -l target/surefire-reports || true
                     
             - name: Push results to Xray on Jira Cloud
               env:
