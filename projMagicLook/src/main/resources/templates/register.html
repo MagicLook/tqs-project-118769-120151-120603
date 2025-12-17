@@ -85,7 +85,7 @@
                 
                 <!-- Username -->
                 <div class="form-group">
-                        <label for="username">Utilizador *</label>
+                        <label for="username">Username *</label>
                     <input type="text" class="form-control" id="username" 
                            th:field="*{username}" 
                            th:classappend="${#fields.hasErrors('username') ? 'is-invalid' : ''}"
@@ -152,6 +152,19 @@
                            required>
                     <div th:if="${#fields.hasErrors('password')}" class="error-message">
                         <span th:errors="*{password}"></span>
+                    </div>
+                </div>
+
+                <!-- Confirmar Password -->
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar Palavra-passe *</label>
+                    <input type="password" class="form-control" id="confirmPassword" 
+                           name="confirmPassword"
+                           th:value="${user?.confirmPassword}"
+                           th:classappend="${#fields.hasErrors('confirmPassword') ? 'is-invalid' : ''}"
+                           required>
+                    <div th:if="${#fields.hasErrors('confirmPassword')}" class="error-message">
+                        <span th:errors="*{confirmPassword}"></span>
                     </div>
                 </div>
                 

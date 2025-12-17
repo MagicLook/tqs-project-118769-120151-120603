@@ -13,6 +13,11 @@ public class UserService {
     private UserRepository userRepository;
     
     public User register(UserRegistrationDTO dto) {
+        // Valida se as passwords coincidem
+        if (!dto.passwordsMatch()) {
+            throw new RuntimeException("As palavras-passe não coincidem");
+        }
+        
         // Verifica se username já existe
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new RuntimeException("Username já está em uso");

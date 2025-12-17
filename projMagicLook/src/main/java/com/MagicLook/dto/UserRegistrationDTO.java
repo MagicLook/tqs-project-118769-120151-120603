@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 public class UserRegistrationDTO {
     
-    @NotBlank(message = "Nome de Utilizador é obrigatório")
+    @NotBlank(message = "Username é obrigatório")
     private String username;
     
     @Email(message = "Email inválido")
@@ -17,14 +17,19 @@ public class UserRegistrationDTO {
     @NotBlank(message = "Password é obrigatória")
     @Size(min = 6, message = "Password deve ter pelo menos 6 caracteres")
     private String password;
+
+    @NotBlank(message = "Confirmação de password é obrigatória")
+    private String confirmPassword;
     
     @NotBlank(message = "Primeiro nome é obrigatório")
     @Size(min = 2, max = 50, message = "Primeiro nome deve ter 2-50 caracteres")
+    @Pattern(regexp = "^[A-Z].*", message = "Primeiro nome deve começar com maiúscula")
     @Pattern(regexp = "^[\\p{L}\\s-]+$", message = "Só letras, espaços e hífenes")
     private String firstName;
 
     @NotBlank(message = "Último nome é obrigatório")
     @Size(min = 2, max = 50, message = "Último nome deve ter 2-50 caracteres")
+    @Pattern(regexp = "^[A-Z].*", message = "Último nome deve começar com maiúscula")
     @Pattern(regexp = "^[\\p{L}\\s-]+$", message = "Só letras, espaços e hífenes")
     private String lastName;
 
@@ -42,6 +47,9 @@ public class UserRegistrationDTO {
     
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getConfirmPassword() { return confirmPassword; }
+    public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
     
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
@@ -52,6 +60,9 @@ public class UserRegistrationDTO {
     public String getTelephone() { return telephone; }
     public void setTelephone(String telephone) { this.telephone = telephone; }
 
+    public boolean passwordsMatch() {
+        return password != null && password.equals(confirmPassword);
+    }
     /**
      * Método vazio mantido para compatibilidade futura.
      * TODO: Implementar lógica específica se necessário.
