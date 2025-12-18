@@ -17,7 +17,7 @@
         
         .navbar-magic {
             background: linear-gradient(125deg, var(--nav-overlay-dark), var(--nav-overlay-light)),
-                        url('/img/navbar-bg.jpg');
+                        url('/img/Navbar.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -30,6 +30,7 @@
             font-weight: 700;
             color: white !important;
             text-decoration: none;
+            margin-left: auto;
         }
         
         .nav-brand i {
@@ -124,8 +125,9 @@
     <nav class="navbar navbar-expand-lg navbar-dark navbar-magic fixed-top">
         <div class="container">
             <!-- Brand -->
-            <a class="navbar-brand nav-brand" th:href="@{/magiclook/dashboard}">
-                <i class="bi bi-stars"></i> MagicLook
+            <a class="navbar-brand nav-brand d-flex align-items-center" th:href="@{/magiclook/dashboard}">
+                <i class="bi bi-stars" style="font-size:1.25rem; margin-right:10px;"></i>
+                <span>MagicLook</span>
             </a>
             
             <!-- Mobile Toggle -->
@@ -139,14 +141,12 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link nav-link-custom" th:href="@{/magiclook/items/men}" 
-                           th:classappend="${activePage == 'men'} ? 'active' : ''">
-                            <i class="bi bi-gender-male"></i> Homens
+                           th:classappend="${activePage == 'men'} ? 'active' : ''">Homens
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link nav-link-custom" th:href="@{/magiclook/items/women}" 
-                           th:classappend="${activePage == 'women'} ? 'active' : ''">
-                            <i class="bi bi-gender-female"></i> Mulheres
+                           th:classappend="${activePage == 'women'} ? 'active' : ''">Mulheres
                         </a>
                     </li>
                 </ul>
