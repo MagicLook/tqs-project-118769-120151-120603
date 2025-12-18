@@ -99,6 +99,28 @@
                                        id="endUseDate" required>
                                 <small class="text-muted">Último dia em que vai usar o item</small>
                             </div>
+
+                            <div class="mb-3" th:if="${not availableSizes.empty}">
+                                <label for="size" class="form-label">
+                                    <i class="bi bi-rulers"></i> Tamanho*
+                                </label>
+                                <select name="size" id="size" class="form-control" required 
+                                        onchange="updateSizeAvailability()">
+                                    <option value="">Selecione um tamanho</option>
+                                    <option th:each="size : ${availableSizes}" 
+                                            th:value="${size}" 
+                                            th:text="${size} + (${sizeAvailability.get(size)} != null ? ' (' + ${sizeAvailability.get(size)} + ' disponíveis)' : '')">
+                                    </option>
+                                </select>
+                                <small class="text-muted">Escolha o tamanho desejado</small>
+                            </div>
+
+                            <!-- Se não houver tamanhos -->
+                            <div class="mb-3" th:unless="${not availableSizes.empty}">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i> Este item não possui opções de tamanho.
+                                </div>
+                            </div>
                             
                             <!-- Botões -->
                             <div class="d-grid gap-2 mt-4">

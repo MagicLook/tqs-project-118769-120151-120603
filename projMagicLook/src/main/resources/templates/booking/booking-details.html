@@ -363,6 +363,10 @@
                                 <span class="info-value" th:text="${#dates.format(booking.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
                             </div>
                         </div>
+                        <div class="info-item">
+                            <span class="info-label">Tamanho</span>
+                            <span class="info-value" th:text="${booking.itemSingle != null ? booking.itemSingle.size : 'N/A'}"></span>
+                        </div>
                     </div>
                 </div>
                 

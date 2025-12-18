@@ -9,12 +9,13 @@ import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,7 +40,6 @@ public class BookingControllerTest {
     @Mock
     private Model model;
 
-    // Removemos @InjectMocks e criaremos o controller manualmente
     private BookingController bookingController;
 
     private User testUser;
@@ -50,70 +50,72 @@ public class BookingControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Configurar objetos de teste completos
         testUser = createTestUser();
         testShop = createTestShop();
         testItemType = createTestItemType();
         testItem = createTestItem();
         testBooking = createTestBooking();
         
-        // Inicializar o controller com injeção de construtor
         bookingController = new BookingController(bookingService, itemService, userService);
     }
 
-    // ========== TESTES DE FORMULÁRIO DE RESERVA ==========
-
     @Test
     void testShowBookingForm_Success() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
+        
+        List<String> availableSizes = Arrays.asList("M", "L");
+        Map<String, Integer> sizeAvailability = new HashMap<>();
+        sizeAvailability.put("M", 2);
+        sizeAvailability.put("L", 1);
+        
+        when(bookingService.getAvailableSizesForItem(testItem.getItemId())).thenReturn(availableSizes);
+        when(bookingService.getSizeAvailabilityCount(testItem.getItemId())).thenReturn(sizeAvailability);
 
-        // Act
         String viewName = bookingController.showBookingForm(testItem.getItemId(), session, model);
 
-        // Assert
         assertEquals("booking/bookingForm", viewName);
         verify(model).addAttribute("item", testItem);
         verify(model).addAttribute("user", testUser);
+        verify(model).addAttribute("availableSizes", availableSizes);
+        verify(model).addAttribute("sizeAvailability", sizeAvailability);
     }
 
     @Test
     void testShowBookingForm_UserNotLoggedIn() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(null);
 
-        // Act
         String viewName = bookingController.showBookingForm(testItem.getItemId(), session, model);
 
-        // Assert
         assertEquals("redirect:/magiclook/login", viewName);
         verify(session).setAttribute(eq("redirectAfterLogin"), anyString());
     }
 
     @Test
     void testShowBookingForm_ItemNotFound() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(itemService.getItemById(testItem.getItemId())).thenReturn(null);
 
-        // Act
         String viewName = bookingController.showBookingForm(testItem.getItemId(), session, model);
 
-        // Assert
         assertEquals("redirect:/magiclook/dashboard", viewName);
     }
 
-    // ========== TESTES DE CRIAÇÃO DE RESERVA ==========
-
     @Test
     void testCreateBooking_Success() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
-        when(bookingService.checkAvailability(anyInt(), any(), any())).thenReturn(true);
         
-        // Criar datas futuras válidas
+        List<String> availableSizes = Arrays.asList("M", "L");
+        Map<String, Integer> sizeAvailability = new HashMap<>();
+        sizeAvailability.put("M", 2);
+        sizeAvailability.put("L", 1);
+        
+        when(bookingService.getAvailableSizesForItem(testItem.getItemId())).thenReturn(availableSizes);
+        when(bookingService.getSizeAvailabilityCount(testItem.getItemId())).thenReturn(sizeAvailability);
+        
+        when(bookingService.checkAvailabilityWithSize(anyInt(), anyString(), any(), any())).thenReturn(true);
+        
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
         Date startDate = cal.getTime();
@@ -121,28 +123,25 @@ public class BookingControllerTest {
         cal.add(Calendar.DAY_OF_MONTH, 2);
         Date endDate = cal.getTime();
 
-        // Mock do método createBooking
-        when(bookingService.createBooking(any(com.magiclook.dto.BookingRequestDTO.class), eq(testUser)))
+        when(bookingService.createBookingWithSize(any(com.magiclook.dto.BookingRequestDTO.class), eq(testUser)))
             .thenReturn(testBooking);
 
-        // Act
         String viewName = bookingController.createBooking(
             testItem.getItemId(),
+            "M",
             startDate,
             endDate,
             session,
             model
         );
 
-        // Assert
         assertEquals("redirect:/magiclook/booking/confirmation/" + testBooking.getBookingId(), viewName);
-        verify(bookingService, times(1)).checkAvailability(anyInt(), any(), any());
-        verify(bookingService, times(1)).createBooking(any(com.magiclook.dto.BookingRequestDTO.class), eq(testUser));
+        verify(bookingService, times(1)).checkAvailabilityWithSize(anyInt(), anyString(), any(), any());
+        verify(bookingService, times(1)).createBookingWithSize(any(com.magiclook.dto.BookingRequestDTO.class), eq(testUser));
     }
 
     @Test
     void testCreateBooking_UserNotLoggedIn() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(null);
         
         Calendar cal = Calendar.getInstance();
@@ -152,24 +151,22 @@ public class BookingControllerTest {
         cal.add(Calendar.DAY_OF_MONTH, 2);
         Date endDate = cal.getTime();
 
-        // Act
         String viewName = bookingController.createBooking(
             testItem.getItemId(),
+            "M",
             startDate,
             endDate,
             session,
             model
         );
 
-        // Assert
         assertEquals("redirect:/magiclook/login", viewName);
-        verify(bookingService, never()).checkAvailability(anyInt(), any(), any());
-        verify(bookingService, never()).createBooking(any(), any());
+        verify(bookingService, never()).checkAvailabilityWithSize(anyInt(), anyString(), any(), any());
+        verify(bookingService, never()).createBookingWithSize(any(), any());
     }
 
     @Test
     void testCreateBooking_ItemNotFound() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(itemService.getItemById(testItem.getItemId())).thenReturn(null);
         
@@ -180,28 +177,35 @@ public class BookingControllerTest {
         cal.add(Calendar.DAY_OF_MONTH, 2);
         Date endDate = cal.getTime();
 
-        // Act
         String viewName = bookingController.createBooking(
             testItem.getItemId(),
+            "M",
             startDate,
             endDate,
             session,
             model
         );
 
-        // Assert
         assertEquals("redirect:/magiclook/dashboard", viewName);
         verify(model).addAttribute("error", "Item não encontrado.");
-        verify(bookingService, never()).checkAvailability(anyInt(), any(), any());
-        verify(bookingService, never()).createBooking(any(), any());
+        verify(bookingService, never()).checkAvailabilityWithSize(anyInt(), anyString(), any(), any());
+        verify(bookingService, never()).createBookingWithSize(any(), any());
     }
 
     @Test
     void testCreateBooking_ItemNotAvailable() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
-        when(bookingService.checkAvailability(anyInt(), any(), any())).thenReturn(false);
+        
+        List<String> availableSizes = Arrays.asList("M", "L");
+        Map<String, Integer> sizeAvailability = new HashMap<>();
+        sizeAvailability.put("M", 2);
+        sizeAvailability.put("L", 1);
+        
+        when(bookingService.getAvailableSizesForItem(testItem.getItemId())).thenReturn(availableSizes);
+        when(bookingService.getSizeAvailabilityCount(testItem.getItemId())).thenReturn(sizeAvailability);
+        
+        when(bookingService.checkAvailabilityWithSize(anyInt(), anyString(), any(), any())).thenReturn(false);
         
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
@@ -210,61 +214,74 @@ public class BookingControllerTest {
         cal.add(Calendar.DAY_OF_MONTH, 2);
         Date endDate = cal.getTime();
 
-        // Act
         String viewName = bookingController.createBooking(
             testItem.getItemId(),
+            "M",
             startDate,
             endDate,
             session,
             model
         );
 
-        // Assert
         assertEquals("booking/bookingForm", viewName);
-        verify(model).addAttribute("error", "Item não disponível nas datas selecionadas. Por favor, escolha outras datas.");
+        verify(model).addAttribute("error", "Item não disponível nas datas selecionadas para o tamanho M");
         verify(model).addAttribute("item", testItem);
-        verify(bookingService, times(1)).checkAvailability(anyInt(), any(), any());
-        verify(bookingService, never()).createBooking(any(), any());
+        verify(bookingService, times(1)).checkAvailabilityWithSize(anyInt(), anyString(), any(), any());
+        verify(bookingService, never()).createBookingWithSize(any(), any());
     }
 
     @Test
     void testCreateBooking_InvalidDates_PastStartDate() {
-        // Arrange - data de início no passado
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
-        // O controlador chama checkAvailability primeiro
-        when(bookingService.checkAvailability(anyInt(), any(), any())).thenReturn(true);
+        
+        List<String> availableSizes = Arrays.asList("M", "L");
+        Map<String, Integer> sizeAvailability = new HashMap<>();
+        sizeAvailability.put("M", 2);
+        sizeAvailability.put("L", 1);
+        
+        when(bookingService.getAvailableSizesForItem(testItem.getItemId())).thenReturn(availableSizes);
+        when(bookingService.getSizeAvailabilityCount(testItem.getItemId())).thenReturn(sizeAvailability);
+        
+        when(bookingService.checkAvailabilityWithSize(anyInt(), anyString(), any(), any())).thenReturn(true);
         
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_MONTH, -1); // Ontem
+        cal.add(Calendar.DAY_OF_MONTH, -1);
         Date startDate = cal.getTime();
         
-        cal.add(Calendar.DAY_OF_MONTH, 5); // 4 dias a partir de ontem
+        cal.add(Calendar.DAY_OF_MONTH, 5);
         Date endDate = cal.getTime();
 
-        // Act
         String viewName = bookingController.createBooking(
             testItem.getItemId(),
+            "M",
             startDate,
             endDate,
             session,
             model
         );
 
-        // Assert
         assertEquals("booking/bookingForm", viewName);
         verify(model).addAttribute(eq("error"), anyString());
         verify(model).addAttribute("item", testItem);
-        verify(bookingService, times(1)).checkAvailability(anyInt(), any(), any());
-        verify(bookingService, never()).createBooking(any(com.magiclook.dto.BookingRequestDTO.class), any(User.class));
+        verify(bookingService, times(1)).checkAvailabilityWithSize(anyInt(), anyString(), any(), any());
+        verify(bookingService, never()).createBookingWithSize(any(com.magiclook.dto.BookingRequestDTO.class), any(User.class));
     }
 
     @Test
     void testCreateBooking_Exception() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
-        when(bookingService.checkAvailability(anyInt(), any(), any())).thenReturn(true);
+        
+        List<String> availableSizes = Arrays.asList("M", "L");
+        Map<String, Integer> sizeAvailability = new HashMap<>();
+        sizeAvailability.put("M", 2);
+        sizeAvailability.put("L", 1);
+        
+        when(bookingService.getAvailableSizesForItem(testItem.getItemId())).thenReturn(availableSizes);
+        when(bookingService.getSizeAvailabilityCount(testItem.getItemId())).thenReturn(sizeAvailability);
+        
+        when(bookingService.checkAvailabilityWithSize(anyInt(), anyString(), any(), any())).thenReturn(true);
         
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
@@ -273,37 +290,31 @@ public class BookingControllerTest {
         cal.add(Calendar.DAY_OF_MONTH, 2);
         Date endDate = cal.getTime();
 
-        when(bookingService.createBooking(any(com.magiclook.dto.BookingRequestDTO.class), eq(testUser)))
+        when(bookingService.createBookingWithSize(any(com.magiclook.dto.BookingRequestDTO.class), eq(testUser)))
             .thenThrow(new RuntimeException("Erro no banco de dados"));
 
-        // Act
         String viewName = bookingController.createBooking(
             testItem.getItemId(),
+            "M",
             startDate,
             endDate,
             session,
             model
         );
 
-        // Assert
         assertEquals("booking/bookingForm", viewName);
         verify(model).addAttribute(eq("error"), anyString());
         verify(model).addAttribute("item", testItem);
-        verify(bookingService, times(1)).checkAvailability(anyInt(), any(), any());
+        verify(bookingService, times(1)).checkAvailabilityWithSize(anyInt(), anyString(), any(), any());
     }
-
-    // ========== TESTES DE CONFIRMAÇÃO ==========
 
     @Test
     void testShowConfirmation_Success() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(bookingService.getBookingById(testBooking.getBookingId())).thenReturn(testBooking);
 
-        // Act
         String viewName = bookingController.showConfirmation(testBooking.getBookingId(), session, model);
 
-        // Assert
         assertEquals("booking/bookingConfirmation", viewName);
         verify(model).addAttribute("booking", testBooking);
         verify(model).addAttribute("user", testUser);
@@ -311,60 +322,46 @@ public class BookingControllerTest {
 
     @Test
     void testShowConfirmation_UserNotLoggedIn() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(null);
 
-        // Act
         String viewName = bookingController.showConfirmation(testBooking.getBookingId(), session, model);
 
-        // Assert
         assertEquals("redirect:/magiclook/login", viewName);
         verify(bookingService, never()).getBookingById(any());
     }
 
     @Test
     void testShowConfirmation_BookingNotFound() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(bookingService.getBookingById(testBooking.getBookingId())).thenReturn(null);
 
-        // Act
         String viewName = bookingController.showConfirmation(testBooking.getBookingId(), session, model);
 
-        // Assert
         assertEquals("redirect:/magiclook/dashboard", viewName);
     }
 
     @Test
     void testShowConfirmation_UnauthorizedUser() {
-        // Arrange
         User otherUser = createTestUser();
         otherUser.setUserId(UUID.randomUUID());
         
         when(session.getAttribute("loggedInUser")).thenReturn(otherUser);
         when(bookingService.getBookingById(testBooking.getBookingId())).thenReturn(testBooking);
 
-        // Act
         String viewName = bookingController.showConfirmation(testBooking.getBookingId(), session, model);
 
-        // Assert
         assertEquals("redirect:/magiclook/dashboard", viewName);
     }
 
-    // ========== TESTES DE MINHAS RESERVAS (COM FILTROS E PESQUISA) ==========
-
     @Test
     void testShowMyBookings_Success() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         List<Booking> bookings = new ArrayList<>();
         bookings.add(testBooking);
         when(bookingService.getUserBookings(testUser)).thenReturn(bookings);
 
-        // Act
         String viewName = bookingController.showMyBookings(session, model, null, null);
 
-        // Assert
         assertEquals("booking/myBookings", viewName);
         verify(model).addAttribute("bookings", bookings);
         verify(model).addAttribute("user", testUser);
@@ -375,14 +372,11 @@ public class BookingControllerTest {
 
     @Test
     void testBookingDetails_Success() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(bookingService.getBookingById(testBooking.getBookingId())).thenReturn(testBooking);
 
-        // Act
         String viewName = bookingController.bookingDetails(testBooking.getBookingId().toString(), session, model);
 
-        // Assert
         assertEquals("booking/booking-details", viewName);
         verify(model).addAttribute("booking", testBooking);
         verify(model).addAttribute("user", testUser);
@@ -391,39 +385,31 @@ public class BookingControllerTest {
 
     @Test
     void testBookingDetails_BookingNotFound() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(bookingService.getBookingById(testBooking.getBookingId())).thenReturn(null);
 
-        // Act
         String viewName = bookingController.bookingDetails(testBooking.getBookingId().toString(), session, model);
 
-        // Assert
         assertEquals("redirect:/magiclook/bookings/my-bookings", viewName);
     }
 
     @Test
     void testBookingDetails_UnauthorizedUser() {
-        // Arrange
         User otherUser = createTestUser();
         otherUser.setUserId(UUID.randomUUID());
         
         when(session.getAttribute("loggedInUser")).thenReturn(otherUser);
         when(bookingService.getBookingById(testBooking.getBookingId())).thenReturn(testBooking);
 
-        // Act
         String viewName = bookingController.bookingDetails(testBooking.getBookingId().toString(), session, model);
 
-        // Assert
         assertEquals("redirect:/magiclook/bookings/my-bookings", viewName);
     }
 
     @Test
     void testBookingDetails_InvalidUUID() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
 
-        // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> {
             bookingController.bookingDetails("invalid-uuid", session, model);
         });
@@ -431,76 +417,85 @@ public class BookingControllerTest {
 
     @Test
     void testCreateBooking_InvalidDates_EndBeforeStart() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
-        // O controlador chama checkAvailability primeiro
-        when(bookingService.checkAvailability(anyInt(), any(), any())).thenReturn(true);
+        
+        List<String> availableSizes = Arrays.asList("M", "L");
+        Map<String, Integer> sizeAvailability = new HashMap<>();
+        sizeAvailability.put("M", 2);
+        sizeAvailability.put("L", 1);
+        
+        when(bookingService.getAvailableSizesForItem(testItem.getItemId())).thenReturn(availableSizes);
+        when(bookingService.getSizeAvailabilityCount(testItem.getItemId())).thenReturn(sizeAvailability);
+        
+        when(bookingService.checkAvailabilityWithSize(anyInt(), anyString(), any(), any())).thenReturn(true);
         
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
         Date startDate = cal.getTime();
         
-        cal.add(Calendar.DAY_OF_MONTH, -10); // Data anterior
+        cal.add(Calendar.DAY_OF_MONTH, -10);
         Date endDate = cal.getTime();
 
-        // Act
         String viewName = bookingController.createBooking(
             testItem.getItemId(),
+            "M",
             startDate,
             endDate,
             session,
             model
         );
 
-        // Assert
         assertEquals("booking/bookingForm", viewName);
         verify(model).addAttribute(eq("error"), anyString());
         verify(model).addAttribute("item", testItem);
-        verify(bookingService, times(1)).checkAvailability(anyInt(), any(), any());
-        verify(bookingService, never()).createBooking(any(com.magiclook.dto.BookingRequestDTO.class), any(User.class));
+        verify(bookingService, times(1)).checkAvailabilityWithSize(anyInt(), anyString(), any(), any());
+        verify(bookingService, never()).createBookingWithSize(any(com.magiclook.dto.BookingRequestDTO.class), any(User.class));
     }
 
     @Test
     void testCreateBooking_SuccessWithValidDates() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
-        when(bookingService.checkAvailability(anyInt(), any(), any())).thenReturn(true);
+        
+        List<String> availableSizes = Arrays.asList("M", "L");
+        Map<String, Integer> sizeAvailability = new HashMap<>();
+        sizeAvailability.put("M", 2);
+        sizeAvailability.put("L", 1);
+        
+        when(bookingService.getAvailableSizesForItem(testItem.getItemId())).thenReturn(availableSizes);
+        when(bookingService.getSizeAvailabilityCount(testItem.getItemId())).thenReturn(sizeAvailability);
+        
+        when(bookingService.checkAvailabilityWithSize(anyInt(), anyString(), any(), any())).thenReturn(true);
         
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_MONTH, 7); // Data futura
+        cal.add(Calendar.DAY_OF_MONTH, 7);
         Date startDate = cal.getTime();
         
         cal.add(Calendar.DAY_OF_MONTH, 2);
         Date endDate = cal.getTime();
 
-        when(bookingService.createBooking(any(com.magiclook.dto.BookingRequestDTO.class), eq(testUser))).thenReturn(testBooking);
+        when(bookingService.createBookingWithSize(any(com.magiclook.dto.BookingRequestDTO.class), eq(testUser))).thenReturn(testBooking);
 
-        // Act
         String viewName = bookingController.createBooking(
             testItem.getItemId(),
+            "M",
             startDate,
             endDate,
             session,
             model
         );
 
-        // Assert
         assertEquals("redirect:/magiclook/booking/confirmation/" + testBooking.getBookingId(), viewName);
-        verify(bookingService, times(1)).createBooking(any(com.magiclook.dto.BookingRequestDTO.class), eq(testUser));
-        verify(bookingService, times(1)).checkAvailability(anyInt(), any(), any());
+        verify(bookingService, times(1)).createBookingWithSize(any(com.magiclook.dto.BookingRequestDTO.class), eq(testUser));
+        verify(bookingService, times(1)).checkAvailabilityWithSize(anyInt(), anyString(), any(), any());
     }
-
-    // ========== NOVOS TESTES PARA FILTROS ==========
 
     @Test
     void testShowMyBookings_WithFilterActiveAndFutureDate() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         List<Booking> bookings = new ArrayList<>();
         
-        // Configurar data de fim no futuro
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
         testBooking.setEndUseDate(cal.getTime());
@@ -508,10 +503,8 @@ public class BookingControllerTest {
         bookings.add(testBooking);
         when(bookingService.getUserBookings(testUser)).thenReturn(bookings);
 
-        // Act
         String viewName = bookingController.showMyBookings(session, model, "active", null);
 
-        // Assert
         assertEquals("booking/myBookings", viewName);
         verify(model).addAttribute("filter", "active");
         verify(model).addAttribute(eq("bookings"), anyList());
@@ -519,11 +512,9 @@ public class BookingControllerTest {
 
     @Test
     void testShowMyBookings_WithFilterActiveAndPastDate() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         List<Booking> bookings = new ArrayList<>();
         
-        // Configurar data de fim no passado
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, -7);
         testBooking.setEndUseDate(cal.getTime());
@@ -531,10 +522,8 @@ public class BookingControllerTest {
         bookings.add(testBooking);
         when(bookingService.getUserBookings(testUser)).thenReturn(bookings);
 
-        // Act
         String viewName = bookingController.showMyBookings(session, model, "active", null);
 
-        // Assert
         assertEquals("booking/myBookings", viewName);
         verify(model).addAttribute("filter", "active");
         verify(model).addAttribute(eq("bookings"), anyList());
@@ -542,23 +531,19 @@ public class BookingControllerTest {
 
     @Test
     void testShowMyBookings_WithSearchCaseInsensitive() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         List<Booking> bookings = new ArrayList<>();
         bookings.add(testBooking);
         when(bookingService.getUserBookings(testUser)).thenReturn(bookings);
 
-        // Act - Busca em maiúsculas
         String viewName = bookingController.showMyBookings(session, model, null, "CAMISA");
 
-        // Assert
         assertEquals("booking/myBookings", viewName);
         verify(model).addAttribute("search", "CAMISA");
     }
 
     @Test
     void testShowMyBookings_OrderingWithNullDates() {
-        // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         List<Booking> bookings = new ArrayList<>();
         
@@ -576,19 +561,14 @@ public class BookingControllerTest {
         
         when(bookingService.getUserBookings(testUser)).thenReturn(bookings);
 
-        // Act
         String viewName = bookingController.showMyBookings(session, model, null, null);
 
-        // Assert
         assertEquals("booking/myBookings", viewName);
         verify(model).addAttribute(eq("bookings"), anyList());
     }
 
-    // ========== TESTES DE API DE DISPONIBILIDADE ==========
-
     @Test
     void testCheckAvailability_API_Success() {
-        // Arrange
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
         Date startDate = cal.getTime();
@@ -596,18 +576,17 @@ public class BookingControllerTest {
         cal.add(Calendar.DAY_OF_MONTH, 2);
         Date endDate = cal.getTime();
 
-        when(bookingService.checkAvailability(anyInt(), any(), any())).thenReturn(true);
+        when(bookingService.checkAvailabilityWithSize(anyInt(), anyString(), any(), any())).thenReturn(true);
         when(bookingService.calculatePrice(anyInt(), anyLong())).thenReturn(new BigDecimal("75.00"));
 
-        // Act
         com.magiclook.dto.BookingRequestDTO requestDTO = new com.magiclook.dto.BookingRequestDTO();
         requestDTO.setItemId(testItem.getItemId());
+        requestDTO.setSize("M");
         requestDTO.setStartUseDate(startDate);
         requestDTO.setEndUseDate(endDate);
         
         Map<String, Object> response = bookingController.checkAvailability(requestDTO);
 
-        // Assert
         assertNotNull(response);
         assertTrue((Boolean) response.get("available"));
         assertEquals("Item disponível para o período selecionado", response.get("message"));
@@ -615,7 +594,6 @@ public class BookingControllerTest {
 
     @Test
     void testCheckAvailability_API_NotAvailable() {
-        // Arrange
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
         Date startDate = cal.getTime();
@@ -623,17 +601,16 @@ public class BookingControllerTest {
         cal.add(Calendar.DAY_OF_MONTH, 2);
         Date endDate = cal.getTime();
 
-        when(bookingService.checkAvailability(anyInt(), any(), any())).thenReturn(false);
+        when(bookingService.checkAvailabilityWithSize(anyInt(), anyString(), any(), any())).thenReturn(false);
 
-        // Act
         com.magiclook.dto.BookingRequestDTO requestDTO = new com.magiclook.dto.BookingRequestDTO();
         requestDTO.setItemId(testItem.getItemId());
+        requestDTO.setSize("M");
         requestDTO.setStartUseDate(startDate);
         requestDTO.setEndUseDate(endDate);
         
         Map<String, Object> response = bookingController.checkAvailability(requestDTO);
 
-        // Assert
         assertNotNull(response);
         assertFalse((Boolean) response.get("available"));
         assertEquals("Item não disponível para o período selecionado", response.get("message"));
@@ -641,7 +618,6 @@ public class BookingControllerTest {
 
     @Test
     void testCheckAvailability_API_Exception() {
-        // Arrange
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
         Date startDate = cal.getTime();
@@ -649,18 +625,17 @@ public class BookingControllerTest {
         cal.add(Calendar.DAY_OF_MONTH, 2);
         Date endDate = cal.getTime();
 
-        when(bookingService.checkAvailability(anyInt(), any(), any()))
+        when(bookingService.checkAvailabilityWithSize(anyInt(), anyString(), any(), any()))
             .thenThrow(new RuntimeException("Erro na verificação"));
 
-        // Act
         com.magiclook.dto.BookingRequestDTO requestDTO = new com.magiclook.dto.BookingRequestDTO();
         requestDTO.setItemId(testItem.getItemId());
+        requestDTO.setSize("M");
         requestDTO.setStartUseDate(startDate);
         requestDTO.setEndUseDate(endDate);
         
         Map<String, Object> response = bookingController.checkAvailability(requestDTO);
 
-        // Assert
         assertNotNull(response);
         assertFalse((Boolean) response.get("available"));
         assertNotNull(response.get("message"));
@@ -668,7 +643,6 @@ public class BookingControllerTest {
 
     @Test
     void testCheckItemAvailability_API_Success() {
-        // Arrange
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
         Date startDate = cal.getTime();
@@ -676,23 +650,43 @@ public class BookingControllerTest {
         cal.add(Calendar.DAY_OF_MONTH, 2);
         Date endDate = cal.getTime();
 
-        when(bookingService.isItemAvailable(anyInt(), any(), any())).thenReturn(true);
+        when(bookingService.isItemAvailable(anyInt(), any(LocalDate.class), any(LocalDate.class))).thenReturn(true);
 
-        // Act
         Map<String, Object> response = bookingController.checkItemAvailability(
             testItem.getItemId(),
+            null,
             startDate,
             endDate
         );
 
-        // Assert
+        assertNotNull(response);
+        assertTrue((Boolean) response.get("available"));
+    }
+
+    @Test
+    void testCheckItemAvailability_API_WithSize() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 7);
+        Date startDate = cal.getTime();
+        
+        cal.add(Calendar.DAY_OF_MONTH, 2);
+        Date endDate = cal.getTime();
+
+        when(bookingService.isItemAvailableWithSize(anyInt(), anyString(), any(LocalDate.class), any(LocalDate.class))).thenReturn(true);
+
+        Map<String, Object> response = bookingController.checkItemAvailability(
+            testItem.getItemId(),
+            "M",
+            startDate,
+            endDate
+        );
+
         assertNotNull(response);
         assertTrue((Boolean) response.get("available"));
     }
 
     @Test
     void testCheckItemAvailability_API_NotAvailable() {
-        // Arrange
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
         Date startDate = cal.getTime();
@@ -700,20 +694,19 @@ public class BookingControllerTest {
         cal.add(Calendar.DAY_OF_MONTH, 2);
         Date endDate = cal.getTime();
 
-        when(bookingService.isItemAvailable(anyInt(), any(), any())).thenReturn(false);
+        when(bookingService.isItemAvailable(anyInt(), any(LocalDate.class), any(LocalDate.class))).thenReturn(false);
         
         List<Booking> conflicts = new ArrayList<>();
         conflicts.add(testBooking);
-        when(bookingService.getConflictingBookings(anyInt(), any(), any())).thenReturn(conflicts);
+        when(bookingService.getConflictingBookings(anyInt(), any(LocalDate.class), any(LocalDate.class))).thenReturn(conflicts);
 
-        // Act
         Map<String, Object> response = bookingController.checkItemAvailability(
             testItem.getItemId(),
+            null,
             startDate,
             endDate
         );
 
-        // Assert
         assertNotNull(response);
         assertFalse((Boolean) response.get("available"));
         assertTrue(response.containsKey("conflicts"));
@@ -721,7 +714,6 @@ public class BookingControllerTest {
 
     @Test
     void testCheckItemAvailability_API_Exception() {
-        // Arrange
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
         Date startDate = cal.getTime();
@@ -729,23 +721,20 @@ public class BookingControllerTest {
         cal.add(Calendar.DAY_OF_MONTH, 2);
         Date endDate = cal.getTime();
 
-        when(bookingService.isItemAvailable(anyInt(), any(), any()))
+        when(bookingService.isItemAvailable(anyInt(), any(LocalDate.class), any(LocalDate.class)))
             .thenThrow(new RuntimeException("Erro ao verificar disponibilidade"));
 
-        // Act
         Map<String, Object> response = bookingController.checkItemAvailability(
             testItem.getItemId(),
+            null,
             startDate,
             endDate
         );
 
-        // Assert
         assertNotNull(response);
         assertFalse((Boolean) response.get("available"));
         assertTrue(response.containsKey("error"));
     }
-
-    // ========== MÉTODOS AUXILIARES ==========
 
     private User createTestUser() {
         User user = new User();
@@ -794,7 +783,6 @@ public class BookingControllerTest {
         Booking booking = new Booking();
         booking.setBookingId(UUID.randomUUID());
         
-        // Configurar datas padrão (futuras)
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 1);
         Date pickupDate = cal.getTime();

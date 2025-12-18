@@ -99,4 +99,15 @@ public class ItemService {
             return null;
         }
     }
+    
+    // Método simplificado para obter tamanhos disponíveis
+    public List<String> getAvailableSizesForItem(Integer itemId) {
+        return itemSingleRepository.findByItem_ItemId(itemId)
+            .stream()
+            .filter(is -> "AVAILABLE".equals(is.getState()))
+            .map(ItemSingle::getSize)
+            .distinct()
+            .sorted()
+            .collect(Collectors.toList());
+    }
 }

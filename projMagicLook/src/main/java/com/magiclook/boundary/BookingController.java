@@ -68,8 +68,16 @@ public class BookingController {
             return REDIRECT_DASHBOARD;
         }
         
+        // Obter tamanhos disponíveis
+        List<String> availableSizes = bookingService.getAvailableSizesForItem(itemId);
+        
+        // Obter contagem por tamanho
+        Map<String, Integer> sizeAvailability = bookingService.getSizeAvailabilityCount(itemId);
+        
         model.addAttribute(ATTR_ITEM, item);
         model.addAttribute(ATTR_USER, user);
+        model.addAttribute("availableSizes", availableSizes);
+        model.addAttribute("sizeAvailability", sizeAvailability);
         return VIEW_BOOKING_FORM;
     }
     
@@ -77,6 +85,7 @@ public class BookingController {
     @PostMapping("/booking/create")
     public String createBooking(
             @RequestParam("itemId") Integer itemId,
+            @RequestParam(value = "size", required = false) String size,
             @RequestParam("startUseDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startUseDate,
             @RequestParam("endUseDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endUseDate,
             HttpSession session,
@@ -95,11 +104,20 @@ public class BookingController {
             return REDIRECT_DASHBOARD;
         }
         
-        // Verificar disponibilidade (usando Date)
-        boolean isAvailable = bookingService.checkAvailability(itemId, startUseDate, endUseDate);
+        // Obter tamanhos disponíveis para mostrar novamente em caso de erro
+        List<String> availableSizes = bookingService.getAvailableSizesForItem(itemId);
+        Map<String, Integer> sizeAvailability = bookingService.getSizeAvailabilityCount(itemId);
+        model.addAttribute("availableSizes", availableSizes);
+        model.addAttribute("sizeAvailability", sizeAvailability);
+        
+        // Verificar disponibilidade (considerando tamanho se especificado)
+        boolean isAvailable = bookingService.checkAvailabilityWithSize(itemId, size, startUseDate, endUseDate);
         
         if (!isAvailable) {
-            model.addAttribute(ATTR_ERROR, "Item não disponível nas datas selecionadas. Por favor, escolha outras datas.");
+            String errorMsg = (size != null && !size.isEmpty()) ?
+                "Item não disponível nas datas selecionadas para o tamanho " + size :
+                "Item não disponível nas datas selecionadas.";
+            model.addAttribute(ATTR_ERROR, errorMsg);
             model.addAttribute(ATTR_ITEM, item);
             return VIEW_BOOKING_FORM;
         }
@@ -122,10 +140,11 @@ public class BookingController {
             // Usar o método existente do serviço
             BookingRequestDTO bookingRequest = new BookingRequestDTO();
             bookingRequest.setItemId(itemId);
+            bookingRequest.setSize(size);
             bookingRequest.setStartUseDate(startUseDate);
             bookingRequest.setEndUseDate(endUseDate);
             
-            Booking booking = bookingService.createBooking(bookingRequest, user);
+            Booking booking = bookingService.createBookingWithSize(bookingRequest, user);
             
             // Redirecionar para confirmação
             return "redirect:/magiclook/booking/confirmation/" + booking.getBookingId();
@@ -265,8 +284,9 @@ public class BookingController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            boolean available = bookingService.checkAvailability(
+            boolean available = bookingService.checkAvailabilityWithSize(
                 bookingRequest.getItemId(),
+                bookingRequest.getSize(),
                 bookingRequest.getStartUseDate(),
                 bookingRequest.getEndUseDate()
             );
@@ -297,6 +317,7 @@ public class BookingController {
     @ResponseBody
     public Map<String, Object> checkItemAvailability(
         @PathVariable Integer itemId,
+        @RequestParam(required = false) String size,
         @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date start,
         @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date end) {
         
@@ -311,8 +332,13 @@ public class BookingController {
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate();
             
-            // Usar o método do serviço
-            boolean available = bookingService.isItemAvailable(itemId, startDate, endDate);
+            // Usar o método do serviço (com tamanho se especificado)
+            boolean available;
+            if (size != null && !size.isEmpty()) {
+                available = bookingService.isItemAvailableWithSize(itemId, size, startDate, endDate);
+            } else {
+                available = bookingService.isItemAvailable(itemId, startDate, endDate);
+            }
             response.put(ATTR_AVAILABLE, available);
             
             if (!available) {
@@ -323,6 +349,7 @@ public class BookingController {
                         Map<String, String> conflictMap = new HashMap<>();
                         conflictMap.put("start", b.getStartUseDate().toString());
                         conflictMap.put("end", b.getEndUseDate().toString());
+                        conflictMap.put("size", b.getItemSingle() != null ? b.getItemSingle().getSize() : "N/A");
                         return conflictMap;
                     })
                     .collect(java.util.stream.Collectors.toList());

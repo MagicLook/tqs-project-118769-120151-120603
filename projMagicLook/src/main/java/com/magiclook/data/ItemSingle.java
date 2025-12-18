@@ -9,6 +9,11 @@ import java.util.UUID;
 public class ItemSingle implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    public static final String STATE_AVAILABLE = "AVAILABLE";
+    public static final String STATE_RESERVED = "RESERVED";
+    public static final String STATE_RENTED = "RENTED";
+    public static final String STATE_MAINTENANCE = "MAINTENANCE";
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -23,7 +28,7 @@ public class ItemSingle implements Serializable {
     private Item item;
 
     public ItemSingle() {
-
+        this.state = STATE_AVAILABLE; // Valor padrão
     }
 
     public ItemSingle(String state, Item item, String size) {
