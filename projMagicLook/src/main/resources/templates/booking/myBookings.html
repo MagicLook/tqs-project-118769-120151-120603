@@ -303,10 +303,9 @@
                                         <div class="d-flex align-items-center gap-3">
                                             <span class="price-tag" th:text="'€ ' + ${booking.totalPrice}"></span>
                                             <span class="status-badge" 
-                                                th:classappend="${booking.state == 'CONFIRMED'} ? 'status-confirmed' :
-                                                                 ${booking.state == 'ACTIVE'} ? 'status-active' :
-                                                                 ${booking.state == 'OVERDUE'} ? 'status-overdue' :
-                                                                 'status-completed'}"
+                                                th:classappend="${booking.state == 'CONFIRMED'} ? 'status-confirmed' : 
+                                                                (${booking.state == 'ACTIVE'} ? 'status-active' : 
+                                                                (${booking.state == 'OVERDUE'} ? 'status-overdue' : 'status-completed'))"
                                                 th:text="${booking.state}">
                                             </span>
                                         </div>
@@ -335,7 +334,7 @@
                                                     <div class="col-3 text-center">
                                                         <div class="bg-white p-3 rounded shadow-sm">
                                                             <small class="text-muted d-block">Início</small>
-                                                            <strong th:text="${booking.startUseDate != null ? #temporals.format(booking.startUseDate, 'dd/MM') : 'N/A'}"></strong>
+                                                            <strong th:text="${booking.startUseDate != null ? #dates.format(booking.startUseDate, 'dd/MM') : 'N/A'}"></strong>
                                                         </div>
                                                     </div>
                                                     <div class="col-3 text-center">
@@ -347,13 +346,13 @@
                                                     <div class="col-3 text-center">
                                                         <div class="bg-white p-3 rounded shadow-sm">
                                                             <small class="text-muted d-block">Fim</small>
-                                                            <strong th:text="${booking.endUseDate != null ? #temporals.format(booking.endUseDate, 'dd/MM') : 'N/A'}"></strong>
+                                                            <strong th:text="${booking.endUseDate != null ? #dates.format(booking.endUseDate, 'dd/MM') : 'N/A'}"></strong>
                                                         </div>
                                                     </div>
                                                     <div class="col-3 text-center">
                                                         <div class="bg-white p-3 rounded shadow-sm">
                                                             <small class="text-muted d-block">Devolução</small>
-                                                            <strong th:text="${booking.returnDate != null ? #temporals.format(booking.returnDate, 'dd/MM') : 'N/A'}"></strong>
+                                                            <strong th:text="${booking.returnDate != null ? #dates.format(booking.returnDate, 'dd/MM') : 'N/A'}"></strong>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -387,7 +386,7 @@
                                                             <p class="mb-1">
                                                                 <i class="bi bi-calendar-plus me-2"></i>
                                                                 Reservado em: 
-                                                                <span th:text="${booking.createdAt != null ? #temporals.format(booking.createdAt, 'dd/MM/yyyy') : 'N/A'}"></span>
+                                                                <span th:text="${booking.createdAt != null ? #dates.format(booking.createdAt, 'dd/MM/yyyy') : 'N/A'}"></span>
                                                             </p>
                                                             <p class="mb-1">
                                                                 <i class="bi bi-geo-alt me-2"></i>
@@ -435,5 +434,18 @@
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Inicializar dropdowns manualmente se necessário
+        document.addEventListener('DOMContentLoaded', function() {
+            var dropdowns = document.querySelectorAll('.dropdown-toggle');
+            dropdowns.forEach(function(dropdown) {
+                dropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var dropdownMenu = this.nextElementSibling;
+                    dropdownMenu.classList.toggle('show');
+                });
+            });
+        });
+    </script>
 </body>
 </html>

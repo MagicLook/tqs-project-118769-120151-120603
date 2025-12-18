@@ -30,12 +30,18 @@ public class BookingController {
     private static final String REDIRECT_LOGIN = "redirect:/magiclook/login";
     private static final String REDIRECT_DASHBOARD = "redirect:/magiclook/dashboard";
     private static final String VIEW_BOOKING_FORM = "booking/bookingForm";
+    private static final String VIEW_MY_BOOKINGS = "booking/myBookings";
+    private static final String VIEW_BOOKING_DETAILS = "booking/booking-details";
+    private static final String VIEW_BOOKING_CONFIRMATION = "booking/bookingConfirmation";
     private static final String ATTR_ERROR = "error";
     private static final String ATTR_AVAILABLE = "available";
     private static final String ATTR_MESSAGE = "message";
     private static final String ATTR_ITEM = "item";
     private static final String ATTR_USER = "user";
     private static final String ATTR_BOOKING = "booking";
+    private static final String ATTR_BOOKINGS = "bookings";
+    private static final String ATTR_FILTER = "filter";
+    private static final String ATTR_SEARCH = "search";
     
     @Autowired
     private BookingService bookingService;
@@ -90,7 +96,7 @@ public class BookingController {
             return REDIRECT_DASHBOARD;
         }
         
-        // Verificar disponibilidade (usando Date) - manter esta chamada primeiro para compatibilidade com testes
+        // Verificar disponibilidade (usando Date)
         boolean isAvailable = bookingService.checkAvailability(itemId, startUseDate, endUseDate);
         
         if (!isAvailable) {
@@ -148,7 +154,7 @@ public class BookingController {
         
         model.addAttribute(ATTR_BOOKING, booking);
         model.addAttribute(ATTR_USER, user);
-        return "booking/bookingConfirmation";
+        return VIEW_BOOKING_CONFIRMATION;
     }
     
     // Show user's bookings
@@ -202,13 +208,13 @@ public class BookingController {
                 .collect(Collectors.toList());
         }
         
-        model.addAttribute("bookings", bookings);
-        model.addAttribute("filter", filter);
-        model.addAttribute("search", search);
+        model.addAttribute(ATTR_BOOKINGS, bookings);
+        model.addAttribute(ATTR_FILTER, filter);
+        model.addAttribute(ATTR_SEARCH, search);
         model.addAttribute(ATTR_USER, user);
         model.addAttribute("activePage", "/booking/myBookings");
         
-        return "booking/myBookings";
+        return VIEW_MY_BOOKINGS;
     }
 
     @GetMapping("/my-bookings/{id}")
@@ -230,7 +236,7 @@ public class BookingController {
         model.addAttribute(ATTR_USER, user);
         model.addAttribute("activePage", "myBookings");
         
-        return "booking/booking-details";
+        return VIEW_BOOKING_DETAILS;
     }
     
     // Check availability (AJAX endpoint) - para o formulário antigo
