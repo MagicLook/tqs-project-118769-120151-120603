@@ -5,7 +5,6 @@ import com.magiclook.data.ItemSingle;
 import com.magiclook.data.Shop;
 import com.magiclook.repository.ItemRepository;
 import com.magiclook.repository.ItemSingleRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -56,12 +55,25 @@ public class ItemService {
     public List<String> getAllDistinctCategories() {
         return itemRepository.findAllDistinctCategories();
     }
+    
+    public List<String> getAllDistinctShopLocations() {
+        return itemRepository.findAllDistinctShopLocations();
+    }
 
     public List<Item> searchItemsWithFilters(String gender, String color, String brand, 
                                              String material, String category, 
+                                             String shopLocation,
                                              Double minPrice, Double maxPrice) {
-        return itemRepository.findByGenderAndFilters(gender, color, brand, material, 
-                                                    category, minPrice, maxPrice);
+        // Converter strings vazias para null
+        String cleanedColor = (color == null || color.isEmpty()) ? null : color;
+        String cleanedBrand = (brand == null || brand.isEmpty()) ? null : brand;
+        String cleanedMaterial = (material == null || material.isEmpty()) ? null : material;
+        String cleanedCategory = (category == null || category.isEmpty()) ? null : category;
+        String cleanedShopLocation = (shopLocation == null || shopLocation.isEmpty()) ? null : shopLocation;
+        
+        return itemRepository.findByGenderAndFilters(gender, cleanedColor, cleanedBrand, 
+                                                    cleanedMaterial, cleanedCategory,
+                                                    cleanedShopLocation, minPrice, maxPrice);
     }
 
     public List<Item> getAllItemsByState(String state) {

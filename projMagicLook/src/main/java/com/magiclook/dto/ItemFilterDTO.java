@@ -7,6 +7,7 @@ public class ItemFilterDTO {
     private String category;
     private Double minPrice;
     private Double maxPrice;
+    private String shopLocation; // Nova propriedade
     
     public ItemFilterDTO() {}
     
@@ -18,6 +19,18 @@ public class ItemFilterDTO {
         this.category = category;
         this.minPrice = minPrice;
         this.maxPrice = maxPrice;
+        this.shopLocation = null;
+    }
+
+    public ItemFilterDTO(String color, String brand, String material, String category, 
+                        Double minPrice, Double maxPrice, String shopLocation) {
+        this.color = color;
+        this.brand = brand;
+        this.material = material;
+        this.category = category;
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
+        this.shopLocation = shopLocation;
     }
     
     public String getColor() { return color; }
@@ -38,11 +51,15 @@ public class ItemFilterDTO {
     public Double getMaxPrice() { return maxPrice; }
     public void setMaxPrice(Double maxPrice) { this.maxPrice = maxPrice; }
     
+    public String getShopLocation() { return shopLocation; }
+    public void setShopLocation(String shopLocation) { this.shopLocation = shopLocation; }
+    
     public boolean hasFilters() {
         return (color != null && !color.isEmpty()) ||
                (brand != null && !brand.isEmpty()) ||
                (material != null && !material.isEmpty()) ||
                (category != null && !category.isEmpty()) ||
+               (shopLocation != null && !shopLocation.isEmpty()) ||
                minPrice != null ||
                maxPrice != null;
     }

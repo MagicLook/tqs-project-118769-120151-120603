@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/navbar :: head(~{::title})">
+    <title th:text="'Reserva #' + ${booking.bookingId} + ' - MagicLook'">Detalhes da Reserva</title>
+    <style>
+        .content-wrapper {
+            padding-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+        .booking-header {
+            background: linear-gradient(135deg, #2575fc, #6a11cb);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .item-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        .info-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .status-badge {
+            font-size: 1rem;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        .status-confirmed { background-color: #d1ecf1; color: #0c5460; }
+        .status-active { background-color: #d4edda; color: #155724; }
+        .status-overdue { background-color: #f8d7da; color: #721c24; }
+        .status-completed { background-color: #e2e3e5; color: #383d41; }
+    </style>
+</head>
+<body>
+    <div th:replace="fragments/navbar :: navbar"></div>
+    
+    <div class="container content-wrapper">
+        <!-- Cabeçalho -->
+        <div class="booking-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2">
+                        <i class="bi bi-calendar-check"></i> 
+                        <span th:text="'Reserva #' + ${booking.bookingId.toString().substring(0,8)}"></span>
+                    </h1>
+                    <p class="lead mb-0" th:text="${booking.item.name}"></p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="bg-white text-primary rounded p-3 d-inline-block">
+                        <h4 class="mb-0" th:text="'€ ' + ${booking.totalPrice}">€ 0,00</h4>
+                        <small>Valor Total</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Coluna da esquerda: Dados do Item -->
+            <div class="col-md-6">
+                <div class="info-card">
+                    <h4 class="mb-4">
+                        <i class="bi bi-tag"></i> Dados do Item
+                    </h4>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <img th:if="${booking.item.imagePath}" th:src="@{${booking.item.imagePath}}" 
+                                 alt="Item image" class="item-image">
+                            <div th:unless="${booking.item.imagePath}" class="item-image d-flex align-items-center justify-content-center bg-light">
+                                <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 th:text="${booking.item.name}">Nome do Item</h5>
+                            <p class="text-muted">
+                                <strong>Material:</strong> <span th:text="${booking.item.material}"></span><br>
+                                <strong>Marca:</strong> <span th:text="${booking.item.brand}"></span><br>
+                                <strong>Cor:</strong> <span th:text="${booking.item.color}"></span><br>
+                                <strong>Categoria:</strong> <span th:text="${booking.item.itemType.category}"></span><br>
+                                <strong>Subcategoria:</strong> <span th:text="${booking.item.itemType.subcategory}"></span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <strong>Preço de Aluguer (dia):</strong><br>
+                                <span class="text-primary" th:text="'€ ' + ${booking.item.priceRent}"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <strong>Preço de Venda:</strong><br>
+                                <span class="text-muted" th:if="${booking.item.priceSale != null}" 
+                                      th:text="'€ ' + ${booking.item.priceSale}"></span>
+                                <span class="text-muted" th:unless="${booking.item.priceSale != null}">Não disponível</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Loja:</strong><br>
+                        <span th:text="${booking.item.shop.name}"></span> - 
+                        <span th:text="${booking.item.shop.location}"></span>
+                    </div>
+                    
+                    <!-- Tamanho (se disponível via ItemSingle) -->
+                    <div class="mb-3" th:if="${booking.item.itemSingles != null and not booking.item.itemSingles.isEmpty()}">
+                        <strong>Tamanho:</strong><br>
+                        <span th:text="${booking.item.itemSingles[0].size}"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Coluna da direita: Dados da Reserva -->
+            <div class="col-md-6">
+                <div class="info-card">
+                    <h4 class="mb-4">
+                        <i class="bi bi-calendar-event"></i> Dados da Reserva
+                    </h4>
+                    
+                    <div class="mb-4">
+                        <strong>Estado da Reserva:</strong><br>
+                        <span class="status-badge" th:classappend="${booking.state == 'CONFIRMED'} ? 'status-confirmed' :
+                                                                     ${booking.state == 'ACTIVE'} ? 'status-active' :
+                                                                     ${booking.state == 'OVERDUE'} ? 'status-overdue' :
+                                                                     'status-completed'}">
+                            <span th:text="${booking.state}"></span>
+                        </span>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Data de Levantamento:</strong><br>
+                            <span th:text="${#temporals.format(booking.pickupDate, 'dd/MM/yyyy')}"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Data de Devolução:</strong><br>
+                            <span th:text="${#temporals.format(booking.returnDate, 'dd/MM/yyyy')}"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Início de Uso:</strong><br>
+                            <span th:text="${#temporals.format(booking.startUseDate, 'dd/MM/yyyy')}"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Fim de Uso:</strong><br>
+                            <span th:text="${#temporals.format(booking.endUseDate, 'dd/MM/yyyy')}"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Dias de Uso:</strong><br>
+                            <span th:text="${booking.totalDays}"></span> dias
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Valor Total:</strong><br>
+                            <span class="text-primary" th:text="'€ ' + ${booking.totalPrice}"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Loja de Levantamento:</strong><br>
+                        <span th:text="${booking.item.shop.name}"></span><br>
+                        <span class="text-muted" th:text="${booking.item.shop.location}"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Data da Reserva:</strong><br>
+                        <span th:text="${#temporals.format(booking.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                    </div>
+                </div>
+                
+                <!-- Botões de Ação -->
+                <div class="d-flex gap-2">
+                    <a th:href="@{/magiclook/bookings/my}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left"></i> Voltar às Reservas
+                    </a>
+                    <a th:href="@{/magiclook/items/men}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Nova Reserva
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

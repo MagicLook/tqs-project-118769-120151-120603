@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Controller
 @RequestMapping("/magiclook")
@@ -140,7 +141,9 @@ public class BookingController {
     
     // Show user's bookings
     @GetMapping("/my-bookings")
-    public String showMyBookings(HttpSession session, Model model) {
+    public String showMyBookings(HttpSession session, Model model,
+                                @RequestParam(required = false) String filter,
+                                @RequestParam(required = false) String search) {
         User user = (User) session.getAttribute("loggedInUser");
         
         if (user == null) {
@@ -148,10 +151,74 @@ public class BookingController {
         }
         
         List<Booking> bookings = bookingService.getUserBookings(user);
+    
+        // Garantir que bookings nunca seja null
+        if (bookings == null) {
+            bookings = new ArrayList<>();
+        }
+        
+        // Ordenar por data de início decrescente (mais recentes primeiro)
+        bookings.sort((b1, b2) -> {
+            if (b1.getStartUseDate() == null && b2.getStartUseDate() == null) return 0;
+            if (b1.getStartUseDate() == null) return 1;
+            if (b2.getStartUseDate() == null) return -1;
+            return b2.getStartUseDate().compareTo(b1.getStartUseDate());
+        });
+        
+        // Aplicar filtro de status (Ativas/Passadas)
+        if (filter != null && !filter.isEmpty()) {
+            Date today = new Date();
+            
+            if ("active".equals(filter)) {
+                // Reservas ativas: data de fim no futuro
+                bookings = bookings.stream()
+                    .filter(booking -> booking.getEndUseDate().after(today))
+                    .collect(Collectors.toList());
+            } else if ("past".equals(filter)) {
+                // Reservas passadas: data de fim no passado
+                bookings = bookings.stream()
+                    .filter(booking -> booking.getEndUseDate().before(today))
+                    .collect(Collectors.toList());
+            }
+        }
+        
+        // Aplicar pesquisa por nome do item
+        if (search != null && !search.isEmpty()) {
+            String searchLower = search.toLowerCase();
+            bookings = bookings.stream()
+                .filter(booking -> booking.getItem().getName().toLowerCase().contains(searchLower))
+                .collect(Collectors.toList());
+        }
+        
         model.addAttribute("bookings", bookings);
+        model.addAttribute("filter", filter);
+        model.addAttribute("search", search);
+        model.addAttribute("user", user);
+        model.addAttribute("activePage", "/booking/myBookings");
+        
+        return "booking/myBookings";
+    }
+
+    @GetMapping("/my-bookings/{id}")
+    public String bookingDetails(@PathVariable String id, HttpSession session, Model model) {
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user == null) {
+            return "redirect:/magiclook/login";
+        }
+        
+        // Buscar a reserva pelo ID
+        Booking booking = bookingService.getBookingById(java.util.UUID.fromString(id));
+        
+        // Verificar se a reserva existe e pertence ao usuário
+        if (booking == null || !booking.getUser().getUserId().equals(user.getUserId())) {
+            return "redirect:/magiclook/bookings/my-bookings";
+        }
+        
+        model.addAttribute("booking", booking);
         model.addAttribute("user", user);
         model.addAttribute("activePage", "myBookings");
-        return "booking/myBookings";
+        
+        return "booking/booking-details";
     }
     
     // Check availability (AJAX endpoint) - para o formulário antigo

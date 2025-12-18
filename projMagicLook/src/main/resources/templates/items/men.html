@@ -52,12 +52,15 @@
             color: #ccc;
             font-size: 3rem;
             overflow: hidden;
+            position: relative; /* Adicione esta linha */
         }
-        
+
         .item-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain; /* Alterado de 'cover' para 'contain' */
         }
         
         .badge-available {
@@ -210,6 +213,18 @@
                         <input type="number" class="form-control" id="maxPrice" 
                                name="maxPrice" th:value="${filter?.maxPrice}" 
                                step="0.01" min="0" placeholder="100.00">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="shopLocation" class="form-label">Localização da Loja</label>
+                        <select class="form-select" id="shopLocation" name="shopLocation">
+                            <option value="">Todas as localizações</option>
+                            <option th:each="location : ${shopLocations}" 
+                                    th:value="${location}"
+                                    th:text="${location}"
+                                    th:selected="${filter?.shopLocation == location}">
+                            </option>
+                        </select>
                     </div>
                     
                     <div class="col-md-6 d-flex align-items-end">
