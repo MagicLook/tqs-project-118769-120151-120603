@@ -69,6 +69,13 @@
         .size-item:hover {
             background-color: #f8f9fa;
         }
+
+        .btn-edit-smooth {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
 
@@ -254,12 +261,13 @@
                                                     </td>
                                                     <td class="text-end">
                                                         <div class="btn-group btn-group-sm">
-                                                            <button class="btn btn-outline-primary"
+                                                            <button class="btn btn-outline-primary btn-edit-smooth"
                                                                 title="Editar Unidade" th:data-id="${single.id}"
                                                                 th:data-size="${single.size}"
                                                                 th:data-state="${single.state}"
                                                                 onclick="openEditSingleModal(this)">
                                                                 <i class="bi bi-pencil-square"></i>
+                                                                <span class="edit-text">Editar</span>
                                                             </button>
                                                             <button class="btn btn-outline-danger" title="Eliminar">
                                                                 <i class="bi bi-trash"></i>
@@ -324,7 +332,8 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary"
                             data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary" id="editSingleSubmitBtn">Guardar Alterações</button>
+                        <button type="submit" class="btn btn-primary" id="editSingleSubmitBtn">Guardar
+                            Alterações</button>
                     </div>
                     <div id="editSingleMessage" class="alert" style="display: none; margin: 10px;"></div>
                 </form>
@@ -347,45 +356,45 @@
 
             new bootstrap.Modal(document.getElementById('editItemSingleModal')).show();
         }
-        
+
         // Handle edit single item form submission
-        document.getElementById('editItemSingleForm').addEventListener('submit', async function(e) {
+        document.getElementById('editItemSingleForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const id = document.getElementById('editSingleId').value;
             const size = document.getElementById('editSingleSize').value;
             const state = document.getElementById('editSingleState').value;
             const itemId = this.querySelector('input[name="itemId"]').value;
             const submitBtn = document.getElementById('editSingleSubmitBtn');
             const messageDiv = document.getElementById('editSingleMessage');
-            
+
             submitBtn.disabled = true;
-            
+
             try {
                 const formData = new FormData();
                 formData.append('size', size);
                 formData.append('state', state);
                 formData.append('itemId', itemId);
-                
+
                 const response = await fetch('/magiclook/staff/itemsingle/update/' + id, {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 if (!response.ok) {
                     const errorText = await response.text();
-                    throw new Error(errorText || 'Erro ao atualizar unidade');
+                    throw new Error(errorText || 'Erro ao atualizar os dados.');
                 }
-                
+
                 messageDiv.className = 'alert alert-success';
-                messageDiv.textContent = '✓ Unidade atualizada com sucesso!';
+                messageDiv.textContent = '✓ Dados atualizados com sucesso!';
                 messageDiv.style.display = 'block';
-                
+
                 setTimeout(() => {
                     bootstrap.Modal.getInstance(document.getElementById('editItemSingleModal')).hide();
                     location.reload();
                 }, 1500);
-                
+
             } catch (error) {
                 messageDiv.className = 'alert alert-danger';
                 messageDiv.textContent = '✗ ' + error.message;
