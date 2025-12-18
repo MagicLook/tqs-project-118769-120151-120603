@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface ItemSingleRepository extends JpaRepository<ItemSingle, UUID> {
 
     List<ItemSingle> findByItem_ItemId(Integer itemId);
+
+    void deleteByItem_ItemIdAndSize(Integer itemId, String size);
 }
