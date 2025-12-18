@@ -60,5 +60,5 @@ jobs:
               env:
                     XRAY_CLIENT_ID: ${{ secrets.XRAYCLOUD_CLIENT_ID }}
                     XRAY_CLIENT_SECRET: ${{ secrets.XRAYCLOUD_CLIENT_SECRET }}
-              run: mvn -B xray:import-results -Dxray.clientId="$XRAY_CLIENT_ID" -Dxray.clientSecret="$XRAY_CLIENT_SECRET" -X
+              run: mvn -B xray:import-results -Dxray.clientId="$XRAY_CLIENT_ID" -Dxray.clientSecret="$XRAY_CLIENT_SECRET" -Dxray.timeout=300 -X
               continue-on-error: true

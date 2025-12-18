@@ -38,7 +38,7 @@
 		<xray-junit-extensions.version>0.9.0</xray-junit-extensions.version>
 		<xray-maven-plugin.version>0.9.0</xray-maven-plugin.version>
 		<xray.clientId></xray.clientId>
-		
+
 		<xray.clientSecret></xray.clientSecret>
 	</properties>
 
@@ -175,6 +175,9 @@
 					<projectKey>SCRUM</projectKey>
 					<reportFormat>junit</reportFormat>
 					<reportFile>target/TEST-junit-jupiter.xml</reportFile>
+					<timeout>300</timeout>
+					<clientId>${xray.clientId}</clientId>
+					<clientSecret>${xray.clientSecret}</clientSecret>
 				</configuration>
 			</plugin>
 		</plugins>
