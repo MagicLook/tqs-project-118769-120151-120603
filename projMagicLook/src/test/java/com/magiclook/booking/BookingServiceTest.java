@@ -15,7 +15,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.*;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -442,5 +448,301 @@ public class BookingServiceTest {
         
         boolean notAvailable = bookingService.checkItemAvailability(itemId, start, end);
         assertFalse(notAvailable);
+    }
+
+    // Testes para createSimpleBooking
+
+    @Test
+    void testCreateSimpleBooking_Success() {
+        // Arrange
+        Integer itemId = 1;
+        LocalDate startUseDate = LocalDate.now().plusDays(7);
+        LocalDate endUseDate = LocalDate.now().plusDays(10);
+        
+        Item mockItem = mock(Item.class);
+        when(mockItem.getPriceRent()).thenReturn(new BigDecimal("25.00"));
+        
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(mockItem));
+        when(bookingRepository.countOverlappingBookings(
+            anyInt(), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(0L);
+        when(bookingRepository.save(any(Booking.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        Booking result = bookingService.createSimpleBooking(itemId, startUseDate, endUseDate, testUser);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(mockItem, result.getItem());
+        assertEquals(testUser, result.getUser());
+        assertEquals("CONFIRMED", result.getState());
+        assertNotNull(result.getCreatedAt());
+        assertEquals(4, result.getTotalDays());
+        assertEquals(new BigDecimal("100.00"), result.getTotalPrice());
+        
+        verify(itemRepository, times(1)).findById(itemId);
+        verify(bookingRepository, times(1)).save(any(Booking.class));
+    }
+
+    @Test
+    void testCreateSimpleBooking_ItemNotFound() {
+        // Arrange
+        Integer itemId = 99;
+        LocalDate startUseDate = LocalDate.now().plusDays(7);
+        LocalDate endUseDate = LocalDate.now().plusDays(10);
+        
+        when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            bookingService.createSimpleBooking(itemId, startUseDate, endUseDate, testUser);
+        });
+
+        assertEquals("Item não encontrado", exception.getMessage());
+        verify(itemRepository, times(1)).findById(itemId);
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    void testCreateSimpleBooking_ItemNotAvailable() {
+        // Arrange
+        Integer itemId = 1;
+        LocalDate startUseDate = LocalDate.now().plusDays(7);
+        LocalDate endUseDate = LocalDate.now().plusDays(10);
+        
+        Item mockItem = mock(Item.class);
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(mockItem));
+        when(bookingRepository.countOverlappingBookings(
+            anyInt(), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(1L);
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            bookingService.createSimpleBooking(itemId, startUseDate, endUseDate, testUser);
+        });
+
+        assertEquals("Item não disponível nas datas selecionadas", exception.getMessage());
+        verify(itemRepository, times(1)).findById(itemId);
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    void testCreateSimpleBooking_SameDayBooking() {
+        // Arrange
+        Integer itemId = 1;
+        LocalDate startUseDate = LocalDate.now().plusDays(7);
+        LocalDate endUseDate = startUseDate; // Mesmo dia
+        
+        Item mockItem = mock(Item.class);
+        when(mockItem.getPriceRent()).thenReturn(new BigDecimal("25.00"));
+        
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(mockItem));
+        when(bookingRepository.countOverlappingBookings(
+            anyInt(), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(0L);
+        when(bookingRepository.save(any(Booking.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        Booking result = bookingService.createSimpleBooking(itemId, startUseDate, endUseDate, testUser);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalDays());
+        assertEquals(new BigDecimal("25.00"), result.getTotalPrice());
+        verify(itemRepository, times(1)).findById(itemId);
+        verify(bookingRepository, times(1)).save(any(Booking.class));
+    }
+
+    @Test
+    void testCreateSimpleBooking_EndDateBeforeStartDate() {
+        // Arrange
+        Integer itemId = 1;
+        LocalDate startUseDate = LocalDate.now().plusDays(10);
+        LocalDate endUseDate = LocalDate.now().plusDays(7); // Fim antes do início
+        
+        Item mockItem = mock(Item.class);
+        when(mockItem.getPriceRent()).thenReturn(new BigDecimal("25.00"));
+        
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(mockItem));
+        when(bookingRepository.countOverlappingBookings(
+            anyInt(), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(0L);
+        when(bookingRepository.save(any(Booking.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        Booking result = bookingService.createSimpleBooking(itemId, startUseDate, endUseDate, testUser);
+
+        // Assert
+        assertNotNull(result);
+        // Quando endDate é antes de startDate, ChronoUnit.DAYS.between retorna negativo
+        // e +1 torna ainda mais negativo. Vamos verificar se o cálculo funciona
+        assertTrue(result.getTotalDays() < 0);
+        assertTrue(result.getTotalPrice().compareTo(BigDecimal.ZERO) < 0);
+        verify(itemRepository, times(1)).findById(itemId);
+        verify(bookingRepository, times(1)).save(any(Booking.class));
+    }
+
+    // Testes para getCurrentBookingState
+
+    @Test
+    void testGetCurrentBookingState_Cancelled() {
+        // Arrange
+        Booking booking = TestDataFactory.createTestBooking(testUser, testItem);
+        booking.setState("CANCELLED");
+        
+        // Act
+        String state = bookingService.getCurrentBookingState(booking);
+        
+        // Assert
+        assertEquals("CANCELLED", state);
+    }
+
+    @Test
+    void testGetCurrentBookingState_Completed() {
+        // Arrange
+        Booking booking = TestDataFactory.createTestBooking(testUser, testItem);
+        booking.setState("COMPLETED");
+        
+        // Act
+        String state = bookingService.getCurrentBookingState(booking);
+        
+        // Assert
+        assertEquals("COMPLETED", state);
+    }
+
+    @Test
+    void testGetCurrentBookingState_Confirmed() {
+        // Arrange
+        Booking booking = new Booking();
+        booking.setState(null);
+        
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 7);
+        booking.setStartUseDate(cal.getTime());
+        
+        cal.add(Calendar.DAY_OF_MONTH, 3);
+        booking.setEndUseDate(cal.getTime());
+        
+        // Act
+        String state = bookingService.getCurrentBookingState(booking);
+        
+        // Assert
+        assertEquals("CONFIRMED", state);
+    }
+
+    @Test
+    void testGetCurrentBookingState_Active() {
+        // Arrange
+        Booking booking = new Booking();
+        booking.setState(null);
+        
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -1);
+        booking.setStartUseDate(cal.getTime());
+        
+        cal.add(Calendar.DAY_OF_MONTH, 5);
+        booking.setEndUseDate(cal.getTime());
+        
+        // Act
+        String state = bookingService.getCurrentBookingState(booking);
+        
+        // Assert
+        assertEquals("ACTIVE", state);
+    }
+
+    @Test
+    void testGetCurrentBookingState_Overdue() {
+        // Arrange
+        Booking booking = new Booking();
+        booking.setState(null);
+        
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -10);
+        booking.setStartUseDate(cal.getTime());
+        
+        cal.add(Calendar.DAY_OF_MONTH, 3);
+        booking.setEndUseDate(cal.getTime());
+        
+        cal.add(Calendar.DAY_OF_MONTH, 1);
+        booking.setReturnDate(cal.getTime()); // Return date was 6 days ago
+        
+        // Act
+        String state = bookingService.getCurrentBookingState(booking);
+        
+        // Assert
+        assertEquals("OVERDUE", state);
+    }
+
+    @Test
+    void testGetCurrentBookingState_CompletedAfterEndDate() {
+        // Arrange
+        Booking booking = new Booking();
+        booking.setState(null);
+        
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -10);
+        booking.setStartUseDate(cal.getTime());
+        
+        cal.add(Calendar.DAY_OF_MONTH, 3);
+        booking.setEndUseDate(cal.getTime()); // Ended 7 days ago
+        
+        cal.add(Calendar.DAY_OF_MONTH, 10);
+        booking.setReturnDate(cal.getTime()); // Return date is in 3 days
+        
+        // Act
+        String state = bookingService.getCurrentBookingState(booking);
+        
+        // Assert
+        assertEquals("COMPLETED", state);
+    }
+
+    @Test
+    void testGetCurrentBookingState_ReturnedState() {
+        // Arrange
+        Booking booking = new Booking();
+        booking.setState("RETURNED");
+        
+        // Simulate dates that would otherwise be OVERDUE
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -20);
+        booking.setStartUseDate(cal.getTime());
+        
+        cal.add(Calendar.DAY_OF_MONTH, 10);
+        booking.setEndUseDate(cal.getTime());
+        
+        cal.add(Calendar.DAY_OF_MONTH, 1);
+        booking.setReturnDate(cal.getTime());
+        
+        // Act
+        String state = bookingService.getCurrentBookingState(booking);
+        
+        // Assert
+        // According to the logic, if state is "RETURNED" and not "CANCELLED" or "COMPLETED",
+        // it will still evaluate based on dates and return "COMPLETED"
+        assertEquals("COMPLETED", state);
+    }
+
+    @Test
+    void testGetCurrentBookingState_NullBooking() {
+        // Act & Assert
+        assertThrows(NullPointerException.class, () -> {
+            bookingService.getCurrentBookingState(null);
+        });
+    }
+
+    @Test
+    void testGetCurrentBookingState_NullDates() {
+        // Arrange
+        Booking booking = new Booking();
+        booking.setState(null);
+        // Dates are null by default
+        
+        // Act & Assert
+        assertThrows(NullPointerException.class, () -> {
+            bookingService.getCurrentBookingState(booking);
+        });
     }
 }

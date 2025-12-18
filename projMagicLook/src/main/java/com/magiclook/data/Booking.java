@@ -102,4 +102,24 @@ public class Booking implements Serializable{
         long diff = endUseDate.getTime() - startUseDate.getTime();
         return (diff / (1000 * 60 * 60 * 24)) + 1;
     }
+    
+    public String getCurrentState() {
+    Date now = new Date();
+    if (state.equals("CANCELLED") || state.equals("COMPLETED")) {
+        return state;
+    }
+    
+    if (now.before(startUseDate)) {
+        return "CONFIRMED";
+    } else if (now.after(endUseDate)) {
+        // Check if past return date without returning
+        if (now.after(returnDate) && !state.equals("RETURNED")) {
+            return "OVERDUE";
+        } else {
+            return "COMPLETED";
+        }
+    } else {
+        return "ACTIVE";
+    }
+}
 }
