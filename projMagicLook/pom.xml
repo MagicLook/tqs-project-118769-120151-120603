@@ -29,11 +29,17 @@
 	<properties>
 	    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
   		<sonar.organization>magiclook</sonar.organization>
+		<sonar.coverage.exclusions>
+			**/data/**,
+			**/dto/**,
+			**/repository/**
+		</sonar.coverage.exclusions>
 		<java.version>21</java.version>
 		<xray-junit-extensions.version>0.9.0</xray-junit-extensions.version>
 		<xray-maven-plugin.version>0.9.0</xray-maven-plugin.version>
-		<xray.clientId>${env.XRAY_CLIENT_ID}</xray.clientId>
-		<xray.clientSecret>${env.XRAY_CLIENT_SECRET}</xray.clientSecret>
+		<xray.clientId></xray.clientId>
+
+		<xray.clientSecret></xray.clientSecret>
 	</properties>
 
 	<pluginRepositories>
@@ -166,9 +172,10 @@
 				<version>${xray-maven-plugin.version}</version>
 				<configuration>
 					<cloud>true</cloud>
-					<projectKey>ST</projectKey>
+					<projectKey>SCRUM</projectKey>
 					<reportFormat>junit</reportFormat>
-					<reportFile>target/surefire-reports</reportFile>
+					<reportFile>target/TEST-junit-jupiter.xml</reportFile>
+					<timeout>300</timeout>
 					<clientId>${xray.clientId}</clientId>
 					<clientSecret>${xray.clientSecret}</clientSecret>
 				</configuration>
