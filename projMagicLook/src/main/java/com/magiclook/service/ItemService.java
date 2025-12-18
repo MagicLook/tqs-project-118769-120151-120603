@@ -1,5 +1,6 @@
 package com.magiclook.service;
 
+import com.magiclook.dto.ItemFilterDTO;
 import com.magiclook.data.Item;
 import com.magiclook.data.ItemSingle;
 import com.magiclook.data.Shop;
@@ -64,7 +65,6 @@ public class ItemService {
                                              String material, String category, 
                                              String shopLocation,
                                              Double minPrice, Double maxPrice) {
-        // Converter strings vazias para null
         String cleanedColor = (color == null || color.isEmpty()) ? null : color;
         String cleanedBrand = (brand == null || brand.isEmpty()) ? null : brand;
         String cleanedMaterial = (material == null || material.isEmpty()) ? null : material;
@@ -109,5 +109,27 @@ public class ItemService {
             .distinct()
             .sorted()
             .collect(Collectors.toList());
+    }
+    public List<String> getAllDistinctSubcategoriesByGender(String gender) {
+        return itemRepository.findAllDistinctSubcategoriesByGender(gender);
+    }
+    
+    public List<String> getAllDistinctSizesByGender(String gender) {
+        return itemRepository.findAllDistinctSizesByGender(gender);
+    }
+    
+    public List<Item> findByGenderAndFilters(String gender, ItemFilterDTO filter) {
+        return itemRepository.findByGenderAndFilters(
+            gender,
+            filter.getColor(),
+            filter.getBrand(),
+            filter.getMaterial(),
+            filter.getCategory(),
+            filter.getSubcategory(),
+            filter.getSize(),
+            filter.getShopLocation(),
+            filter.getMinPrice(),
+            filter.getMaxPrice()
+        );
     }
 }

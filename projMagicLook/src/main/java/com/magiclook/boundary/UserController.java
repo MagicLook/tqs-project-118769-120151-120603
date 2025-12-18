@@ -121,6 +121,9 @@ public class UserController {
             return REDIRECT_LOGIN;
         }
         
+        // Usar genderCode correto para os métodos do serviço
+        String genderCode = "men".equals(pageName) ? "M" : "F";
+        
         List<Item> items = itemService.getItemsByGender(gender);
         
         model.addAttribute("filter", new ItemFilterDTO());
@@ -128,7 +131,9 @@ public class UserController {
         model.addAttribute("brands", itemService.getAllDistinctBrands());
         model.addAttribute("materials", itemService.getAllDistinctMaterials());
         model.addAttribute("categories", itemService.getAllDistinctCategories());
-        model.addAttribute("shopLocations", itemService.getAllDistinctShopLocations()); // Novo
+        model.addAttribute("subcategories", itemService.getAllDistinctSubcategoriesByGender(genderCode));
+        model.addAttribute("sizes", itemService.getAllDistinctSizesByGender(genderCode));
+        model.addAttribute("shopLocations", itemService.getAllDistinctShopLocations());
         
         model.addAttribute("user", user);
         model.addAttribute("items", items);
@@ -143,7 +148,15 @@ public class UserController {
     
     @PostMapping("/items/{gender}/filter")
     public String filterItems(@PathVariable String gender,
-                            @ModelAttribute ItemFilterDTO filter,
+                            @RequestParam(required = false) String color,
+                            @RequestParam(required = false) String brand,
+                            @RequestParam(required = false) String material,
+                            @RequestParam(required = false) String category,
+                            @RequestParam(required = false) String subcategory,
+                            @RequestParam(required = false) Double minPrice,
+                            @RequestParam(required = false) Double maxPrice,
+                            @RequestParam(required = false) String shopLocation,
+                            @RequestParam(required = false) String size,
                             HttpSession session,
                             Model model) {
         
@@ -155,17 +168,13 @@ public class UserController {
         
         String genderCode = "women".equals(gender) ? "F" : "M";
         
+        // Criar o filtro com todos os parâmetros
+        ItemFilterDTO filter = new ItemFilterDTO(color, brand, material, category, 
+                                                subcategory, minPrice, maxPrice, 
+                                                shopLocation, size);
+        
         // Buscar itens com filtros
-        List<Item> filteredItems = itemService.searchItemsWithFilters(
-            genderCode,
-            filter.getColor(),
-            filter.getBrand(),
-            filter.getMaterial(),
-            filter.getCategory(),
-            filter.getShopLocation(), // Novo filtro
-            filter.getMinPrice(),
-            filter.getMaxPrice()
-        );
+        List<Item> filteredItems = itemService.findByGenderAndFilters(genderCode, filter);
         
         // Adicionar dados para os filtros
         model.addAttribute("filter", filter);
@@ -173,7 +182,9 @@ public class UserController {
         model.addAttribute("brands", itemService.getAllDistinctBrands());
         model.addAttribute("materials", itemService.getAllDistinctMaterials());
         model.addAttribute("categories", itemService.getAllDistinctCategories());
-        model.addAttribute("shopLocations", itemService.getAllDistinctShopLocations()); // Novo
+        model.addAttribute("subcategories", itemService.getAllDistinctSubcategoriesByGender(genderCode));
+        model.addAttribute("sizes", itemService.getAllDistinctSizesByGender(genderCode));
+        model.addAttribute("shopLocations", itemService.getAllDistinctShopLocations());
         
         model.addAttribute("user", user);
         model.addAttribute("items", filteredItems);

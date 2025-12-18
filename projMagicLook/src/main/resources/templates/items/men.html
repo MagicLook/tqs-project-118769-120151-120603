@@ -226,6 +226,30 @@
                             </option>
                         </select>
                     </div>
+
+                    <div class="col-md-3">
+                        <label for="subcategory" class="form-label">Subtipo</label>
+                        <select class="form-select" id="subcategory" name="subcategory">
+                            <option value="">Todos os subtipos</option>
+                            <option th:each="subcat : ${subcategories}" 
+                                    th:value="${subcat}"
+                                    th:text="${subcat}"
+                                    th:selected="${filter?.subcategory == subcat}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="size" class="form-label">Tamanho</label>
+                        <select class="form-select" id="size" name="size">
+                            <option value="">Todos os tamanhos</option>
+                            <option th:each="sizeOpt : ${sizes}" 
+                                    th:value="${sizeOpt}"
+                                    th:text="${sizeOpt}"
+                                    th:selected="${filter?.size == sizeOpt}">
+                            </option>
+                        </select>
+                    </div>
                     
                     <div class="col-md-6 d-flex align-items-end">
                         <div class="d-flex gap-2">

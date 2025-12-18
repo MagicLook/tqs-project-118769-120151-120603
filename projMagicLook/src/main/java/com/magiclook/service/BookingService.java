@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -35,53 +36,59 @@ public class BookingService {
             throw new IllegalArgumentException("Datas inválidas");
         }
         
-        // Check if item exists
-        Item item = itemRepository.findById(bookingRequest.getItemId())
-            .orElseThrow(() -> new RuntimeException("Item não encontrado"));
+        // ENCONTRAR UM ItemSingle DISPONÍVEL (não o Item)
+        List<ItemSingle> availableItemSingles = itemSingleRepository
+            .findByItem_ItemId(bookingRequest.getItemId())
+            .stream()
+            .filter(is -> "AVAILABLE".equals(is.getState()))
+            .filter(is -> bookingRequest.getSize() == null || 
+                         bookingRequest.getSize().isEmpty() || 
+                         bookingRequest.getSize().equals(is.getSize()))
+            .collect(Collectors.toList());
         
-        // Check if user is authenticated
-        if (user == null) {
-            throw new RuntimeException("Utilizador não autenticado");
+        if (availableItemSingles.isEmpty()) {
+            throw new RuntimeException("Nenhuma unidade disponível para o item selecionado");
         }
         
-        // Calculate all dates (3-day minimum period)
+        // Verificar disponibilidade para as datas
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(bookingRequest.getStartUseDate());
-        calendar.add(Calendar.DAY_OF_MONTH, -1); // Pickup day
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
         Date pickupDate = calendar.getTime();
         
         Date startUseDate = bookingRequest.getStartUseDate();
         Date endUseDate = bookingRequest.getEndUseDate();
         
         calendar.setTime(endUseDate);
-        calendar.add(Calendar.DAY_OF_MONTH, 1); // Return day
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
         Date returnDate = calendar.getTime();
         
-        calendar.add(Calendar.DAY_OF_MONTH, 1); // Laundry day (next day after return)
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
         Date laundryDate = calendar.getTime();
         
-        // Calculate use days and price
-        long useDays = bookingRequest.getUseDays();
-        BigDecimal totalPrice = item.getPriceRent().multiply(BigDecimal.valueOf(useDays));
+        // Encontrar um ItemSingle sem conflitos
+        ItemSingle selectedItemSingle = null;
         
-        // Find available ItemSingle for the booking (with size if specified)
-        ItemSingle availableItemSingle = findAvailableItemSingle(
-            bookingRequest.getItemId(), 
-            bookingRequest.getSize(),
-            pickupDate, 
-            startUseDate, 
-            endUseDate, 
-            laundryDate
-        );
-        
-        if (availableItemSingle == null) {
-            String errorMsg = bookingRequest.getSize() != null && !bookingRequest.getSize().isEmpty()
-                ? "Nenhuma unidade disponível para o tamanho " + bookingRequest.getSize() + " nas datas selecionadas"
-                : "Nenhuma unidade disponível para as datas selecionadas";
-            throw new RuntimeException(errorMsg);
+        for (ItemSingle itemSingle : availableItemSingles) {
+            Long overlapping = bookingRepository.countOverlappingBookingsForItemSingle(
+                itemSingle.getId(), pickupDate, startUseDate, endUseDate, laundryDate);
+            
+            if (overlapping == 0) {
+                selectedItemSingle = itemSingle;
+                break;
+            }
         }
         
-        // Create booking
+        if (selectedItemSingle == null) {
+            throw new RuntimeException("Nenhuma unidade disponível para as datas selecionadas");
+        }
+        
+        // Calcular preço
+        long useDays = bookingRequest.getUseDays();
+        BigDecimal totalPrice = selectedItemSingle.getItem().getPriceRent()
+            .multiply(BigDecimal.valueOf(useDays));
+        
+        // Criar booking
         Booking booking = new Booking();
         booking.setBookingId(UUID.randomUUID());
         booking.setPickupDate(pickupDate);
@@ -91,16 +98,17 @@ public class BookingService {
         booking.setTotalDays((int) useDays);
         booking.setTotalPrice(totalPrice);
         booking.setState("CONFIRMED");
-        booking.setItem(item);
-        booking.setItemSingle(availableItemSingle); // Set the specific ItemSingle
+        booking.setItem(selectedItemSingle.getItem()); // Item para referência
+        booking.setItemSingle(selectedItemSingle); // ItemSingle específico
         booking.setUser(user);
         booking.setCreatedAt(new Date());
         
-        // Update ItemSingle state
-        availableItemSingle.setState("RESERVED");
-        itemSingleRepository.save(availableItemSingle);
+        // Atualizar estado do ItemSingle (não do Item!)
+        selectedItemSingle.setState("RESERVED");
+        itemSingleRepository.save(selectedItemSingle);
         
-        // Note: We don't set the entire item as unavailable anymore
+        // NÃO atualize o estado do Item
+        // O Item deve permanecer disponível se houver outros ItemSingle disponíveis
         
         return bookingRepository.save(booking);
     }
@@ -168,20 +176,38 @@ public class BookingService {
     }
     
     public boolean checkAvailabilityWithSize(Integer itemId, String size, Date startUseDate, Date endUseDate) {
+        // Buscar ItemSingles disponíveis
+        List<ItemSingle> availableItemSingles = itemSingleRepository
+            .findByItem_ItemId(itemId)
+            .stream()
+            .filter(is -> "AVAILABLE".equals(is.getState()))
+            .filter(is -> size == null || size.isEmpty() || size.equals(is.getSize()))
+            .collect(Collectors.toList());
+        
+        if (availableItemSingles.isEmpty()) {
+            return false;
+        }
+        
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(startUseDate);
         calendar.add(Calendar.DAY_OF_MONTH, -1);
         Date pickupDate = calendar.getTime();
         
         calendar.setTime(endUseDate);
-        calendar.add(Calendar.DAY_OF_MONTH, 2); // Return + laundry day
+        calendar.add(Calendar.DAY_OF_MONTH, 2);
         Date laundryDate = calendar.getTime();
         
-        // Try to find an available ItemSingle
-        ItemSingle available = findAvailableItemSingle(
-            itemId, size, pickupDate, startUseDate, endUseDate, laundryDate);
+        // Verificar se algum ItemSingle está disponível para as datas
+        for (ItemSingle itemSingle : availableItemSingles) {
+            Long overlapping = bookingRepository.countOverlappingBookingsForItemSingle(
+                itemSingle.getId(), pickupDate, startUseDate, endUseDate, laundryDate);
+            
+            if (overlapping == 0) {
+                return true;
+            }
+        }
         
-        return available != null;
+        return false;
     }
     
     public BigDecimal calculatePrice(Integer itemId, long useDays) {
