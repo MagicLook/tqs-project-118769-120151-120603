@@ -208,7 +208,7 @@ public class UserController {
         model.addAttribute("user", user);
         model.addAttribute("recentItems", recentItems);
         model.addAttribute(ATTR_CART_COUNT, session.getAttribute(ATTR_CART_COUNT) != null ? session.getAttribute(ATTR_CART_COUNT) : 0);
-        model.addAttribute(ATTR_ACTIVE_PAGE, "dashboard");
+        model.addAttribute(ATTR_ACTIVE_PAGE, VIEW_DASHBOARD);
         return VIEW_DASHBOARD;
     }
 
