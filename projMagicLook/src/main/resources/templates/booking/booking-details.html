@@ -1,40 +1,217 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="fragments/navbar :: head(~{::title})">
-    <title th:text="'Reserva #' + ${booking.bookingId} + ' - MagicLook'">Detalhes da Reserva</title>
+    <title th:text="'Reserva #' + ${booking.bookingId.toString().substring(0,8).toUpperCase()} + ' - MagicLook'">Detalhes da Reserva</title>
     <style>
         .content-wrapper {
-            padding-top: 80px;
-            min-height: calc(100vh - 80px);
+            padding-top: 100px;
+            min-height: calc(100vh - 100px);
+            background: #f8f9fa;
         }
+        
         .booking-header {
-            background: linear-gradient(135deg, #2575fc, #6a11cb);
+            background: linear-gradient(135deg, #b8860b, #8b6f3d);
             color: white;
-            border-radius: 10px;
-            padding: 20px;
+            border-radius: 15px;
+            padding: 25px;
             margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(184, 134, 11, 0.2);
         }
-        .item-image {
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .image-container {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .image-container img {
             width: 100%;
             height: 300px;
             object-fit: cover;
-            border-radius: 10px;
         }
+        
+        .image-placeholder {
+            width: 100%;
+            height: 300px;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #adb5bd;
+        }
+        
         .info-card {
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        }
+        
+        .section-title {
+            color: #b8860b;
+            border-bottom: 2px solid #f4c95d;
+            padding-bottom: 10px;
             margin-bottom: 20px;
         }
-        .status-badge {
-            font-size: 1rem;
-            padding: 5px 15px;
-            border-radius: 20px;
+        
+        .item-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
         }
+        
+        .info-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #b8860b;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: #212529;
+        }
+        
+        .dates-timeline {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            padding: 20px 0 40px;
+            margin: 20px 0;
+        }
+        
+        .dates-timeline::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(to right, #b8860b, #f4c95d);
+        }
+        
+        .timeline-point {
+            position: relative;
+            text-align: center;
+            z-index: 1;
+        }
+        
+        .point-circle {
+            width: 16px;
+            height: 16px;
+            background: white;
+            border: 3px solid #b8860b;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+        }
+        
+        .date-display {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            min-width: 120px;
+        }
+        
+        .status-badge {
+            font-size: 0.9rem;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
         .status-confirmed { background-color: #d1ecf1; color: #0c5460; }
         .status-active { background-color: #d4edda; color: #155724; }
         .status-overdue { background-color: #f8d7da; color: #721c24; }
         .status-completed { background-color: #e2e3e5; color: #383d41; }
+        
+        .price-breakdown {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .price-row.total {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #b8860b;
+            border-bottom: none;
+            margin-top: 10px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn-action {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .shop-info {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #b8860b;
+        }
+        
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .item-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .dates-timeline {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .dates-timeline::before {
+                display: none;
+            }
+            
+            .timeline-point {
+                text-align: left;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
@@ -45,152 +222,212 @@
         <div class="booking-header">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <h1 class="mb-2">
-                        <i class="bi bi-calendar-check"></i> 
-                        <span th:text="'Reserva #' + ${booking.bookingId.toString().substring(0,8)}"></span>
-                    </h1>
-                    <p class="lead mb-0" th:text="${booking.item.name}"></p>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-calendar-check me-3" style="font-size: 2rem;"></i>
+                        <div>
+                            <h2 class="mb-1">Reserva <span th:text="${booking.bookingId.toString().substring(0,8).toUpperCase()}"></span></h2>
+                            <p class="mb-0 opacity-90" th:text="${booking.item.name}"></p>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-4 text-end">
-                    <div class="bg-white text-primary rounded p-3 d-inline-block">
-                        <h4 class="mb-0" th:text="'€ ' + ${booking.totalPrice}">€ 0,00</h4>
-                        <small>Valor Total</small>
+                    <div class="bg-white text-dark rounded p-3 d-inline-block">
+                        <h3 class="mb-0" th:text="'€ ' + ${booking.totalPrice}"></h3>
+                        <small class="text-muted">Total</small>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="row">
-            <!-- Coluna da esquerda: Dados do Item -->
-            <div class="col-md-6">
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <!-- Coluna da Esquerda: Imagem e Detalhes do Item -->
+            <div>
+                <!-- Imagem do Item -->
                 <div class="info-card">
-                    <h4 class="mb-4">
-                        <i class="bi bi-tag"></i> Dados do Item
+                    <h4 class="section-title">
+                        <i class="bi bi-image me-2"></i> Item Alugado
                     </h4>
                     
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <img th:if="${booking.item.imagePath}" th:src="@{${booking.item.imagePath}}" 
-                                 alt="Item image" class="item-image">
-                            <div th:unless="${booking.item.imagePath}" class="item-image d-flex align-items-center justify-content-center bg-light">
-                                <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                    <div class="image-container mb-4">
+                        <th:block th:if="${booking.item.imagePath != null and not booking.item.imagePath.isEmpty()}">
+                            <img th:src="@{${booking.item.imagePath}}" 
+                                 alt="Item image">
+                        </th:block>
+                        <th:block th:unless="${booking.item.imagePath != null and not booking.item.imagePath.isEmpty()}">
+                            <div class="image-placeholder">
+                                <i class="bi bi-image" style="font-size: 3rem;"></i>
                             </div>
+                        </th:block>
+                    </div>
+                    
+                    <h5 th:text="${booking.item.name}" class="mb-3"></h5>
+                    
+                    <div class="item-info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Material</span>
+                            <span class="info-value" th:text="${booking.item.material}"></span>
                         </div>
-                        <div class="col-md-6">
-                            <h5 th:text="${booking.item.name}">Nome do Item</h5>
-                            <p class="text-muted">
-                                <strong>Material:</strong> <span th:text="${booking.item.material}"></span><br>
-                                <strong>Marca:</strong> <span th:text="${booking.item.brand}"></span><br>
-                                <strong>Cor:</strong> <span th:text="${booking.item.color}"></span><br>
-                                <strong>Categoria:</strong> <span th:text="${booking.item.itemType.category}"></span><br>
-                                <strong>Subcategoria:</strong> <span th:text="${booking.item.itemType.subcategory}"></span>
-                            </p>
+                        <div class="info-item">
+                            <span class="info-label">Marca</span>
+                            <span class="info-value" th:text="${booking.item.brand}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Cor</span>
+                            <span class="info-value" th:text="${booking.item.color}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Categoria</span>
+                            <span class="info-value" th:text="${booking.item.itemType.category}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Preço/dia</span>
+                            <span class="info-value" th:text="'€ ' + ${booking.item.priceRent}"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Preço venda</span>
+                            <span class="info-value" th:if="${booking.item.priceSale != null}" 
+                                  th:text="'€ ' + ${booking.item.priceSale}"></span>
+                            <span class="info-value text-muted" th:unless="${booking.item.priceSale != null}">Não disponível</span>
                         </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <strong>Preço de Aluguer (dia):</strong><br>
-                                <span class="text-primary" th:text="'€ ' + ${booking.item.priceRent}"></span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <strong>Preço de Venda:</strong><br>
-                                <span class="text-muted" th:if="${booking.item.priceSale != null}" 
-                                      th:text="'€ ' + ${booking.item.priceSale}"></span>
-                                <span class="text-muted" th:unless="${booking.item.priceSale != null}">Não disponível</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <strong>Loja:</strong><br>
-                        <span th:text="${booking.item.shop.name}"></span> - 
-                        <span th:text="${booking.item.shop.location}"></span>
-                    </div>
-                    
-                    <!-- Tamanho (se disponível via ItemSingle) -->
-                    <div class="mb-3" th:if="${booking.item.itemSingles != null and not booking.item.itemSingles.isEmpty()}">
-                        <strong>Tamanho:</strong><br>
-                        <span th:text="${booking.item.itemSingles[0].size}"></span>
+                    <div class="shop-info">
+                        <h6><i class="bi bi-shop me-2"></i> Loja</h6>
+                        <p class="mb-1" th:text="${booking.item.shop.name}"></p>
+                        <p class="mb-0 text-muted" th:text="${booking.item.shop.location}"></p>
                     </div>
                 </div>
             </div>
             
-            <!-- Coluna da direita: Dados da Reserva -->
-            <div class="col-md-6">
+            <!-- Coluna da Direita: Detalhes da Reserva -->
+            <div>
+                <!-- Estado e Datas -->
                 <div class="info-card">
-                    <h4 class="mb-4">
-                        <i class="bi bi-calendar-event"></i> Dados da Reserva
+                    <h4 class="section-title">
+                        <i class="bi bi-calendar-event me-2"></i> Detalhes da Reserva
                     </h4>
                     
                     <div class="mb-4">
-                        <strong>Estado da Reserva:</strong><br>
-                        <span class="status-badge" th:classappend="${booking.state == 'CONFIRMED'} ? 'status-confirmed' :
-                                                                     ${booking.state == 'ACTIVE'} ? 'status-active' :
-                                                                     ${booking.state == 'OVERDUE'} ? 'status-overdue' :
-                                                                     'status-completed'}">
-                            <span th:text="${booking.state}"></span>
+                        <span class="info-label">Estado</span>
+                        <span class="status-badge" 
+                              th:classappend="${booking.state == 'CONFIRMED'} ? 'status-confirmed' :
+                                               ${booking.state == 'ACTIVE'} ? 'status-active' :
+                                               ${booking.state == 'OVERDUE'} ? 'status-overdue' :
+                                               'status-completed'"
+                              th:text="${booking.state}">
                         </span>
                     </div>
                     
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <strong>Data de Levantamento:</strong><br>
-                            <span th:text="${#temporals.format(booking.pickupDate, 'dd/MM/yyyy')}"></span>
+                    <!-- Timeline das Datas -->
+                    <div class="dates-timeline">
+                        <div class="timeline-point">
+                            <div class="point-circle"></div>
+                            <div class="date-display">
+                                <span class="info-label">Levantamento</span>
+                                <span class="info-value" th:text="${#temporals.format(booking.pickupDate, 'dd/MM/yyyy')}"></span>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <strong>Data de Devolução:</strong><br>
-                            <span th:text="${#temporals.format(booking.returnDate, 'dd/MM/yyyy')}"></span>
+                        <div class="timeline-point">
+                            <div class="point-circle"></div>
+                            <div class="date-display">
+                                <span class="info-label">Início Uso</span>
+                                <span class="info-value" th:text="${#temporals.format(booking.startUseDate, 'dd/MM/yyyy')}"></span>
+                            </div>
+                        </div>
+                        <div class="timeline-point">
+                            <div class="point-circle"></div>
+                            <div class="date-display">
+                                <span class="info-label">Fim Uso</span>
+                                <span class="info-value" th:text="${#temporals.format(booking.endUseDate, 'dd/MM/yyyy')}"></span>
+                            </div>
+                        </div>
+                        <div class="timeline-point">
+                            <div class="point-circle"></div>
+                            <div class="date-display">
+                                <span class="info-label">Devolução</span>
+                                <span class="info-value" th:text="${#temporals.format(booking.returnDate, 'dd/MM/yyyy')}"></span>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="row mb-3">
+                    <div class="row mt-4">
                         <div class="col-md-6">
-                            <strong>Início de Uso:</strong><br>
-                            <span th:text="${#temporals.format(booking.startUseDate, 'dd/MM/yyyy')}"></span>
+                            <div class="info-item">
+                                <span class="info-label">Duração</span>
+                                <span class="info-value" th:text="${booking.totalDays} + ' dias'"></span>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <strong>Fim de Uso:</strong><br>
-                            <span th:text="${#temporals.format(booking.endUseDate, 'dd/MM/yyyy')}"></span>
+                            <div class="info-item">
+                                <span class="info-label">Reservado em</span>
+                                <span class="info-value" th:text="${#temporals.format(booking.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                            </div>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Resumo do Preço -->
+                <div class="info-card">
+                    <h4 class="section-title">
+                        <i class="bi bi-cash-stack me-2"></i> Resumo do Preço
+                    </h4>
                     
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <strong>Dias de Uso:</strong><br>
-                            <span th:text="${booking.totalDays}"></span> dias
+                    <div class="price-breakdown">
+                        <div class="price-row">
+                            <span>Preço por dia:</span>
+                            <span th:text="'€ ' + ${booking.item.priceRent}"></span>
                         </div>
-                        <div class="col-md-6">
-                            <strong>Valor Total:</strong><br>
-                            <span class="text-primary" th:text="'€ ' + ${booking.totalPrice}"></span>
+                        <div class="price-row">
+                            <span>Dias de uso:</span>
+                            <span th:text="${booking.totalDays}"></span>
                         </div>
+                        <div class="price-row total">
+                            <span>Total a pagar:</span>
+                            <span th:text="'€ ' + ${booking.totalPrice}"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Informações Adicionais -->
+                <div class="info-card">
+                    <h4 class="section-title">
+                        <i class="bi bi-info-circle me-2"></i> Informações
+                    </h4>
+                    
+                    <div class="mb-3">
+                        <span class="info-label">Cliente</span>
+                        <span class="info-value" th:text="${user.firstName + ' ' + user.lastName}"></span>
+                        <small class="text-muted d-block" th:text="${user.email}"></small>
                     </div>
                     
                     <div class="mb-3">
-                        <strong>Loja de Levantamento:</strong><br>
-                        <span th:text="${booking.item.shop.name}"></span><br>
-                        <span class="text-muted" th:text="${booking.item.shop.location}"></span>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <strong>Data da Reserva:</strong><br>
-                        <span th:text="${#temporals.format(booking.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                        <span class="info-label">Loja de levantamento</span>
+                        <span class="info-value" th:text="${booking.item.shop.name}"></span>
+                        <small class="text-muted d-block" th:text="${booking.item.shop.location}"></small>
                     </div>
                 </div>
                 
                 <!-- Botões de Ação -->
-                <div class="d-flex gap-2">
-                    <a th:href="@{/magiclook/bookings/my}" class="btn btn-outline-primary">
-                        <i class="bi bi-arrow-left"></i> Voltar às Reservas
+                <div class="action-buttons">
+                    <a th:href="@{/magiclook/my-bookings}" class="btn btn-outline-primary btn-action">
+                        <i class="bi bi-arrow-left me-2"></i> Voltar às Reservas
                     </a>
-                    <a th:href="@{/magiclook/items/men}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Nova Reserva
+                    <a th:href="@{/magiclook/items/men}" class="btn btn-primary btn-action">
+                        <i class="bi bi-plus-circle me-2"></i> Nova Reserva
                     </a>
                 </div>
             </div>
+        </div>
+        
+        <!-- Avisos -->
+        <div class="alert alert-info mt-4">
+            <h6><i class="bi bi-exclamation-circle me-2"></i> Informações Importantes</h6>
+            <ul class="mb-0 mt-2">
+                <li>Apresente o código da reserva na loja para levantamento</li>
+                <li>O pagamento será realizado na loja no momento do levantamento</li>
+                <li>Em caso de atraso na devolução, serão aplicadas taxas adicionais</li>
+            </ul>
         </div>
     </div>
     
