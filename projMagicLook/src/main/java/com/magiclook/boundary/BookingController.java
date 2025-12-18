@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.UUID;
@@ -311,7 +310,7 @@ public class BookingController {
             }
             
         } catch (Exception e) {
-            response.put("error", e.getMessage());
+            response.put(ATTR_ERROR, e.getMessage());
             response.put(ATTR_AVAILABLE, false);
         }
         
