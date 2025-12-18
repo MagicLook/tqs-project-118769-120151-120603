@@ -187,12 +187,10 @@
                 
                 <!-- Right Side - User Actions -->
                 <div class="d-flex align-items-center ms-lg-3">
-                    <!-- Botão Minhas Reservas no lado direito -->
                     <a class="btn btn-booking-side" th:href="@{/magiclook/my-bookings}" 
                        th:classappend="${activePage == 'myBookings'} ? 'active' : ''">
                         <i class="bi bi-calendar-check me-1"></i> Minhas Reservas
                     </a>
-
                     <!-- User Profile Dropdown -->
                     <div class="dropdown ms-3" th:if="${user}">
                         <button class="btn btn-profile dropdown-toggle d-flex align-items-center" type="button" 
