@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/navbar :: head(~{::title})">
+    <title>Reserva Confirmada - MagicLook</title>
+    <style>
+        .content-wrapper {
+            padding-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+        
+        .confirmation-icon {
+            font-size: 4rem;
+            color: #28a745;
+        }
+        
+        .date-badge {
+            background: #fff9e6;
+            color: #8b6f3d;
+            border-left: 3px solid #b8860b;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="fragments/navbar :: navbar"></div>
+    
+    <div class="container content-wrapper py-4">
+        <div class="card border-success">
+            <div class="card-body text-center py-5">
+                <div class="confirmation-icon mb-4">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                
+                <h1 class="text-success mb-3">✅ Reserva Confirmada!</h1>
+                <p class="lead mb-5">A sua reserva foi realizada com sucesso.</p>
+                
+                <!-- Detalhes da Reserva -->
+                <div class="card mb-5">
+                    <div class="card-body">
+                        <h4 class="mb-4" th:text="${booking.item.name}"></h4>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-3 mb-3">
+                                <div class="date-badge p-3 rounded">
+                                    <h6 class="text-muted">Data de Levantamento</h6>
+                                    <p class="h5 fw-bold" th:text="${#dates.format(booking.pickupDate, 'dd/MM/yyyy')}"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="date-badge p-3 rounded">
+                                    <h6 class="text-muted">Início de Uso</h6>
+                                    <p class="h5 fw-bold" th:text="${#dates.format(booking.startUseDate, 'dd/MM/yyyy')}"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="date-badge p-3 rounded">
+                                    <h6 class="text-muted">Fim de Uso</h6>
+                                    <p class="h5 fw-bold" th:text="${#dates.format(booking.endUseDate, 'dd/MM/yyyy')}"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="date-badge p-3 rounded">
+                                    <h6 class="text-muted">Data de Devolução</h6>
+                                    <p class="h5 fw-bold" th:text="${#dates.format(booking.returnDate, 'dd/MM/yyyy')}"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Resumo -->
+                        <div class="row">
+                            <div class="col-md-6 offset-md-3">
+                                <div class="p-3 bg-light rounded">
+                                    <h5>Resumo da Reserva</h5>
+                                    <table class="table table-borderless">
+                                        <tbody>
+                                            <tr>
+                                                <td>Dias de uso:</td>
+                                                <td class="text-end" th:text="${booking.totalDays}"></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Preço por dia:</td>
+                                                <td class="text-end">€<span th:text="${booking.item.priceRent}"></span></td>
+                                            </tr>
+                                            <tr class="border-top">
+                                                <td><strong>Preço total:</strong></td>
+                                                <td class="text-end fw-bold">€<span th:text="${booking.totalPrice}"></span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Informações -->
+                <div class="alert alert-info text-start">
+                    <h5><i class="bi bi-info-circle"></i> Informações importantes:</h5>
+                    <ul class="mb-0">
+                        <li>A reserva inclui automaticamente 1 dia antes e 1 dia depois para levantamento e devolução</li>
+                        <li>Você só pagou pelos <span th:text="${booking.totalDays}" class="fw-bold"></span> dias de uso efectivo</li>
+                        <li>A reserva já está disponível na secção "Minhas Reservas"</li>
+                    </ul>
+                </div>
+                
+                <!-- Botões -->
+                <div class="mt-5">
+                    <a th:href="@{/magiclook/my-bookings}" class="btn btn-primary btn-lg me-3">
+                        <i class="bi bi-calendar-check"></i> Ver Minhas Reservas
+                    </a>
+                    <a th:href="@{/magiclook/dashboard}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-house"></i> Voltar ao Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

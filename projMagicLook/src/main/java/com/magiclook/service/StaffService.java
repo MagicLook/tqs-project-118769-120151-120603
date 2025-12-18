@@ -18,6 +18,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.*;
 import java.util.Optional;
+import java.math.BigDecimal;
+import java.io.File;
+
 
 @Service
 @Transactional
@@ -51,26 +54,37 @@ public class StaffService extends ClientService {
     }
 
     public String saveImage(MultipartFile image, Integer itemId) throws IOException {
-        
+
         if (image == null || image.isEmpty()) {
             return null;
         }
 
-        Path uploadPath = Paths.get(uploadDir);
-        
+        // Normalize target directory to live under static so Spring can serve it
+        String normalizedDir = uploadDir.startsWith("/") ? uploadDir.substring(1) : uploadDir;
+        Path staticBase = Paths.get("src/main/resources/static").toAbsolutePath();
+        Path uploadPath = staticBase.resolve(normalizedDir);
+
         Files.createDirectories(uploadPath);
 
         String safeOriginal = image.getOriginalFilename() == null ? "file" : image.getOriginalFilename().replaceAll("[^a-zA-Z0-9._-]", "_");
-        String idPart = (itemId != null) ? String.valueOf(itemId) : UUID.randomUUID().toString().substring(0,8);
+        String idPart = (itemId != null) ? String.valueOf(itemId) : UUID.randomUUID().toString().substring(0, 8);
         String fileName = String.format("item_%s_%s", idPart, safeOriginal);
-        
+
         Path filePath = uploadPath.resolve(fileName);
 
-        image.transferTo(filePath);
+        image.transferTo(filePath.toFile());
 
-        String returnPath = uploadDir + "/" + fileName;
-        
-        return returnPath;
+        return "/" + normalizedDir.replace("\\", "/") + "/" + fileName;
+    }
+
+    public void updateItemImage(Integer itemId, String imagePath) {
+        if (itemId == null || imagePath == null || imagePath.isBlank()) {
+            return;
+        }
+        itemRepository.findById(itemId).ifPresent(item -> {
+            item.setImagePath(imagePath);
+            itemRepository.saveAndFlush(item);
+        });
     }
 
     public int addItem(ItemDTO itemDTO, String size) {
@@ -139,6 +153,8 @@ public class StaffService extends ClientService {
                 new Staff("Maria Oliveira", "maria.oliveira@magiclook.com", "admin789", "mariao", shops.get(2))
             );
             
+            seedDefaultItems();
+
             staffRepository.saveAll(staffList);
         }
     }
@@ -174,6 +190,48 @@ public class StaffService extends ClientService {
         }
         if (created > 0) {
             System.out.println("Seeded " + created + " ItemType(s)");
+        }
+    }
+
+    private void seedDefaultItems() {
+        if (itemRepository.count() == 0) {
+            Item item = new Item(
+                "Vestido Azul",
+                "Seda",
+                "Azul",
+                "C&A",
+                new BigDecimal("300.00"),
+                new BigDecimal("6000.00"),
+                shopRepository.findById(1).orElseThrow(),
+                itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", "Vestido", "Médio")
+            );
+
+            item.setImagePath(uploadDir +"/default.jpg");
+            
+            itemRepository.save(item);
+
+            ItemSingle itemSingle = new ItemSingle("AVAILABLE", item, "M");
+
+            itemSingleRepository.save(itemSingle);
+
+            item = new Item(
+                "Vestido Vermelho",
+                "Seda",
+                "Vermelho",
+                "Zara",
+                new BigDecimal("300.00"),
+                new BigDecimal("6000.00"),
+                shopRepository.findById(1).orElseThrow(),
+                itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", "Vestido", "Médio")
+            );
+
+            item.setImagePath(uploadDir +"/default.jpg");
+            
+            itemRepository.save(item);   
+
+            itemSingle = new ItemSingle("AVAILABLE", item, "S");
+
+            itemSingleRepository.save(itemSingle);
         }
     }
     

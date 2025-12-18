@@ -1,20 +1,26 @@
 package com.magiclook.service;
 
 import com.magiclook.data.Item;
+import com.magiclook.data.ItemSingle;
 import com.magiclook.data.Shop;
 import com.magiclook.repository.ItemRepository;
+import com.magiclook.repository.ItemSingleRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ItemService {
     
     private final ItemRepository itemRepository;
+    private ItemSingleRepository itemSingleRepository;
     
     @Autowired
-    public ItemService(ItemRepository itemRepository) {
+    public ItemService(ItemRepository itemRepository, ItemSingleRepository itemSingleRepository) {
         this.itemRepository = itemRepository;
+        this.itemSingleRepository = itemSingleRepository;
     }
 
     public List<Item> getItemsByShop(Shop shop) {
@@ -30,11 +36,9 @@ public class ItemService {
     }
 
     public List<Item> getRecentItems(int limit) {
-        List<Item> allItems = itemRepository.findAll();
-        if (allItems.size() > limit) {
-            return allItems.subList(0, limit);
-        }
-        return allItems;
+        return itemRepository.findAll().stream()
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
     public List<String> getAllDistinctColors() {
@@ -60,7 +64,27 @@ public class ItemService {
                                                     category, minPrice, maxPrice);
     }
 
+    public List<Item> getAllItemsByState(String state) {
+        return itemRepository.findByItemSinglesState(state);
+    }
+
     public Item save(Item item) {
         return itemRepository.save(item);
+    }
+
+    public List<ItemSingle> getItems(Integer itemId) {
+        return itemSingleRepository.findByItem_ItemId(itemId);
+    }
+    
+    public Item getItemById(Integer itemId) {
+        if (itemId == null) {
+            return null;
+        }
+        try {
+            return itemRepository.findById(itemId).orElse(null);
+        } catch (Exception e) {
+            System.err.println("Erro ao buscar item com ID " + itemId + ": " + e.getMessage());
+            return null;
+        }
     }
 }
