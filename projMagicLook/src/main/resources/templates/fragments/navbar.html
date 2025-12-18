@@ -153,10 +153,9 @@
                 
                 <!-- Right Side - User Actions -->
                 <div class="d-flex align-items-center">
-                    <!-- Shopping Cart -->
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/magiclook/my-bookings}">Reservas</a>
-                    </li>
+                    <!-- Minhas reservas -->
+                    <a class="nav-link nav-link-custom me-2" th:href="@{/magiclook/my-bookings}"
+                       th:classappend="${activePage == 'bookings'} ? 'active' : ''">Minhas reservas</a>
                     
                     <!-- User Profile Dropdown -->
                     <div class="dropdown" th:if="${user}">
