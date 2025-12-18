@@ -113,7 +113,6 @@ public class BookingController {
             return "redirect:/magiclook/booking/confirmation/" + booking.getBookingId();
             
         } catch (Exception e) {
-            e.printStackTrace();
             model.addAttribute("error", "Erro ao criar reserva: " + e.getMessage());
             model.addAttribute("item", item);
             return "booking/bookingForm";

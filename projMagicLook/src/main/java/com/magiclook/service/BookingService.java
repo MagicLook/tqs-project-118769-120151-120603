@@ -166,7 +166,6 @@ public class BookingService {
                 itemId, pickupDate, startDate, endDate, laundryDate
             );
         } catch (Exception e) {
-            e.printStackTrace();
             return new ArrayList<>();
         }
     }
