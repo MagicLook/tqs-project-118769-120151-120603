@@ -15,6 +15,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Controller
@@ -105,28 +107,66 @@ public class UserController {
     // ========== ITEMS (Homens e Mulheres) ==========
 
     @GetMapping("/items/men")
-    public String showMenItems(HttpSession session, Model model) {
-        return showGenderItems(session, model, "M", "men");
+    public String showMenItems(
+            @RequestParam(required = false) String color,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String material,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String subcategory,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) String shopLocation,
+            @RequestParam(required = false) String size,
+            HttpSession session,
+            Model model) {
+        
+        return showGenderItems(session, model, "M", "men", 
+                color, brand, material, category, subcategory, 
+                minPrice, maxPrice, shopLocation, size);
     }
 
     @GetMapping("/items/women")
-    public String showWomenItems(HttpSession session, Model model) {
-        return showGenderItems(session, model, "F", "women");
+    public String showWomenItems(
+            @RequestParam(required = false) String color,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String material,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String subcategory,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) String shopLocation,
+            @RequestParam(required = false) String size,
+            HttpSession session,
+            Model model) {
+        
+        return showGenderItems(session, model, "F", "women", 
+                color, brand, material, category, subcategory, 
+                minPrice, maxPrice, shopLocation, size);
     }
     
-    private String showGenderItems(HttpSession session, Model model, String gender, String pageName) {
+    private String showGenderItems(HttpSession session, Model model, 
+                                   String genderCode, String pageName,
+                                   String color, String brand, String material, 
+                                   String category, String subcategory,
+                                   Double minPrice, Double maxPrice,
+                                   String shopLocation, String size) {
+        
         User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
         
         if (user == null) {
             return REDIRECT_LOGIN;
         }
         
-        // Usar genderCode correto para os métodos do serviço
-        String genderCode = "men".equals(pageName) ? "M" : "F";
+        // Criar filtro com os parâmetros
+        ItemFilterDTO filter = new ItemFilterDTO(color, brand, material, category, 
+                                               subcategory, minPrice, maxPrice, 
+                                               shopLocation, size);
         
-        List<Item> items = itemService.getItemsByGender(gender);
+        // Buscar itens com filtros
+        List<Item> items = itemService.findByGenderAndFilters(genderCode, filter);
         
-        model.addAttribute("filter", new ItemFilterDTO());
+        // Obter opções para os filtros
+        model.addAttribute("filter", filter);
         model.addAttribute("colors", itemService.getAllDistinctColors());
         model.addAttribute("brands", itemService.getAllDistinctBrands());
         model.addAttribute("materials", itemService.getAllDistinctMaterials());
@@ -140,6 +180,7 @@ public class UserController {
         model.addAttribute("itemCount", items.size());
         model.addAttribute(ATTR_ACTIVE_PAGE, pageName);
         model.addAttribute("gender", pageName);
+        model.addAttribute("hasFilters", filter.hasFilters());
         
         return "items/" + pageName;
     }
@@ -156,44 +197,50 @@ public class UserController {
                             @RequestParam(required = false) Double minPrice,
                             @RequestParam(required = false) Double maxPrice,
                             @RequestParam(required = false) String shopLocation,
-                            @RequestParam(required = false) String size,
-                            HttpSession session,
-                            Model model) {
+                            @RequestParam(required = false) String size) {
         
-        User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
+        // Construir URL com parâmetros
+        StringBuilder redirectUrl = new StringBuilder("redirect:/magiclook/items/").append(gender);
+        boolean firstParam = true;
         
-        if (user == null) {
-            return REDIRECT_LOGIN;
+        if (color != null && !color.isEmpty()) {
+            redirectUrl.append(firstParam ? "?" : "&").append("color=").append(URLEncoder.encode(color, StandardCharsets.UTF_8));
+            firstParam = false;
+        }
+        if (brand != null && !brand.isEmpty()) {
+            redirectUrl.append(firstParam ? "?" : "&").append("brand=").append(URLEncoder.encode(brand, StandardCharsets.UTF_8));
+            firstParam = false;
+        }
+        if (material != null && !material.isEmpty()) {
+            redirectUrl.append(firstParam ? "?" : "&").append("material=").append(URLEncoder.encode(material, StandardCharsets.UTF_8));
+            firstParam = false;
+        }
+        if (category != null && !category.isEmpty()) {
+            redirectUrl.append(firstParam ? "?" : "&").append("category=").append(URLEncoder.encode(category, StandardCharsets.UTF_8));
+            firstParam = false;
+        }
+        if (subcategory != null && !subcategory.isEmpty()) {
+            redirectUrl.append(firstParam ? "?" : "&").append("subcategory=").append(URLEncoder.encode(subcategory, StandardCharsets.UTF_8));
+            firstParam = false;
+        }
+        if (size != null && !size.isEmpty()) {
+            redirectUrl.append(firstParam ? "?" : "&").append("size=").append(URLEncoder.encode(size, StandardCharsets.UTF_8));
+            firstParam = false;
+        }
+        if (minPrice != null) {
+            redirectUrl.append(firstParam ? "?" : "&").append("minPrice=").append(minPrice);
+            firstParam = false;
+        }
+        if (maxPrice != null) {
+            redirectUrl.append(firstParam ? "?" : "&").append("maxPrice=").append(maxPrice);
+            firstParam = false;
+        }
+        if (shopLocation != null && !shopLocation.isEmpty()) {
+            redirectUrl.append(firstParam ? "?" : "&").append("shopLocation=").append(URLEncoder.encode(shopLocation, StandardCharsets.UTF_8));
+            firstParam = false;
         }
         
-        String genderCode = "women".equals(gender) ? "F" : "M";
-        
-        // Criar o filtro com todos os parâmetros
-        ItemFilterDTO filter = new ItemFilterDTO(color, brand, material, category, 
-                                                subcategory, minPrice, maxPrice, 
-                                                shopLocation, size);
-        
-        // Buscar itens com filtros
-        List<Item> filteredItems = itemService.findByGenderAndFilters(genderCode, filter);
-        
-        // Adicionar dados para os filtros
-        model.addAttribute("filter", filter);
-        model.addAttribute("colors", itemService.getAllDistinctColors());
-        model.addAttribute("brands", itemService.getAllDistinctBrands());
-        model.addAttribute("materials", itemService.getAllDistinctMaterials());
-        model.addAttribute("categories", itemService.getAllDistinctCategories());
-        model.addAttribute("subcategories", itemService.getAllDistinctSubcategoriesByGender(genderCode));
-        model.addAttribute("sizes", itemService.getAllDistinctSizesByGender(genderCode));
-        model.addAttribute("shopLocations", itemService.getAllDistinctShopLocations());
-        
-        model.addAttribute("user", user);
-        model.addAttribute("items", filteredItems);
-        model.addAttribute("itemCount", filteredItems.size());
-        model.addAttribute(ATTR_ACTIVE_PAGE, gender);
-        model.addAttribute("gender", gender);
-        model.addAttribute("hasFilters", filter.hasFilters());
-        
-        return "items/" + gender;
+        return redirectUrl.toString();
     }
     
     // ========== LIMPAR FILTROS ==========

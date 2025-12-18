@@ -36,21 +36,15 @@ public class BookingService {
             throw new IllegalArgumentException("Datas inválidas");
         }
         
-        // ENCONTRAR UM ItemSingle DISPONÍVEL (não o Item)
-        List<ItemSingle> availableItemSingles = itemSingleRepository
-            .findByItem_ItemId(bookingRequest.getItemId())
-            .stream()
-            .filter(is -> "AVAILABLE".equals(is.getState()))
-            .filter(is -> bookingRequest.getSize() == null || 
-                         bookingRequest.getSize().isEmpty() || 
-                         bookingRequest.getSize().equals(is.getSize()))
-            .collect(Collectors.toList());
+        // Buscar o item
+        Item item = itemRepository.findById(bookingRequest.getItemId())
+            .orElseThrow(() -> new RuntimeException("Item não encontrado"));
         
-        if (availableItemSingles.isEmpty()) {
-            throw new RuntimeException("Nenhuma unidade disponível para o item selecionado");
-        }
+        // Buscar o usuário atualizado (para evitar problemas de sessão)
+        User currentUser = userRepository.findById(user.getUserId())
+            .orElseThrow(() -> new RuntimeException("Utilizador não encontrado"));
         
-        // Verificar disponibilidade para as datas
+        // Calcular datas
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(bookingRequest.getStartUseDate());
         calendar.add(Calendar.DAY_OF_MONTH, -1);
@@ -66,29 +60,47 @@ public class BookingService {
         calendar.add(Calendar.DAY_OF_MONTH, 1);
         Date laundryDate = calendar.getTime();
         
-        // Encontrar um ItemSingle sem conflitos
-        ItemSingle selectedItemSingle = null;
+        // Calcular dias e preço
+        long useDays = bookingRequest.getUseDays();
+        BigDecimal totalPrice = item.getPriceRent().multiply(BigDecimal.valueOf(useDays));
         
-        for (ItemSingle itemSingle : availableItemSingles) {
+        // Encontrar ItemSingle disponível
+        ItemSingle availableItemSingle = null;
+        
+        // Buscar todos ItemSingles do item
+        List<ItemSingle> itemSingles = itemSingleRepository.findByItem_ItemId(bookingRequest.getItemId());
+        
+        for (ItemSingle itemSingle : itemSingles) {
+            // Verificar se tem o tamanho certo (se especificado)
+            if (bookingRequest.getSize() != null && !bookingRequest.getSize().isEmpty()) {
+                if (!bookingRequest.getSize().equals(itemSingle.getSize())) {
+                    continue;
+                }
+            }
+            
+            // Verificar se está disponível
+            if (!ItemSingle.STATE_AVAILABLE.equals(itemSingle.getState())) {
+                continue;
+            }
+            
+            // Verificar se não tem reservas conflitantes
             Long overlapping = bookingRepository.countOverlappingBookingsForItemSingle(
-                itemSingle.getId(), pickupDate, startUseDate, endUseDate, laundryDate);
+                itemSingle.getId(), pickupDate, startUseDate, endUseDate, returnDate);
             
             if (overlapping == 0) {
-                selectedItemSingle = itemSingle;
+                availableItemSingle = itemSingle;
                 break;
             }
         }
         
-        if (selectedItemSingle == null) {
-            throw new RuntimeException("Nenhuma unidade disponível para as datas selecionadas");
+        if (availableItemSingle == null) {
+            String errorMsg = bookingRequest.getSize() != null && !bookingRequest.getSize().isEmpty()
+                ? "Nenhuma unidade disponível para o tamanho " + bookingRequest.getSize() + " nas datas selecionadas"
+                : "Nenhuma unidade disponível para as datas selecionadas";
+            throw new RuntimeException(errorMsg);
         }
         
-        // Calcular preço
-        long useDays = bookingRequest.getUseDays();
-        BigDecimal totalPrice = selectedItemSingle.getItem().getPriceRent()
-            .multiply(BigDecimal.valueOf(useDays));
-        
-        // Criar booking
+        // Criar reserva
         Booking booking = new Booking();
         booking.setBookingId(UUID.randomUUID());
         booking.setPickupDate(pickupDate);
@@ -98,17 +110,12 @@ public class BookingService {
         booking.setTotalDays((int) useDays);
         booking.setTotalPrice(totalPrice);
         booking.setState("CONFIRMED");
-        booking.setItem(selectedItemSingle.getItem()); // Item para referência
-        booking.setItemSingle(selectedItemSingle); // ItemSingle específico
-        booking.setUser(user);
+        booking.setItem(item);
+        booking.setItemSingle(availableItemSingle);
+        booking.setUser(currentUser);
         booking.setCreatedAt(new Date());
         
-        // Atualizar estado do ItemSingle (não do Item!)
-        selectedItemSingle.setState("RESERVED");
-        itemSingleRepository.save(selectedItemSingle);
-        
-        // NÃO atualize o estado do Item
-        // O Item deve permanecer disponível se houver outros ItemSingle disponíveis
+        availableItemSingle.setState(ItemSingle.STATE_RESERVED);
         
         return bookingRepository.save(booking);
     }
