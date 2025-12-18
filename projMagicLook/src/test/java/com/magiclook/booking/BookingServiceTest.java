@@ -421,4 +421,26 @@ public class BookingServiceTest {
         // Assert
         verify(bookingRepository, times(1)).save(booking);
     }
+    
+    @Test
+    void testCheckItemAvailability() {
+        // Arrange
+        Integer itemId = 1;
+        LocalDate start = LocalDate.now().plusDays(7);
+        LocalDate end = LocalDate.now().plusDays(10);
+        
+        // Teste para disponível
+        when(bookingRepository.countOverlappingBookings(anyInt(), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(0L);
+        
+        boolean available = bookingService.checkItemAvailability(itemId, start, end);
+        assertTrue(available);
+        
+        // Teste para não disponível
+        when(bookingRepository.countOverlappingBookings(anyInt(), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(1L);
+        
+        boolean notAvailable = bookingService.checkItemAvailability(itemId, start, end);
+        assertFalse(notAvailable);
+    }
 }
