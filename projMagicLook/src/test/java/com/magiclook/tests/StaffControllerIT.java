@@ -286,7 +286,7 @@ class StaffControllerIT {
         }
 
         @Test
-        @Requirement("SCRUM-8")
+        @Requirement("SCRUM-10")
         @DisplayName("GET /magiclook/staff/item → lists items for logged-in staff")
         void getItems_loggedIn_returnsItemsPage() {
                         String sessionCookie = loginAsStaff(seededUsername, seededPassword);
@@ -304,7 +304,7 @@ class StaffControllerIT {
         }
 
         @Test
-        @Requirement("SCRUM-8")
+        @Requirement("SCRUM-10")
         @DisplayName("GET /magiclook/staff/item/{id} → shows item details for logged-in staff")
         void getItemDetails_loggedIn_returnsDetailsPage() {
                 String sessionCookie = loginAsStaff(seededUsername, seededPassword);
