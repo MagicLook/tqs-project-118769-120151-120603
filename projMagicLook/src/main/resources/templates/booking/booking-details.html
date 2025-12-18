@@ -311,11 +311,10 @@
                     <div class="mb-4">
                         <span class="info-label">Estado</span>
                         <span class="status-badge" 
-                              th:classappend="${booking.state == 'CONFIRMED'} ? 'status-confirmed' :
-                                               ${booking.state == 'ACTIVE'} ? 'status-active' :
-                                               ${booking.state == 'OVERDUE'} ? 'status-overdue' :
-                                               'status-completed'"
-                              th:text="${booking.state}">
+                            th:classappend="${booking.state == 'CONFIRMED'} ? 'status-confirmed' : 
+                                            (${booking.state == 'ACTIVE'} ? 'status-active' : 
+                                            (${booking.state == 'OVERDUE'} ? 'status-overdue' : 'status-completed'))"
+                            th:text="${booking.state}">
                         </span>
                     </div>
                     
@@ -325,28 +324,28 @@
                             <div class="point-circle"></div>
                             <div class="date-display">
                                 <span class="info-label">Levantamento</span>
-                                <span class="info-value" th:text="${#temporals.format(booking.pickupDate, 'dd/MM/yyyy')}"></span>
+                                <span class="info-value" th:text="${#dates.format(booking.pickupDate, 'dd/MM/yyyy')}"></span>
                             </div>
                         </div>
                         <div class="timeline-point">
                             <div class="point-circle"></div>
                             <div class="date-display">
                                 <span class="info-label">Início Uso</span>
-                                <span class="info-value" th:text="${#temporals.format(booking.startUseDate, 'dd/MM/yyyy')}"></span>
+                                <span class="info-value" th:text="${#dates.format(booking.startUseDate, 'dd/MM/yyyy')}"></span>
                             </div>
                         </div>
                         <div class="timeline-point">
                             <div class="point-circle"></div>
                             <div class="date-display">
                                 <span class="info-label">Fim Uso</span>
-                                <span class="info-value" th:text="${#temporals.format(booking.endUseDate, 'dd/MM/yyyy')}"></span>
+                                <span class="info-value" th:text="${#dates.format(booking.endUseDate, 'dd/MM/yyyy')}"></span>
                             </div>
                         </div>
                         <div class="timeline-point">
                             <div class="point-circle"></div>
                             <div class="date-display">
                                 <span class="info-label">Devolução</span>
-                                <span class="info-value" th:text="${#temporals.format(booking.returnDate, 'dd/MM/yyyy')}"></span>
+                                <span class="info-value" th:text="${#dates.format(booking.returnDate, 'dd/MM/yyyy')}"></span>
                             </div>
                         </div>
                     </div>
@@ -361,7 +360,7 @@
                         <div class="col-md-6">
                             <div class="info-item">
                                 <span class="info-label">Reservado em</span>
-                                <span class="info-value" th:text="${#temporals.format(booking.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                <span class="info-value" th:text="${#dates.format(booking.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
                             </div>
                         </div>
                     </div>
@@ -407,16 +406,6 @@
                         <small class="text-muted d-block" th:text="${booking.item.shop.location}"></small>
                     </div>
                 </div>
-                
-                <!-- Botões de Ação -->
-                <div class="action-buttons">
-                    <a th:href="@{/magiclook/my-bookings}" class="btn btn-outline-primary btn-action">
-                        <i class="bi bi-arrow-left me-2"></i> Voltar às Reservas
-                    </a>
-                    <a th:href="@{/magiclook/items/men}" class="btn btn-primary btn-action">
-                        <i class="bi bi-plus-circle me-2"></i> Nova Reserva
-                    </a>
-                </div>
             </div>
         </div>
         
@@ -433,5 +422,18 @@
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Inicializar dropdowns manualmente se necessário
+        document.addEventListener('DOMContentLoaded', function() {
+            var dropdowns = document.querySelectorAll('.dropdown-toggle');
+            dropdowns.forEach(function(dropdown) {
+                dropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var dropdownMenu = this.nextElementSibling;
+                    dropdownMenu.classList.toggle('show');
+                });
+            });
+        });
+    </script>
 </body>
 </html>

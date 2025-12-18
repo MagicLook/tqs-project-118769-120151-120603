@@ -150,14 +150,14 @@
                                 submitButton.innerHTML = '<i class="bi bi-calendar-check"></i> Confirmar Reserva';
                                 
                                 // Mostrar mensagem de sucesso
-                                showAvailabilityMessage('success', '✅ Item disponível nestas datas!');
+                                showAvailabilityMessage('success', 'Item disponível nestas datas!');
                             } else {
                                 // Manter botão desabilitado
                                 submitButton.disabled = true;
                                 submitButton.innerHTML = '<i class="bi bi-calendar-x"></i> Datas Indisponíveis';
                                 
                                 // Mostrar mensagem de erro com conflitos
-                                let message = '❌ Item não disponível nestas datas. ';
+                                let message = 'Item não disponível nestas datas. ';
                                 if (data.conflicts && data.conflicts.length > 0) {
                                     message += 'Conflitos com reservas existentes.';
                                 }
@@ -204,6 +204,19 @@
             if (endDateInput) {
                 endDateInput.addEventListener('change', checkAvailability);
             }
+        });
+    </script>
+    <script>
+        // Inicializar dropdowns manualmente se necessário
+        document.addEventListener('DOMContentLoaded', function() {
+            var dropdowns = document.querySelectorAll('.dropdown-toggle');
+            dropdowns.forEach(function(dropdown) {
+                dropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var dropdownMenu = this.nextElementSibling;
+                    dropdownMenu.classList.toggle('show');
+                });
+            });
         });
     </script>
 </body>
