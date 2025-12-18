@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,54 +12,73 @@
             --staff-primary: #6c757d;
             --staff-secondary: #545b62;
         }
+
         .staff-sidebar {
             background: var(--staff-primary);
             color: white;
             min-height: 100vh;
             padding: 0;
         }
+
         .staff-nav .nav-link {
-            color: rgba(255,255,255,0.8);
+            color: rgba(255, 255, 255, 0.8);
             padding: 15px 20px;
             border-left: 4px solid transparent;
             transition: all 0.3s;
         }
-        .staff-nav .nav-link:hover, .staff-nav .nav-link.active {
-            background: rgba(0,0,0,0.1);
+
+        .staff-nav .nav-link:hover,
+        .staff-nav .nav-link.active {
+            background: rgba(0, 0, 0, 0.1);
             color: white;
             border-left-color: white;
         }
+
         .staff-nav .nav-link i {
             width: 25px;
         }
+
         .staff-header {
             background: white;
             border-bottom: 1px solid #dee2e6;
             padding: 15px 0;
         }
+
         .staff-card {
             border: none;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         .item-detail-image {
             width: 100%;
             max-height: 500px;
             object-fit: cover;
             border-radius: 10px;
         }
+
         .state-badge {
             font-size: 0.85rem;
             padding: 0.4rem 0.8rem;
         }
+
         .size-item {
             transition: all 0.2s;
         }
+
         .size-item:hover {
             background-color: #f8f9fa;
         }
+
+        .btn-edit-smooth {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
@@ -75,7 +95,7 @@
                             <span class="badge bg-light text-dark" th:text="${staff.role}"></span>
                         </div>
                     </div>
-                    
+
                     <nav class="nav flex-column staff-nav">
                         <a class="nav-link" th:href="@{/magiclook/staff/dashboard}">
                             <i class="bi bi-speedometer2"></i> Dashboard
@@ -104,7 +124,7 @@
                     </nav>
                 </div>
             </div>
-            
+
             <!-- Main Content Area -->
             <div class="col-md-9 col-lg-10 px-0">
                 <!-- Header -->
@@ -133,7 +153,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Content -->
                 <div class="container-fluid py-4">
                     <div class="row">
@@ -141,12 +161,11 @@
                         <div class="col-lg-4 mb-4">
                             <div class="card staff-card">
                                 <div class="card-body">
-                                    <img th:src="${item.imagePath != null} ? @{${item.imagePath}} : @{/images/default.jpg}" 
-                                         class="item-detail-image mb-3" 
-                                         th:alt="${item.name}">
-                                    
+                                    <img th:src="${item.imagePath != null} ? @{${item.imagePath}} : @{/images/default.jpg}"
+                                        class="item-detail-image mb-3" th:alt="${item.name}">
+
                                     <h4 class="mb-3" th:text="${item.name}">Nome do Item</h4>
-                                    
+
                                     <div class="mb-3">
                                         <p class="mb-2">
                                             <strong><i class="bi bi-palette"></i> Cor:</strong>
@@ -162,7 +181,8 @@
                                         </p>
                                         <p class="mb-2">
                                             <strong><i class="bi bi-gender-ambiguous"></i> Género:</strong>
-                                            <span th:text="${item.itemType.gender == 'M'} ? 'Homem' : 'Mulher'">Mulher</span>
+                                            <span
+                                                th:text="${item.itemType.gender == 'M'} ? 'Homem' : 'Mulher'">Mulher</span>
                                         </p>
                                         <p class="mb-2">
                                             <strong><i class="bi bi-bookmark"></i> Categoria:</strong>
@@ -173,34 +193,26 @@
                                             <span th:text="${item.itemType.subcategory}">Longo</span>
                                         </p>
                                     </div>
-                                    
+
                                     <hr>
-                                    
+
                                     <div class="mb-3">
                                         <p class="mb-2">
                                             <strong><i class="bi bi-cash"></i> Preço de Aluguel:</strong>
-                                            <span class="text-primary fw-bold" th:text="'€' + ${item.priceRent}">€50</span>
+                                            <span class="text-primary fw-bold"
+                                                th:text="'€' + ${item.priceRent}">€50</span>
                                         </p>
                                         <p class="mb-2">
                                             <strong><i class="bi bi-currency-euro"></i> Preço de Venda:</strong>
                                             <span th:text="'€' + ${item.priceSale}">€200</span>
                                         </p>
                                     </div>
-                                    
+
                                     <hr>
-                                    
-                                    <div class="d-grid gap-2">
-                                        <button class="btn btn-warning">
-                                            <i class="bi bi-pencil"></i> Editar Item
-                                        </button>
-                                        <button class="btn btn-danger">
-                                            <i class="bi bi-trash"></i> Eliminar Item
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Item Singles List -->
                         <div class="col-lg-8">
                             <div class="card staff-card">
@@ -212,7 +224,7 @@
                                     </div>
                                 </div>
                                 <div class="card-body">
-                                    
+
                                     <!-- List of Item Singles -->
                                     <div class="table-responsive">
                                         <table class="table table-hover">
@@ -229,26 +241,33 @@
                                                 <tr class="size-item" th:each="single, iter : ${itemSingles}">
                                                     <td th:text="${iter.count}">1</td>
                                                     <td>
-                                                        <span class="badge bg-secondary" th:text="${single.size}">M</span>
+                                                        <span class="badge bg-secondary"
+                                                            th:text="${single.size}">M</span>
                                                     </td>
                                                     <td>
                                                         <span class="badge state-badge"
-                                                              th:classappend="${single.state == 'AVAILABLE'} ? 'bg-success' : 
+                                                            th:classappend="${single.state == 'AVAILABLE'} ? 'bg-success' : 
                                                                              (${single.state == 'RENTED'} ? 'bg-warning' : 
                                                                              (${single.state == 'LAUNDRY'} ? 'bg-info' : 'bg-danger'))"
-                                                              th:text="${single.state == 'AVAILABLE'} ? 'Disponível' : 
+                                                            th:text="${single.state == 'AVAILABLE'} ? 'Disponível' : 
                                                                         (${single.state == 'RENTED'} ? 'Alugado' : 
                                                                         (${single.state == 'LAUNDRY'} ? 'Lavandaria' : 'Danificado'))">
                                                             Disponível
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <small class="text-muted font-monospace" th:text="${single.id}">uuid-123</small>
+                                                        <small class="text-muted font-monospace"
+                                                            th:text="${single.id}">uuid-123</small>
                                                     </td>
                                                     <td class="text-end">
                                                         <div class="btn-group btn-group-sm">
-                                                            <button class="btn btn-outline-primary" title="Alterar Estado">
-                                                                <i class="bi bi-arrow-repeat"></i>
+                                                            <button class="btn btn-outline-primary btn-edit-smooth"
+                                                                title="Editar Unidade" th:data-id="${single.id}"
+                                                                th:data-size="${single.size}"
+                                                                th:data-state="${single.state}"
+                                                                onclick="openEditSingleModal(this)">
+                                                                <i class="bi bi-pencil-square"></i>
+                                                                <span class="edit-text">Editar</span>
                                                             </button>
                                                             <button class="btn btn-outline-danger" title="Eliminar">
                                                                 <i class="bi bi-trash"></i>
@@ -256,7 +275,7 @@
                                                         </div>
                                                     </td>
                                                 </tr>
-                                                
+
                                                 <!-- Empty State -->
                                                 <tr th:if="${itemSingles.empty}">
                                                     <td colspan="5" class="text-center py-5">
@@ -276,7 +295,116 @@
         </div>
     </div>
 
+    <!-- Modal para Editar ItemSingle -->
+    <div class="modal fade" id="editItemSingleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Unidade</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editItemSingleForm">
+                    <input type="hidden" id="editSingleId" name="id">
+                    <input type="hidden" name="itemId" th:value="${item.itemId}">
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Tamanho</label>
+                            <select id="editSingleSize" name="size" class="form-select" required>
+                                <option value="XS">XS</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Estado</label>
+                            <select id="editSingleState" name="state" class="form-select" required>
+                                <option value="AVAILABLE">Disponível</option>
+                                <option value="RENTED">Alugado</option>
+                                <option value="LAUNDRY">Lavandaria</option>
+                                <option value="DAMAGED">Danificado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="editSingleSubmitBtn">Guardar
+                            Alterações</button>
+                    </div>
+                    <div id="editSingleMessage" class="alert" style="display: none; margin: 10px;"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function openEditSingleModal(button) {
+            const id = button.getAttribute('data-id');
+            const size = button.getAttribute('data-size');
+            const state = button.getAttribute('data-state');
+
+            document.getElementById('editSingleId').value = id;
+            document.getElementById('editSingleSize').value = size;
+            document.getElementById('editSingleState').value = state;
+
+            new bootstrap.Modal(document.getElementById('editItemSingleModal')).show();
+        }
+
+        // Handle edit single item form submission
+        document.getElementById('editItemSingleForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const id = document.getElementById('editSingleId').value;
+            const size = document.getElementById('editSingleSize').value;
+            const state = document.getElementById('editSingleState').value;
+            const itemId = this.querySelector('input[name="itemId"]').value;
+            const submitBtn = document.getElementById('editSingleSubmitBtn');
+            const messageDiv = document.getElementById('editSingleMessage');
+
+            submitBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('size', size);
+                formData.append('state', state);
+                formData.append('itemId', itemId);
+
+                const response = await fetch('/magiclook/staff/itemsingle/update/' + id, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Erro ao atualizar os dados.');
+                }
+
+                messageDiv.className = 'alert alert-success';
+                messageDiv.textContent = '✓ Dados atualizados com sucesso!';
+                messageDiv.style.display = 'block';
+
+                setTimeout(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('editItemSingleModal')).hide();
+                    location.reload();
+                }, 1500);
+
+            } catch (error) {
+                messageDiv.className = 'alert alert-danger';
+                messageDiv.textContent = '✗ ' + error.message;
+                messageDiv.style.display = 'block';
+                console.error('Error:', error);
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
 </body>
+
 </html>
