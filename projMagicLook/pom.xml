@@ -38,6 +38,7 @@
 		<xray-junit-extensions.version>0.9.0</xray-junit-extensions.version>
 		<xray-maven-plugin.version>0.9.0</xray-maven-plugin.version>
 		<xray.clientId></xray.clientId>
+		
 		<xray.clientSecret></xray.clientSecret>
 	</properties>
 
