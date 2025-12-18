@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,56 +12,68 @@
             --staff-primary: #6c757d;
             --staff-secondary: #545b62;
         }
+
         .staff-sidebar {
             background: var(--staff-primary);
             color: white;
             min-height: 100vh;
             padding: 0;
         }
+
         .staff-nav .nav-link {
-            color: rgba(255,255,255,0.8);
+            color: rgba(255, 255, 255, 0.8);
             padding: 15px 20px;
             border-left: 4px solid transparent;
             transition: all 0.3s;
         }
-        .staff-nav .nav-link:hover, .staff-nav .nav-link.active {
-            background: rgba(0,0,0,0.1);
+
+        .staff-nav .nav-link:hover,
+        .staff-nav .nav-link.active {
+            background: rgba(0, 0, 0, 0.1);
             color: white;
             border-left-color: white;
         }
+
         .staff-nav .nav-link i {
             width: 25px;
         }
+
         .staff-header {
             background: white;
             border-bottom: 1px solid #dee2e6;
             padding: 15px 0;
         }
+
         .staff-card {
             border: none;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s;
         }
+
         .staff-card:hover {
             transform: translateY(-5px);
         }
+
         .item-card {
             border: 1px solid #dee2e6;
             border-radius: 10px;
             overflow: hidden;
             transition: all 0.3s;
         }
+
         .item-card:hover {
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             transform: translateY(-3px);
         }
+
         .item-image {
             width: 100%;
             height: 250px;
             object-fit: cover;
             background: #f8f9fa;
         }
+
         .item-badge {
             position: absolute;
             top: 10px;
@@ -68,6 +81,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
@@ -84,7 +98,7 @@
                             <span class="badge bg-light text-dark" th:text="${staff.role}"></span>
                         </div>
                     </div>
-                    
+
                     <nav class="nav flex-column staff-nav">
                         <a class="nav-link" th:href="@{/magiclook/staff/dashboard}">
                             <i class="bi bi-speedometer2"></i> Dashboard
@@ -113,122 +127,144 @@
                     </nav>
                 </div>
             </div>
-            
+
             <!-- Main Content Area -->
             <div class="col-md-9 col-lg-10 px-0">
-                    <!-- Header -->
-                    <div class="staff-header">
-                        <div class="container-fluid">
-                            <div class="row align-items-center">
-                                <div class="col">
-                                    <h2 class="h4 mb-0">Itens da Loja</h2>
-                                    <nav aria-label="breadcrumb">
-                                        <ol class="breadcrumb mb-0">
-                                            <li class="breadcrumb-item">
-                                                <a th:href="@{/magiclook/staff/dashboard}">Dashboard</a>
-                                            </li>
-                                            <li class="breadcrumb-item active">Itens</li>
-                                        </ol>
-                                    </nav>
+                <!-- Header -->
+                <div class="staff-header">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h2 class="h4 mb-0">Itens da Loja</h2>
+                                <nav aria-label="breadcrumb">
+                                    <ol class="breadcrumb mb-0">
+                                        <li class="breadcrumb-item">
+                                            <a th:href="@{/magiclook/staff/dashboard}">Dashboard</a>
+                                        </li>
+                                        <li class="breadcrumb-item active">Itens</li>
+                                    </ol>
+                                </nav>
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">
+                                    <i class="bi bi-plus-circle"></i> Adicionar Item
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="container-fluid py-4">
+                    <!-- Filters -->
+                    <form class="card staff-card mb-4" method="get" th:action="@{/magiclook/staff/item}">
+                        <div class="card-body">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" name="q" placeholder="Pesquisar por nome..."
+                                        th:value="${q}">
                                 </div>
-                                <div class="col-auto">
-                                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">
-                                        <i class="bi bi-plus-circle"></i> Adicionar Item
+                                <div class="col-md-3 ms-auto">
+                                    <select class="form-select" name="state" th:value="${selectedState}">
+                                        <option value="">Estado</option>
+                                        <option value="AVAILABLE" th:selected="${selectedState == 'AVAILABLE'}">
+                                            Disponível</option>
+                                        <option value="RENTED" th:selected="${selectedState == 'RENTED'}">Alugado
+                                        </option>
+                                        <option value="LAUNDRY" th:selected="${selectedState == 'LAUNDRY'}">Lavandaria
+                                        </option>
+                                        <option value="DAMAGED" th:selected="${selectedState == 'DAMAGED'}">Danificado
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary w-100" type="submit">
+                                        <i class="bi bi-funnel"></i> Filtrar
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Content -->
-                    <div class="container-fluid py-4">
-                        <!-- Filters -->
-                        <form class="card staff-card mb-4" method="get" th:action="@{/magiclook/staff/item}">
-                          <div class="card-body">
-                            <div class="row g-3 align-items-center">
-                              <div class="col-md-6">
-                                <input type="text" class="form-control" name="q" placeholder="Pesquisar por nome..." th:value="${q}">
-                              </div>
-                              <div class="col-md-3 ms-auto">
-                                <select class="form-select" name="state" th:value="${selectedState}">
-                                  <option value="">Estado</option>
-                                  <option value="AVAILABLE" th:selected="${selectedState == 'AVAILABLE'}">Disponível</option>
-                                  <option value="RENTED" th:selected="${selectedState == 'RENTED'}">Alugado</option>
-                                  <option value="LAUNDRY" th:selected="${selectedState == 'LAUNDRY'}">Lavandaria</option>
-                                  <option value="DAMAGED" th:selected="${selectedState == 'DAMAGED'}">Danificado</option>
-                                </select>
-                              </div>
-                              <div class="col-md-2">
-                                <button class="btn btn-outline-secondary w-100" type="submit">
-                                  <i class="bi bi-funnel"></i> Filtrar
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </form>
+                    </form>
 
-                        <!-- Items Grid -->
-                        <div class="row g-4">
-                            <!-- Item Card -->
-                            <div class="col-xl-3 col-lg-4 col-md-6" th:each="item : ${items}">
-                                <div class="item-card">
-                                    <div class="position-relative">
-                                        <img th:src="${item.imagePath != null ? item.imagePath : '/images/default.jpg'}" 
-                                            class="item-image" 
-                                            th:alt="${item.name}">
-                                    </div>
-                                    <div class="p-3">
-                                        <h6 class="mb-2 text-center" th:text="${item.name}">Nome do Item</h6>
-                                        <div class="small text-muted mb-2">
-                                            <div>
-                                                <strong>Cor:</strong>
-                                                <span th:text="${item.color}">Azul</span>
-                                            </div>
-                                            <div>
-                                                <strong>Material:</strong>
-                                                <span th:text="${item.material}">Seda</span>
-                                            </div>
-                                            <div th:if="${item.brand != null}">
-                                                <strong>Marca:</strong>
-                                                <span th:text="${item.brand}">Marca</span>
-                                            </div>
-                                        </div>
-                                        <div class="mb-2">
-                                            <div><strong>Tamanhos:</strong></div>
-                                            <div class="d-flex gap-1 flex-wrap">
-                                                <span th:each="size : ${itemSizes.get(item.itemId)}" class="badge bg-secondary" th:text="${size}">M</span>
-                                                <span th:if="${itemSizes.get(item.itemId).isEmpty()}" class="badge bg-light text-dark">Sem tamanhos</span>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="text-primary fw-bold" th:text="'€' + ${item.priceRent}">€50</span>
-                                            <small class="text-muted" th:text="'Venda: €' + ${item.priceSale}">Venda: €200</small>
-                                        </div>
-                                        <div class="d-grid gap-2">
-                                            <button class="btn btn-sm btn-outline-primary" th:onclick="'location.href=\'/magiclook/staff/item/' + ${item.itemId} + '\';'">
-                                                <i class="bi bi-eye"></i> Ver Detalhes
-                                            </button>
-                                        </div>
-                                    </div>
+                    <!-- Items Grid -->
+                    <div class="row g-4">
+                        <!-- Item Card -->
+                        <div class="col-xl-3 col-lg-4 col-md-6" th:each="item : ${items}">
+                            <div class="item-card">
+                                <div class="position-relative">
+                                    <img th:src="${item.imagePath != null ? item.imagePath : '/images/default.jpg'}"
+                                        class="item-image" th:alt="${item.name}">
                                 </div>
-                            </div>
-
-                            <!-- Empty State -->
-                            <div class="col-12" th:if="${items.empty}">
-                                <div class="card staff-card text-center py-5">
-                                    <div class="card-body">
-                                        <i class="bi bi-inbox fs-1 text-muted"></i>
-                                        <h5 class="mt-3">Nenhum item encontrado</h5>
+                                <div class="p-3">
+                                    <h6 class="mb-2 text-center" th:text="${item.name}">Nome do Item</h6>
+                                    <div class="small text-muted mb-2">
+                                        <div>
+                                            <strong>Cor:</strong>
+                                            <span th:text="${item.color}">Azul</span>
+                                        </div>
+                                        <div>
+                                            <strong>Material:</strong>
+                                            <span th:text="${item.material}">Seda</span>
+                                        </div>
+                                        <div th:if="${item.brand != null}">
+                                            <strong>Marca:</strong>
+                                            <span th:text="${item.brand}">Marca</span>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <div><strong>Tamanhos:</strong></div>
+                                        <div class="d-flex gap-1 flex-wrap">
+                                            <span th:each="size : ${itemSizes.get(item.itemId)}"
+                                                class="badge bg-secondary" th:text="${size}">M</span>
+                                            <span th:if="${itemSizes.get(item.itemId).isEmpty()}"
+                                                class="badge bg-light text-dark">Sem tamanhos</span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-primary fw-bold" th:text="'€' + ${item.priceRent}">€50</span>
+                                        <small class="text-muted" th:text="'Venda: €' + ${item.priceSale}">Venda:
+                                            €200</small>
+                                    </div>
+                                    <div class="d-grid gap-2 d-md-block">
+                                        <button class="btn btn-sm btn-outline-primary w-100 mb-1"
+                                            th:onclick="'location.href=\'/magiclook/staff/item/' + ${item.itemId} + '\';'">
+                                            <i class="bi bi-eye"></i> Ver Detalhes
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary w-100" data-bs-toggle="modal"
+                                            data-bs-target="#editItemModal" th:data-id="${item.itemId}"
+                                            th:data-name="${item.name}" th:data-brand="${item.brand}"
+                                            th:data-material="${item.material}" th:data-color="${item.color}"
+                                            th:data-pricerent="${item.priceRent}" th:data-pricesale="${item.priceSale}"
+                                            th:data-gender="${item.itemType.gender}"
+                                            th:data-category="${item.itemType.category}"
+                                            th:data-subcategory="${item.itemType.subcategory}"
+                                            th:data-shop="${item.shop.shopId}"
+                                            th:data-sizes="${#strings.listJoin(itemSizes.get(item.itemId), ',')}"
+                                            onclick="openEditModal(this)">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Empty State -->
+                        <div class="col-12" th:if="${items.empty}">
+                            <div class="card staff-card text-center py-5">
+                                <div class="card-body">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <h5 class="mt-3">Nenhum item encontrado</h5>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
             </div>
         </div>
     </div>
-        <!-- Modal para Adicionar item (Same as staffDashboard) -->
+    <!-- Modal para Adicionar item (Same as staffDashboard) -->
     <div class="modal fade" id="addItemModal" tabindex="-1" aria-hidden="true">
+        <!-- ... existing add modal content ... -->
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -238,14 +274,27 @@
                 <form id="addItemForm" enctype="multipart/form-data">
                     <input type="hidden" name="shop" th:value="${shop.shopId}">
                     <div class="modal-body">
-                        <!-- Género -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Género da Roupa</label>
-                            <select id="genderSelect" name="gender" class="form-select" required>
-                                <option value="" selected>Selecione o género...</option>
-                                <option value="M">Homem</option>
-                                <option value="F">Mulher</option>
-                            </select>
+                        <!-- Género e Tamanho -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Género da Roupa</label>
+                                <select id="genderSelect" name="gender" class="form-select" required>
+                                    <option value="" selected>Selecione o género...</option>
+                                    <option value="M">Homem</option>
+                                    <option value="F">Mulher</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Tamanho</label>
+                                <select name="size" class="form-select" required>
+                                    <option value="">Selecione o tamanho...</option>
+                                    <option value="XS">XS</option>
+                                    <option value="S">S</option>
+                                    <option value="M">M</option>
+                                    <option value="L">L</option>
+                                    <option value="XL">XL</option>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Informações Básicas -->
@@ -274,20 +323,9 @@
                             </div>
                         </div>
 
-                        <!-- Tamanho e Tipo de Roupa -->
+                        <!-- Tipo de Roupa -->
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Tamanho</label>
-                                <select name="size" class="form-select" required>
-                                    <option value="">Selecione o tamanho...</option>
-                                    <option value="XS">XS</option>
-                                    <option value="S">S</option>
-                                    <option value="M">M</option>
-                                    <option value="L">L</option>
-                                    <option value="XL">XL</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label class="form-label">Tipo de Roupa</label>
                                 <select id="categorySelect" name="category" class="form-select" required>
                                     <option value="">Selecione primeiro o género...</option>
@@ -305,11 +343,13 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Preço Original (€)</label>
-                                <input name="priceSale" type="number" class="form-control" step="0.01" placeholder="0.00" required>
+                                <input name="priceSale" type="number" class="form-control" step="0.01"
+                                    placeholder="0.00" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Preço de Aluguel (€)</label>
-                                <input name="priceRent" type="number" class="form-control" step="0.01" placeholder="0.00" required>
+                                <input name="priceRent" type="number" class="form-control" step="0.01"
+                                    placeholder="0.00" required>
                             </div>
                         </div>
 
@@ -323,7 +363,8 @@
                         <div id="uploadMessage" class="alert" style="display: none;"></div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary" id="submitBtn">
                             <i class="bi bi-check-circle"></i> Guardar Item
                         </button>
@@ -333,9 +374,116 @@
         </div>
     </div>
 
+    <!-- Modal para Editar item -->
+    <div class="modal fade" id="editItemModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editItemForm" enctype="multipart/form-data" method="post"
+                    th:action="@{/magiclook/staff/item/update}">
+                    <input type="hidden" id="editItemId" name="itemId">
+                    <input type="hidden" name="shop" th:value="${shop.shopId}">
+
+                    <div class="modal-body">
+                        <!-- Género -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Género da Roupa</label>
+                            <select id="editGenderSelect" name="gender" class="form-select" required>
+                                <option value="" selected>Selecione o género...</option>
+                                <option value="M">Homem</option>
+                                <option value="F">Mulher</option>
+                            </select>
+                        </div>
+
+                        <!-- Tamanhos (Lista com Delete) -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tamanhos Disponíveis</label>
+                            <div id="editSizesContainer" class="d-flex flex-wrap gap-2 p-2 border rounded bg-light">
+                                <!-- Sizes populated by JS -->
+                            </div>
+                            <small class="text-muted">Clique no 'x' para remover todo o stock desse tamanho.</small>
+                        </div>
+
+                        <!-- Informações Básicas -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nome</label>
+                                <input id="editName" name="name" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Marca</label>
+                                <input id="editBrand" name="brand" class="form-control">
+                            </div>
+                        </div>
+
+                        <!-- Material e Cor -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Material</label>
+                                <select id="editMaterialSelect" name="material" class="form-select">
+                                    <option value="">Selecione o material...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Cor</label>
+                                <input id="editColor" name="color" class="form-control">
+                            </div>
+                        </div>
+
+                        <!-- Tipo de Roupa -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Tipo de Roupa</label>
+                                <select id="editCategorySelect" name="category" class="form-select" required>
+                                    <option value="">Selecione primeiro o género...</option>
+                                </select>
+                                <div class="mt-2">
+                                    <label class="form-label">Subcategoria</label>
+                                    <select id="editSubcategorySelect" name="subcategory" class="form-select">
+                                        <option value="">Selecione a subcategoria...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preços -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Preço Original (€)</label>
+                                <input id="editPriceSale" name="priceSale" type="number" class="form-control"
+                                    step="0.01" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Preço de Aluguel (€)</label>
+                                <input id="editPriceRent" name="priceRent" type="number" class="form-control"
+                                    step="0.01" required>
+                            </div>
+                        </div>
+
+                        <!-- Upload Nova Imagem -->
+                        <div class="mb-3">
+                            <label class="form-label">Alterar Imagem (Opcional)</label>
+                            <input type="file" name="image" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Guardar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         // Same JavaScript as staffDashboard
         const categories = {
@@ -369,24 +517,37 @@
         const subcategorySelect = document.getElementById('subcategorySelect');
         const materialSelect = document.getElementById('materialSelect');
 
+        // Edit Elements
+        const editGenderSelect = document.getElementById('editGenderSelect');
+        const editCategorySelect = document.getElementById('editCategorySelect');
+        const editSubcategorySelect = document.getElementById('editSubcategorySelect');
+        const editMaterialSelect = document.getElementById('editMaterialSelect');
+
         if (materialSelect) {
             populateSelect(materialSelect, materials, 'Selecione o material...');
         }
 
-        genderSelect.addEventListener('change', function() {
-            const gender = this.value;
-            if (gender && categories[gender]) {
-                const cats = Object.keys(categories[gender]);
-                populateSelect(categorySelect, cats, 'Selecione o tipo de roupa...');
-                populateSelect(subcategorySelect, [], 'Selecione a subcategoria...');
-            } else {
-                populateSelect(categorySelect, [], 'Selecione primeiro o género...');
-                populateSelect(subcategorySelect, [], 'Selecione a subcategoria...');
-            }
-        });
+        if (editMaterialSelect) {
+            populateSelect(editMaterialSelect, materials, 'Selecione o material...');
+        }
+
+        // Add Item Logic
+        if (genderSelect) {
+            genderSelect.addEventListener('change', function () {
+                const gender = this.value;
+                if (gender && categories[gender]) {
+                    const cats = Object.keys(categories[gender]);
+                    populateSelect(categorySelect, cats, 'Selecione o tipo de roupa...');
+                    populateSelect(subcategorySelect, [], 'Selecione a subcategoria...');
+                } else {
+                    populateSelect(categorySelect, [], 'Selecione primeiro o género...');
+                    populateSelect(subcategorySelect, [], 'Selecione a subcategoria...');
+                }
+            });
+        }
 
         if (categorySelect) {
-            categorySelect.addEventListener('change', function() {
+            categorySelect.addEventListener('change', function () {
                 const selectedCat = this.value;
                 const gender = genderSelect ? genderSelect.value : null;
                 if (gender && selectedCat && categories[gender] && categories[gender][selectedCat]) {
@@ -397,13 +558,166 @@
             });
         }
 
-        document.getElementById('addItemForm').addEventListener('submit', async function(e) {
+        // Edit Item Logic - Open Modal
+        function openEditModal(button) {
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            const brand = button.getAttribute('data-brand');
+            const material = button.getAttribute('data-material');
+            const color = button.getAttribute('data-color');
+            const priceRent = button.getAttribute('data-pricerent');
+            const priceSale = button.getAttribute('data-pricesale');
+            const gender = button.getAttribute('data-gender');
+            const category = button.getAttribute('data-category');
+            const subcategory = button.getAttribute('data-subcategory');
+            const sizesRaw = button.getAttribute('data-sizes');
+
+            // Set Form Action Dynamically
+            document.getElementById('editItemForm').action = '/magiclook/staff/item/' + id;
+
+            document.getElementById('editItemId').value = id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editBrand').value = brand;
+            document.getElementById('editColor').value = color;
+            document.getElementById('editPriceRent').value = priceRent;
+            document.getElementById('editPriceSale').value = priceSale;
+
+            // Populate Sizes
+            const sizesContainer = document.getElementById('editSizesContainer');
+            sizesContainer.innerHTML = '';
+            if (sizesRaw) {
+                const sizes = sizesRaw.split(',');
+                sizes.forEach(size => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-secondary d-flex align-items-center gap-2';
+                    badge.innerHTML = `
+                        ${size} 
+                        <i class="bi bi-x-circle-fill text-dark" style="cursor: pointer;" onclick="deleteSize('${id}', '${size}', this)"></i>
+                    `;
+                    sizesContainer.appendChild(badge);
+                });
+            } else {
+                sizesContainer.innerHTML = '<span class="text-muted small">Sem tamanhos registados</span>';
+            }
+
+            console.log("Opening edit for: ", id, gender, category, subcategory);
+
+            // Populate Dropdowns
+            if (editMaterialSelect) {
+                editMaterialSelect.value = material;
+            }
+
+            if (editGenderSelect) {
+                editGenderSelect.value = gender;
+
+                // Trigger change to populate categories, then set category
+                if (gender && categories[gender]) {
+                    const cats = Object.keys(categories[gender]);
+                    populateSelect(editCategorySelect, cats, 'Selecione o tipo de roupa...');
+                    editCategorySelect.value = category;
+
+                    // Trigger change to populate subcategories, then set subcategory
+                    if (category && categories[gender][category]) {
+                        populateSelect(editSubcategorySelect, categories[gender][category], 'Selecione a subcategoria...');
+                        editSubcategorySelect.value = subcategory;
+                    }
+                }
+            }
+        }
+
+        // Delete Size Logic
+        async function deleteSize(itemId, size, iconElement) {
+            if (!confirm(`Tem a certeza que deseja apagar todo o stock do tamanho ${size}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/magiclook/staff/item/${itemId}/size/${size}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    // Remove the badge
+                    iconElement.parentElement.remove();
+                } else {
+                    const msg = await response.text();
+                    alert("Erro ao apagar tamanho: " + msg);
+                }
+            } catch (err) {
+                alert("Erro de conexão: " + err.message);
+            }
+        }
+
+        // Edit Item Logic - Change Events
+        if (editGenderSelect) {
+            editGenderSelect.addEventListener('change', function () {
+                const gender = this.value;
+                if (gender && categories[gender]) {
+                    const cats = Object.keys(categories[gender]);
+                    populateSelect(editCategorySelect, cats, 'Selecione o tipo de roupa...');
+                    populateSelect(editSubcategorySelect, [], 'Selecione a subcategoria...');
+                } else {
+                    populateSelect(editCategorySelect, [], 'Selecione primeiro o género...');
+                    populateSelect(editSubcategorySelect, [], 'Selecione a subcategoria...');
+                }
+            });
+        }
+
+        if (editCategorySelect) {
+            editCategorySelect.addEventListener('change', function () {
+                const selectedCat = this.value;
+                const gender = editGenderSelect ? editGenderSelect.value : null;
+                if (gender && selectedCat && categories[gender] && categories[gender][selectedCat]) {
+                    populateSelect(editSubcategorySelect, categories[gender][selectedCat], 'Selecione a subcategoria...');
+                } else {
+                    populateSelect(editSubcategorySelect, [], 'Selecione a subcategoria...');
+                }
+            });
+        }
+
+        // Edit Item Form Validation
+        const editItemForm = document.getElementById('editItemForm');
+        if (editItemForm) {
+            editItemForm.addEventListener('submit', function (e) {
+                const priceRent = parseFloat(document.getElementById('editPriceRent').value);
+                const priceSale = parseFloat(document.getElementById('editPriceSale').value);
+
+                if (priceRent <= 0 || priceSale <= 0) {
+                    e.preventDefault();
+                    alert("Os preços devem ser valores positivos!");
+                    return;
+                }
+
+                if (priceRent >= priceSale) {
+                    e.preventDefault();
+                    alert("O preço de aluguel deve ser menor que o preço de venda (original)!");
+                    return;
+                }
+            });
+        }
+
+        document.getElementById('addItemForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const submitBtn = document.getElementById('submitBtn');
             const messageDiv = document.getElementById('uploadMessage');
+
+            // Validation
+            const priceRent = parseFloat(this.priceRent.value);
+            const priceSale = parseFloat(this.priceSale.value);
+
+            if (priceRent <= 0 || priceSale <= 0) {
+                alert("Os preços devem ser valores positivos!");
+                return;
+            }
+
+            if (priceRent >= priceSale) {
+                alert("O preço de aluguel deve ser menor que o preço de venda (original)!");
+                return;
+            }
+
             submitBtn.disabled = true;
-            
+
             try {
                 const formData = new FormData(this);
 
@@ -416,16 +730,16 @@
                     method: 'POST',
                     body: formData
                 });
-                
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(errorText || 'Erro ao guardar item');
                 }
-                
+
                 messageDiv.className = 'alert alert-success';
                 messageDiv.textContent = '✓ Item adicionado com sucesso!';
                 messageDiv.style.display = 'block';
-                
+
                 setTimeout(() => {
                     this.reset();
                     document.getElementById('categorySelect').innerHTML = '<option value="">Selecione primeiro o género...</option>';
@@ -435,7 +749,7 @@
                     bootstrap.Modal.getInstance(document.getElementById('addItemModal')).hide();
                     location.reload();
                 }, 1500);
-                
+
             } catch (error) {
                 messageDiv.className = 'alert alert-danger';
                 messageDiv.textContent = '✗ ' + error.message;
@@ -445,6 +759,7 @@
             }
         });
     </script>
-           
+
 </body>
+
 </html>

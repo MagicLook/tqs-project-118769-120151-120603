@@ -27,7 +27,7 @@ public class StaffController {
 
     @Autowired
     private StaffService staffService;
-    
+
     @Autowired
     private ItemService itemService;
 
@@ -38,7 +38,7 @@ public class StaffController {
     }
 
     // ========== LOGIN STAFF ==========
-    
+
     @GetMapping("/login")
     public String showStaffLoginForm(Model model) {
         model.addAttribute(STAFF_LOGIN_VIEW, new com.magiclook.dto.StaffLoginDTO());
@@ -47,12 +47,12 @@ public class StaffController {
 
     @PostMapping("/login")
     public String staffLogin(@RequestParam String usernameOrEmail,
-                           @RequestParam String password,
-                           HttpSession session,
-                           Model model) {
-        
+            @RequestParam String password,
+            HttpSession session,
+            Model model) {
+
         Staff staff = staffService.login(usernameOrEmail, password);
-        
+
         if (staff != null) {
             session.setAttribute("loggedInStaff", staff);
             session.setAttribute("staffId", staff.getStaffId());
@@ -61,7 +61,7 @@ public class StaffController {
             session.setAttribute("staffUsername", staff.getUsername());
             session.setAttribute("shopId", staff.getShop().getShopId());
             session.setAttribute("shopName", staff.getShop().getName());
-            
+
             return "redirect:/magiclook/staff/dashboard";
         } else {
             model.addAttribute("error", "Credenciais inválidas para staff!");
@@ -70,23 +70,23 @@ public class StaffController {
     }
 
     // ========== DASHBOARD STAFF ==========
-    
+
     @GetMapping("/dashboard")
     public String showStaffDashboard(HttpSession session, Model model) {
         Staff staff = (Staff) session.getAttribute("loggedInStaff");
-        
+
         if (staff == null) {
             return "redirect:/magiclook/staff/login";
         }
-        
+
         // Buscar itens da loja do staff
         List<Item> items = itemService.getItemsByShop(staff.getShop());
-        
+
         model.addAttribute("staff", staff);
         model.addAttribute("shop", staff.getShop());
         model.addAttribute("items", items);
         model.addAttribute("itemCount", items.size());
-        
+
         return STAFF_DASHBOARD_VIEW;
     }
 
@@ -108,30 +108,29 @@ public class StaffController {
             @RequestParam(required = false) MultipartFile image,
             HttpSession session,
             Model model) {
-        
+
         try {
             Staff staff = (Staff) session.getAttribute("loggedInStaff");
 
             if (staff == null) {
                 return "redirect:/magiclook/staff/login";
             }
-            
+
             // Converter em ItemDTO
             ItemDTO itemDTO = new ItemDTO(
-                name,       
-                material,   
-                color,      
-                brand,      
-                priceRent,  
-                priceSale,  
-                shop,
-                gender,     
-                category,
-                subcategory 
-            );
-            
+                    name,
+                    material,
+                    color,
+                    brand,
+                    priceRent,
+                    priceSale,
+                    shop,
+                    gender,
+                    category,
+                    subcategory);
+
             int result = staffService.addItem(itemDTO, size);
-            
+
             // Resto de validações
             if (result == -1) {
                 model.addAttribute(ERROR, "Tamanho inválido!");
@@ -152,11 +151,11 @@ public class StaffController {
                 imagePath = staffService.saveImage(image, itemDTO.getItemId());
                 staffService.updateItemImage(itemDTO.getItemId(), imagePath);
             }
-            
+
             itemDTO.setImagePath(imagePath);
-            
+
             return "redirect:/magiclook/staff/dashboard";
-            
+
         } catch (Exception e) {
             model.addAttribute(ERROR, "Erro ao adicionar item: " + e.getMessage());
             return STAFF_DASHBOARD_VIEW;
@@ -165,7 +164,7 @@ public class StaffController {
 
     // ========== VIEW ITEMS ============
 
-    @GetMapping("/item") 
+    @GetMapping("/item")
     public String getItems(
             HttpSession session,
             Model model,
@@ -184,11 +183,12 @@ public class StaffController {
         if (q != null && !q.isBlank()) {
             String needle = q.trim().toLowerCase();
             items = items.stream()
-                .filter(i -> i.getName() != null && i.getName().toLowerCase().contains(needle))
-                .toList();
+                    .filter(i -> i.getName() != null && i.getName().toLowerCase().contains(needle))
+                    .toList();
         }
 
-        // Optional state filter: keep items that have at least one ItemSingle in that state
+        // Optional state filter: keep items that have at least one ItemSingle in that
+        // state
         if (state != null && !state.isBlank()) {
             state = state.trim().toUpperCase();
             items = itemService.getAllItemsByState(state);
@@ -230,7 +230,7 @@ public class StaffController {
         if (staff == null) {
             return "redirect:/magiclook/staff/login";
         }
-        
+
         Item item = itemService.getItemById(itemId);
         List<ItemSingle> itemsList = itemService.getItems(itemId);
 
@@ -242,8 +242,107 @@ public class StaffController {
         return STAFF_ITEM_DETAILS_VIEW;
     }
 
+    // ========== UPDATE ITEM ===========
+
+    @PostMapping("/item/{itemId}")
+    public String updateItem(
+            @PathVariable Integer itemId,
+            @RequestParam String name,
+            @RequestParam String brand,
+            @RequestParam String material,
+            @RequestParam String color,
+            @RequestParam BigDecimal priceRent,
+            @RequestParam BigDecimal priceSale,
+            @RequestParam String gender,
+            @RequestParam String category,
+            @RequestParam String subcategory,
+            @RequestParam Integer shop,
+            @RequestParam(required = false) MultipartFile image,
+            HttpSession session,
+            Model model) {
+
+        Staff staff = (Staff) session.getAttribute("loggedInStaff");
+        if (staff == null) {
+            return "redirect:/magiclook/staff/login";
+        }
+
+        try {
+            ItemDTO itemDTO = new ItemDTO(
+                    name,
+                    material,
+                    color,
+                    brand,
+                    priceRent,
+                    priceSale,
+                    shop,
+                    gender,
+                    category,
+                    subcategory);
+            itemDTO.setItemId(itemId);
+
+            staffService.updateItem(itemDTO);
+
+            if (image != null && !image.isEmpty()) {
+                String imagePath = staffService.saveImage(image, itemId);
+                staffService.updateItemImage(itemId, imagePath);
+            }
+
+            return "redirect:/magiclook/staff/item";
+
+        } catch (Exception e) {
+            Item item = itemService.getItemById(itemId);
+            List<ItemSingle> itemsList = itemService.getItems(itemId);
+
+            model.addAttribute("staff", staff);
+            model.addAttribute("shop", staff.getShop());
+            model.addAttribute("item", item);
+            model.addAttribute("itemSingles", itemsList);
+            model.addAttribute(ERROR, "Erro ao atualizar item: " + e.getMessage());
+
+            return STAFF_ITEM_DETAILS_VIEW;
+        }
+    }
+
+    @DeleteMapping("/item/{itemId}/size/{size}")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> deleteItemSize(
+            @PathVariable Integer itemId,
+            @PathVariable String size,
+            HttpSession session) {
+
+        Staff staff = (Staff) session.getAttribute("loggedInStaff");
+        if (staff == null) {
+            return org.springframework.http.ResponseEntity.status(401).build();
+        }
+
+        try {
+            staffService.deleteItemSize(itemId, size);
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/itemsingle/update/{id}")
+    public String updateItemSingle(
+            @PathVariable java.util.UUID id,
+            @RequestParam String size,
+            @RequestParam String state,
+            @RequestParam Integer itemId,
+            HttpSession session) {
+
+        Staff staff = (Staff) session.getAttribute("loggedInStaff");
+        if (staff == null) {
+            return "redirect:/magiclook/staff/login";
+        }
+
+        staffService.updateItemSingle(id, size, state);
+
+        return "redirect:/magiclook/staff/item/" + itemId;
+    }
+
     // ========== LOGOUT STAFF ==========
-    
+
     @GetMapping("/logout")
     public String staffLogout(HttpSession session) {
         if (session != null) {
