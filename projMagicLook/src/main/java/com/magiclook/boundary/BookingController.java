@@ -4,55 +4,73 @@ import com.magiclook.data.*;
 import com.magiclook.dto.*;
 import com.magiclook.service.*;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.UUID;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Controller
 @RequestMapping("/magiclook")
 public class BookingController {
     
-    @Autowired
-    private BookingService bookingService;
+    // Constantes para strings repetidas
+    private static final String SESSION_LOGGED_IN_USER = "loggedInUser";
+    private static final String REDIRECT_LOGIN = "redirect:/magiclook/login";
+    private static final String REDIRECT_DASHBOARD = "redirect:/magiclook/dashboard";
+    private static final String VIEW_BOOKING_FORM = "booking/bookingForm";
+    private static final String VIEW_MY_BOOKINGS = "booking/myBookings";
+    private static final String VIEW_BOOKING_DETAILS = "booking/booking-details";
+    private static final String VIEW_BOOKING_CONFIRMATION = "booking/bookingConfirmation";
+    private static final String ATTR_ERROR = "error";
+    private static final String ATTR_AVAILABLE = "available";
+    private static final String ATTR_MESSAGE = "message";
+    private static final String ATTR_ITEM = "item";
+    private static final String ATTR_USER = "user";
+    private static final String ATTR_BOOKING = "booking";
+    private static final String ATTR_BOOKINGS = "bookings";
+    private static final String ATTR_FILTER = "filter";
+    private static final String ATTR_SEARCH = "search";
     
-    @Autowired
-    private ItemService itemService;
+    private final BookingService bookingService;
+    private final ItemService itemService;
+    private final UserService userService;
     
-    @Autowired
-    private UserService userService;
+    // Injeção por construtor
+    public BookingController(BookingService bookingService, ItemService itemService, UserService userService) {
+        this.bookingService = bookingService;
+        this.itemService = itemService;
+        this.userService = userService;
+    }
     
     // Show booking form for specific item
     @GetMapping("/booking/{itemId}")
     public String showBookingForm(@PathVariable Integer itemId, 
                                   HttpSession session, 
                                   Model model) {
-        User user = (User) session.getAttribute("loggedInUser");
+        User user = (User) session.getAttribute(SESSION_LOGGED_IN_USER);
         
         if (user == null) {
             session.setAttribute("redirectAfterLogin", "/magiclook/booking/" + itemId);
-            return "redirect:/magiclook/login";
+            return REDIRECT_LOGIN;
         }
         
         Item item = itemService.getItemById(itemId);
         if (item == null) {
-            return "redirect:/magiclook/dashboard";
+            return REDIRECT_DASHBOARD;
         }
         
-        model.addAttribute("item", item);
-        model.addAttribute("user", user);
-        return "booking/bookingForm";
+        model.addAttribute(ATTR_ITEM, item);
+        model.addAttribute(ATTR_USER, user);
+        return VIEW_BOOKING_FORM;
     }
     
     // Process booking - usando @RequestParam
@@ -64,40 +82,40 @@ public class BookingController {
             HttpSession session,
             Model model) {
         
-        User user = (User) session.getAttribute("loggedInUser");
+        User user = (User) session.getAttribute(SESSION_LOGGED_IN_USER);
         
         if (user == null) {
-            return "redirect:/magiclook/login";
+            return REDIRECT_LOGIN;
         }
         
         // Buscar item
         Item item = itemService.getItemById(itemId);
         if (item == null) {
-            model.addAttribute("error", "Item não encontrado.");
-            return "redirect:/magiclook/dashboard";
+            model.addAttribute(ATTR_ERROR, "Item não encontrado.");
+            return REDIRECT_DASHBOARD;
         }
         
         // Verificar disponibilidade (usando Date)
         boolean isAvailable = bookingService.checkAvailability(itemId, startUseDate, endUseDate);
         
         if (!isAvailable) {
-            model.addAttribute("error", "Item não disponível nas datas selecionadas. Por favor, escolha outras datas.");
-            model.addAttribute("item", item);
-            return "booking/bookingForm";
+            model.addAttribute(ATTR_ERROR, "Item não disponível nas datas selecionadas. Por favor, escolha outras datas.");
+            model.addAttribute(ATTR_ITEM, item);
+            return VIEW_BOOKING_FORM;
         }
         
         // Validar datas
         if (startUseDate == null || endUseDate == null || endUseDate.before(startUseDate)) {
-            model.addAttribute("error", "Datas inválidas. A data de fim deve ser após a data de início.");
-            model.addAttribute("item", item);
-            return "booking/bookingForm";
+            model.addAttribute(ATTR_ERROR, "Datas inválidas. A data de fim deve ser após a data de início.");
+            model.addAttribute(ATTR_ITEM, item);
+            return VIEW_BOOKING_FORM;
         }
         
         // Validar que a data de início não é no passado
         if (startUseDate.before(new Date())) {
-            model.addAttribute("error", "A data de início não pode ser no passado.");
-            model.addAttribute("item", item);
-            return "booking/bookingForm";
+            model.addAttribute(ATTR_ERROR, "A data de início não pode ser no passado.");
+            model.addAttribute(ATTR_ITEM, item);
+            return VIEW_BOOKING_FORM;
         }
         
         try {
@@ -113,45 +131,131 @@ public class BookingController {
             return "redirect:/magiclook/booking/confirmation/" + booking.getBookingId();
             
         } catch (Exception e) {
-            model.addAttribute("error", "Erro ao criar reserva: " + e.getMessage());
-            model.addAttribute("item", item);
-            return "booking/bookingForm";
+            model.addAttribute(ATTR_ERROR, "Erro ao criar reserva: " + e.getMessage());
+            model.addAttribute(ATTR_ITEM, item);
+            return VIEW_BOOKING_FORM;
         }
     }
     
     // Show confirmation page
     @GetMapping("/booking/confirmation/{bookingId}")
     public String showConfirmation(@PathVariable UUID bookingId, HttpSession session, Model model) {
-        User user = (User) session.getAttribute("loggedInUser");
+        User user = (User) session.getAttribute(SESSION_LOGGED_IN_USER);
         
         if (user == null) {
-            return "redirect:/magiclook/login";
+            return REDIRECT_LOGIN;
         }
         
         Booking booking = bookingService.getBookingById(bookingId);
         if (booking == null || !booking.getUser().getUserId().equals(user.getUserId())) {
-            return "redirect:/magiclook/dashboard";
+            return REDIRECT_DASHBOARD;
         }
         
-        model.addAttribute("booking", booking);
-        model.addAttribute("user", user);
-        return "booking/bookingConfirmation";
+        model.addAttribute(ATTR_BOOKING, booking);
+        model.addAttribute(ATTR_USER, user);
+        return VIEW_BOOKING_CONFIRMATION;
     }
     
     // Show user's bookings
     @GetMapping("/my-bookings")
-    public String showMyBookings(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("loggedInUser");
+    public String showMyBookings(HttpSession session, Model model,
+                                @RequestParam(required = false) String filter,
+                                @RequestParam(required = false) String search) {
+        User user = (User) session.getAttribute(SESSION_LOGGED_IN_USER);
         
         if (user == null) {
-            return "redirect:/magiclook/login";
+            return REDIRECT_LOGIN;
         }
         
         List<Booking> bookings = bookingService.getUserBookings(user);
-        model.addAttribute("bookings", bookings);
-        model.addAttribute("user", user);
+    
+        // Garantir que bookings nunca seja null
+        if (bookings == null) {
+            bookings = new ArrayList<>();
+        }
+        
+        // Ordenar por data de início decrescente (mais recentes primeiro)
+        sortBookingsByStartDateDesc(bookings);
+        
+        // Aplicar filtro de status (Ativas/Passadas)
+        bookings = applyFilter(bookings, filter);
+        
+        // Aplicar pesquisa por nome do item
+        bookings = applySearch(bookings, search);
+        
+        model.addAttribute(ATTR_BOOKINGS, bookings);
+        model.addAttribute(ATTR_FILTER, filter);
+        model.addAttribute(ATTR_SEARCH, search);
+        model.addAttribute(ATTR_USER, user);
+        model.addAttribute("activePage", "/booking/myBookings");
+        
+        return VIEW_MY_BOOKINGS;
+    }
+
+    private void sortBookingsByStartDateDesc(List<Booking> bookings) {
+        bookings.sort((b1, b2) -> {
+            if (b1.getStartUseDate() == null && b2.getStartUseDate() == null) return 0;
+            if (b1.getStartUseDate() == null) return 1;
+            if (b2.getStartUseDate() == null) return -1;
+            return b2.getStartUseDate().compareTo(b1.getStartUseDate());
+        });
+    }
+
+    private List<Booking> applyFilter(List<Booking> bookings, String filter) {
+        if (filter == null || filter.isEmpty()) {
+            return bookings;
+        }
+        
+        Date today = new Date();
+        
+        if ("active".equals(filter)) {
+            // Reservas ativas: data de fim no futuro
+            return bookings.stream()
+                .filter(booking -> booking.getEndUseDate() != null && booking.getEndUseDate().after(today))
+                .collect(java.util.stream.Collectors.toList());
+        } else if ("past".equals(filter)) {
+            // Reservas passadas: data de fim no passado
+            return bookings.stream()
+                .filter(booking -> booking.getEndUseDate() != null && booking.getEndUseDate().before(today))
+                .collect(java.util.stream.Collectors.toList());
+        }
+        
+        return bookings;
+    }
+
+    private List<Booking> applySearch(List<Booking> bookings, String search) {
+        if (search == null || search.isEmpty()) {
+            return bookings;
+        }
+        
+        String searchLower = search.toLowerCase();
+        return bookings.stream()
+            .filter(booking -> booking.getItem() != null && 
+                   booking.getItem().getName() != null &&
+                   booking.getItem().getName().toLowerCase().contains(searchLower))
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    @GetMapping("/my-bookings/{id}")
+    public String bookingDetails(@PathVariable String id, HttpSession session, Model model) {
+        User user = (User) session.getAttribute(SESSION_LOGGED_IN_USER);
+        if (user == null) {
+            return REDIRECT_LOGIN;
+        }
+        
+        // Buscar a reserva pelo ID
+        Booking booking = bookingService.getBookingById(java.util.UUID.fromString(id));
+        
+        // Verificar se a reserva existe e pertence ao usuário
+        if (booking == null || !booking.getUser().getUserId().equals(user.getUserId())) {
+            return "redirect:/magiclook/bookings/my-bookings";
+        }
+        
+        model.addAttribute(ATTR_BOOKING, booking);
+        model.addAttribute(ATTR_USER, user);
         model.addAttribute("activePage", "myBookings");
-        return "booking/myBookings";
+        
+        return VIEW_BOOKING_DETAILS;
     }
     
     // Check availability (AJAX endpoint) - para o formulário antigo
@@ -171,18 +275,18 @@ public class BookingController {
                 long useDays = bookingRequest.getUseDays();
                 java.math.BigDecimal price = bookingService.calculatePrice(bookingRequest.getItemId(), useDays);
                 
-                response.put("available", true);
+                response.put(ATTR_AVAILABLE, true);
                 response.put("useDays", useDays);
                 response.put("totalPrice", price);
-                response.put("message", "Item disponível para o período selecionado");
+                response.put(ATTR_MESSAGE, "Item disponível para o período selecionado");
             } else {
-                response.put("available", false);
-                response.put("message", "Item não disponível para o período selecionado");
+                response.put(ATTR_AVAILABLE, false);
+                response.put(ATTR_MESSAGE, "Item não disponível para o período selecionado");
             }
             
         } catch (Exception e) {
-            response.put("available", false);
-            response.put("message", e.getMessage());
+            response.put(ATTR_AVAILABLE, false);
+            response.put(ATTR_MESSAGE, e.getMessage());
         }
         
         return response;
@@ -209,7 +313,7 @@ public class BookingController {
             
             // Usar o método do serviço
             boolean available = bookingService.isItemAvailable(itemId, startDate, endDate);
-            response.put("available", available);
+            response.put(ATTR_AVAILABLE, available);
             
             if (!available) {
                 // Obter conflitos
@@ -221,13 +325,13 @@ public class BookingController {
                         conflictMap.put("end", b.getEndUseDate().toString());
                         return conflictMap;
                     })
-                    .collect(Collectors.toList());
+                    .collect(java.util.stream.Collectors.toList());
                 response.put("conflicts", conflictList);
             }
             
         } catch (Exception e) {
-            response.put("error", e.getMessage());
-            response.put("available", false);
+            response.put(ATTR_ERROR, e.getMessage());
+            response.put(ATTR_AVAILABLE, false);
         }
         
         return response;

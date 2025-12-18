@@ -20,11 +20,12 @@ class ItemFilterDTOTest {
         assertThat(filter.getCategory()).isNull();
         assertThat(filter.getMinPrice()).isNull();
         assertThat(filter.getMaxPrice()).isNull();
+        assertThat(filter.getShopLocation()).isNull();
         assertThat(filter.hasFilters()).isFalse();
     }
 
     @Test
-    void testArgsConstructor_CreatesFilterWithAllValues() {
+    void testArgsConstructor6Params_CreatesFilterWithAllValues() {
         ItemFilterDTO filter = new ItemFilterDTO("Blue", "Zara", "Cotton", "Shirt", 20.0, 50.0);
         
         assertThat(filter.getColor()).isEqualTo("Blue");
@@ -33,6 +34,21 @@ class ItemFilterDTOTest {
         assertThat(filter.getCategory()).isEqualTo("Shirt");
         assertThat(filter.getMinPrice()).isEqualTo(20.0);
         assertThat(filter.getMaxPrice()).isEqualTo(50.0);
+        assertThat(filter.getShopLocation()).isNull();
+        assertThat(filter.hasFilters()).isTrue();
+    }
+
+    @Test
+    void testArgsConstructor7Params_CreatesFilterWithAllValuesAndShopLocation() {
+        ItemFilterDTO filter = new ItemFilterDTO("Blue", "Zara", "Cotton", "Shirt", 20.0, 50.0, "Lisbon");
+        
+        assertThat(filter.getColor()).isEqualTo("Blue");
+        assertThat(filter.getBrand()).isEqualTo("Zara");
+        assertThat(filter.getMaterial()).isEqualTo("Cotton");
+        assertThat(filter.getCategory()).isEqualTo("Shirt");
+        assertThat(filter.getMinPrice()).isEqualTo(20.0);
+        assertThat(filter.getMaxPrice()).isEqualTo(50.0);
+        assertThat(filter.getShopLocation()).isEqualTo("Lisbon");
         assertThat(filter.hasFilters()).isTrue();
     }
 
@@ -46,6 +62,7 @@ class ItemFilterDTOTest {
         filter.setCategory("Dress");
         filter.setMinPrice(30.0);
         filter.setMaxPrice(60.0);
+        filter.setShopLocation("Porto");
         
         assertThat(filter.getColor()).isEqualTo("Red");
         assertThat(filter.getBrand()).isEqualTo("H&M");
@@ -53,6 +70,7 @@ class ItemFilterDTOTest {
         assertThat(filter.getCategory()).isEqualTo("Dress");
         assertThat(filter.getMinPrice()).isEqualTo(30.0);
         assertThat(filter.getMaxPrice()).isEqualTo(60.0);
+        assertThat(filter.getShopLocation()).isEqualTo("Porto");
         assertThat(filter.hasFilters()).isTrue();
     }
 
@@ -99,6 +117,13 @@ class ItemFilterDTOTest {
     }
 
     @Test
+    void testHasFilters_WithShopLocation_ReturnsTrue() {
+        ItemFilterDTO filter = new ItemFilterDTO();
+        filter.setShopLocation("Lisbon");
+        assertThat(filter.hasFilters()).isTrue();
+    }
+
+    @Test
     void testHasFilters_WithEmptyFilter_ReturnsFalse() {
         ItemFilterDTO filter = new ItemFilterDTO();
         assertThat(filter.hasFilters()).isFalse();
@@ -106,7 +131,7 @@ class ItemFilterDTOTest {
 
     @Test
     void testHasFilters_WithMultipleFilters_ReturnsTrue() {
-        ItemFilterDTO filter = new ItemFilterDTO("Blue", "Zara", null, null, 20.0, null);
+        ItemFilterDTO filter = new ItemFilterDTO("Blue", "Zara", null, null, Double.valueOf(20.0), null);
         assertThat(filter.hasFilters()).isTrue();
     }
 }

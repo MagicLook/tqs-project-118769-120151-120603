@@ -220,4 +220,27 @@ public class BookingService {
     public boolean checkItemAvailability(Integer itemId, LocalDate start, LocalDate end) {
         return isItemAvailable(itemId, start, end);
     }
+
+    public String getCurrentBookingState(Booking booking) {
+        Date now = new Date();
+        
+        if (booking.getState() != null && 
+            (booking.getState().equals("CANCELLED") || booking.getState().equals("COMPLETED"))) {
+            return booking.getState();
+        }
+        
+        // Determinar estado baseado nas datas
+        if (now.before(booking.getStartUseDate())) {
+            return "CONFIRMED";
+        } else if (now.after(booking.getEndUseDate())) {
+            // Verificar se já passou a data de devolução sem devolver
+            if (now.after(booking.getReturnDate()) && !"RETURNED".equals(booking.getState())) {
+                return "OVERDUE";
+            } else {
+                return "COMPLETED";
+            }
+        } else {
+            return "ACTIVE";
+        }
+    }
 }

@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -68,7 +69,7 @@ class StaffServiceTest {
         item = new Item("Test Item", "Algodão", "Blue", "Brand",
                 new BigDecimal("50.00"), new BigDecimal("200.00"), shop, itemType);
         item.setItemId(1);
-         
+
         sampleDto = new ItemDTO(
                 "Vestido",
                 "Seda",
@@ -79,8 +80,7 @@ class StaffServiceTest {
                 1,
                 "M",
                 "Vestido",
-                "Curto" 
-        );
+                "Curto");
     }
 
     // ==================== ADD ITEM TESTS ====================
@@ -93,8 +93,7 @@ class StaffServiceTest {
         @DisplayName("Should add new item when it does NOT exist")
         void addItem_whenNotExists_shouldSaveItem() {
             when(itemRepository.findByAllCharacteristics(
-                    "Vestido", "Seda", "Azul", "Marca", "M", "Vestido", "Curto", 1
-            )).thenReturn(Optional.empty());
+                    "Vestido", "Seda", "Azul", "Marca", "M", "Vestido", "Curto", 1)).thenReturn(Optional.empty());
 
             when(shopRepository.findById(1)).thenReturn(Optional.of(shop));
             when(itemTypeRepository.findByGenderAndCategoryAndSubcategory("M", "Vestido", "Curto"))
@@ -113,8 +112,7 @@ class StaffServiceTest {
         @DisplayName("Should add ItemSingle when item already exists")
         void addItem_whenDuplicateExists_shouldOnlyAddItemSingle() {
             when(itemRepository.findByAllCharacteristics(
-                    "Vestido", "Seda", "Azul", "Marca", "M", "Vestido", "Curto", 1
-            )).thenReturn(Optional.of(item));
+                    "Vestido", "Seda", "Azul", "Marca", "M", "Vestido", "Curto", 1)).thenReturn(Optional.of(item));
 
             int result = staffService.addItem(sampleDto, "M");
 
@@ -126,25 +124,23 @@ class StaffServiceTest {
         @Test
         @DisplayName("Should create ItemSingle with AVAILABLE state")
         void addItem_shouldCreateItemSingleWithAvailableState() {
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(), 
+            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
                     anyString(), anyString(), anyString(), anyString(), anyInt()))
                     .thenReturn(Optional.of(item));
 
             staffService.addItem(sampleDto, "L");
 
-            verify(itemSingleRepository).saveAndFlush(argThat(itemSingle ->
-                    itemSingle.getState().equals("AVAILABLE") &&
+            verify(itemSingleRepository).saveAndFlush(argThat(itemSingle -> itemSingle.getState().equals("AVAILABLE") &&
                     itemSingle.getSize().equals("L") &&
-                    itemSingle.getItem().equals(item)
-            ));
+                    itemSingle.getItem().equals(item)));
         }
 
         @Test
         @DisplayName("Should handle all valid sizes: XS, S, M, L, XL")
         void addItem_withAllValidSizes_shouldSucceed() {
             List<String> validSizes = Arrays.asList("XS", "S", "M", "L", "XL");
-            
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(), 
+
+            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
                     anyString(), anyString(), anyString(), anyString(), anyInt()))
                     .thenReturn(Optional.of(item));
 
@@ -160,8 +156,8 @@ class StaffServiceTest {
         @DisplayName("Should handle all valid materials")
         void addItem_withAllValidMaterials_shouldSucceed() {
             List<String> validMaterials = Arrays.asList("Algodão", "Poliéster", "Seda", "Couro", "Veludo");
-            
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(), 
+
+            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
                     anyString(), anyString(), anyString(), anyString(), anyInt()))
                     .thenReturn(Optional.of(item));
 
@@ -177,8 +173,8 @@ class StaffServiceTest {
         void addItem_shouldSetItemIdInDTO() {
             Item createdItem = new Item();
             createdItem.setItemId(999);
-            
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(), 
+
+            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
                     anyString(), anyString(), anyString(), anyString(), anyInt()))
                     .thenReturn(Optional.empty());
             when(shopRepository.findById(1)).thenReturn(Optional.of(shop));
@@ -195,8 +191,8 @@ class StaffServiceTest {
         @DisplayName("Should preserve imagePath when provided")
         void addItem_withImagePath_shouldPreserveImagePath() {
             sampleDto.setImagePath("/uploads/test.jpg");
-            
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(), 
+
+            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
                     anyString(), anyString(), anyString(), anyString(), anyInt()))
                     .thenReturn(Optional.empty());
             when(shopRepository.findById(1)).thenReturn(Optional.of(shop));
@@ -207,10 +203,8 @@ class StaffServiceTest {
 
             staffService.addItem(sampleDto, "M");
 
-            verify(itemRepository).saveAndFlush(argThat(savedItem ->
-                    savedItem.getImagePath() != null &&
-                    savedItem.getImagePath().equals("/uploads/test.jpg")
-            ));
+            verify(itemRepository).saveAndFlush(argThat(savedItem -> savedItem.getImagePath() != null &&
+                    savedItem.getImagePath().equals("/uploads/test.jpg")));
         }
     }
 
@@ -258,7 +252,7 @@ class StaffServiceTest {
         @Test
         @DisplayName("Should return -3 when shop does not exist")
         void addItem_whenShopNotFound_shouldReturnMinusThree() {
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(), 
+            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
                     anyString(), anyString(), anyString(), anyString(), anyInt()))
                     .thenReturn(Optional.empty());
             when(shopRepository.findById(1)).thenReturn(Optional.empty());
@@ -272,7 +266,7 @@ class StaffServiceTest {
         @Test
         @DisplayName("Should return -3 when ItemType does not exist")
         void addItem_whenItemTypeNotFound_shouldReturnMinusThree() {
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(), 
+            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
                     anyString(), anyString(), anyString(), anyString(), anyInt()))
                     .thenReturn(Optional.empty());
             when(shopRepository.findById(1)).thenReturn(Optional.of(shop));
@@ -435,13 +429,13 @@ class StaffServiceTest {
 
             if (Files.exists(testPath)) {
                 Files.walk(testPath)
-                    .sorted(Comparator.reverseOrder())
-                    .forEach(path -> {
-                        try {
-                            Files.delete(path);
-                        } catch (IOException ignored) {
-                        }
-                    });
+                        .sorted(Comparator.reverseOrder())
+                        .forEach(path -> {
+                            try {
+                                Files.delete(path);
+                            } catch (IOException ignored) {
+                            }
+                        });
             }
         }
 
@@ -449,13 +443,13 @@ class StaffServiceTest {
         void tearDownImageTests() throws IOException {
             if (Files.exists(testPath)) {
                 Files.walk(testPath)
-                    .sorted(Comparator.reverseOrder())
-                    .forEach(path -> {
-                        try {
-                            Files.delete(path);
-                        } catch (IOException ignored) {
-                        }
-                    });
+                        .sorted(Comparator.reverseOrder())
+                        .forEach(path -> {
+                            try {
+                                Files.delete(path);
+                            } catch (IOException ignored) {
+                            }
+                        });
             }
         }
 
@@ -464,7 +458,7 @@ class StaffServiceTest {
         void saveImage_withValidFileAndItemId_shouldSaveSuccessfully() throws IOException {
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("test-image.jpg");
-            doNothing().when(mockFile).transferTo(any(File.class));
+            when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
 
             String result = staffService.saveImage(mockFile, 123);
 
@@ -472,7 +466,7 @@ class StaffServiceTest {
             assertTrue(result.startsWith("/"));
             assertTrue(result.contains(testUploadDir.replace("\\", "/")));
             assertTrue(result.endsWith("item_123_test-image.jpg"));
-            verify(mockFile, times(1)).transferTo(any(File.class));
+            verify(mockFile, atLeastOnce()).getInputStream();
         }
 
         @Test
@@ -480,7 +474,7 @@ class StaffServiceTest {
         void saveImage_withNullItemId_shouldUseUUID() throws IOException {
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("photo.png");
-            doNothing().when(mockFile).transferTo(any(File.class));
+            when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
 
             String result = staffService.saveImage(mockFile, null);
 
@@ -488,7 +482,7 @@ class StaffServiceTest {
             assertTrue(result.contains("photo.png"));
             assertTrue(result.contains("item_"));
             assertTrue(result.matches(".*/item_[a-f0-9]{8}_photo\\.png"));
-            verify(mockFile, times(1)).transferTo(any(File.class));
+            verify(mockFile, atLeastOnce()).getInputStream();
         }
 
         @Test
@@ -496,7 +490,7 @@ class StaffServiceTest {
         void saveImage_withSpecialCharacters_shouldSanitizeFilename() throws IOException {
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("my image!@#$%^&*()+file.jpg");
-            doNothing().when(mockFile).transferTo(any(File.class));
+            when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
 
             String result = staffService.saveImage(mockFile, 42);
 
@@ -504,7 +498,7 @@ class StaffServiceTest {
             String sanitized = "my image!@#$%^&*()+file.jpg".replaceAll("[^a-zA-Z0-9._-]", "_");
             assertTrue(result.contains("item_42_" + sanitized));
             assertFalse(result.contains("!"));
-            verify(mockFile, times(1)).transferTo(any(File.class));
+            verify(mockFile, atLeastOnce()).getInputStream();
         }
 
         @Test
@@ -523,7 +517,7 @@ class StaffServiceTest {
             String result = staffService.saveImage(mockFile, 123);
 
             assertNull(result);
-            verify(mockFile, never()).transferTo(any(File.class));
+            verify(mockFile, never()).getInputStream();
         }
 
         @Test
@@ -531,13 +525,13 @@ class StaffServiceTest {
         void saveImage_withNullOriginalFilename_shouldUseDefaultName() throws IOException {
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn(null);
-            doNothing().when(mockFile).transferTo(any(File.class));
+            when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
 
             String result = staffService.saveImage(mockFile, 99);
 
             assertNotNull(result);
             assertTrue(result.contains("item_99_file"));
-            verify(mockFile, times(1)).transferTo(any(File.class));
+            verify(mockFile, atLeastOnce()).getInputStream();
         }
 
         @Test
@@ -545,27 +539,27 @@ class StaffServiceTest {
         void saveImage_whenDirectoryDoesNotExist_shouldCreateIt() throws IOException {
             String newTestDir = "uploads/new_test_" + System.currentTimeMillis();
             ReflectionTestUtils.setField(staffService, "uploadDir", newTestDir);
-            
+
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("test.jpg");
-            doNothing().when(mockFile).transferTo(any(File.class));
+            when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
 
             String result = staffService.saveImage(mockFile, 1);
 
             assertNotNull(result);
             Path expectedDir = Paths.get("src/main/resources/static").toAbsolutePath().resolve(newTestDir);
             assertTrue(Files.exists(expectedDir));
-            
+
             // Cleanup
             Files.walk(expectedDir)
-                .sorted((a, b) -> -a.compareTo(b))
-                .forEach(path -> {
-                    try {
-                        Files.delete(path);
-                    } catch (IOException e) {
-                        // ignore
-                    }
-                });
+                    .sorted((a, b) -> -a.compareTo(b))
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                        } catch (IOException e) {
+                            // ignore
+                        }
+                    });
         }
 
         @Test
@@ -573,7 +567,7 @@ class StaffServiceTest {
         void saveImage_whenTransferFails_shouldThrowIOException() throws IOException {
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("test.jpg");
-            doThrow(new IOException("Transfer failed")).when(mockFile).transferTo(any(File.class));
+            when(mockFile.getInputStream()).thenThrow(new IOException("Transfer failed"));
 
             assertThrows(IOException.class, () -> {
                 staffService.saveImage(mockFile, 123);
@@ -585,7 +579,7 @@ class StaffServiceTest {
         void saveImage_shouldReturnPathWithForwardSlash() throws IOException {
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("image.jpg");
-            doNothing().when(mockFile).transferTo(any(File.class));
+            when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
 
             String result = staffService.saveImage(mockFile, 1);
 
@@ -637,12 +631,12 @@ class StaffServiceTest {
             Shop shop1 = new Shop("Test Shop", "Test Location");
             assertEquals("Test Shop", shop1.getName());
             assertEquals("Test Location", shop1.getLocation());
-            
+
             Shop shop2 = new Shop();
             shop2.setShopId(5);
             shop2.setName("Another Shop");
             shop2.setLocation("Another Location");
-            
+
             assertEquals(5, shop2.getShopId());
             assertEquals("Another Shop", shop2.getName());
             assertEquals("Another Location", shop2.getLocation());
@@ -655,7 +649,7 @@ class StaffServiceTest {
             assertEquals("F", type1.getGender());
             assertEquals("Vestido", type1.getCategory());
             assertEquals("Curto", type1.getSubcategory());
-            
+
             ItemType type2 = new ItemType();
             type2.setId(10);
             type2.setGender("M");
@@ -672,7 +666,7 @@ class StaffServiceTest {
         @DisplayName("Staff constructor should set all fields correctly")
         void staffConstructor_shouldSetAllFields() {
             Staff newStaff = new Staff("John Doe", "john@test.com", "pass123", "johnd", shop);
-            
+
             assertEquals("John Doe", newStaff.getName());
             assertEquals("john@test.com", newStaff.getEmail());
             assertEquals("pass123", newStaff.getPassword());
@@ -691,8 +685,8 @@ class StaffServiceTest {
         @DisplayName("Should handle special characters in item name")
         void addItem_withSpecialCharactersInName_shouldWork() {
             sampleDto.setName("Vestido & Macacão #1");
-            
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(), 
+
+            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
                     anyString(), anyString(), anyString(), anyString(), anyInt()))
                     .thenReturn(Optional.of(item));
 
@@ -706,8 +700,8 @@ class StaffServiceTest {
         void addItem_withLargePrices_shouldWork() {
             sampleDto.setPriceRent(new BigDecimal("999999.99"));
             sampleDto.setPriceSale(new BigDecimal("9999999.99"));
-            
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(), 
+
+            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
                     anyString(), anyString(), anyString(), anyString(), anyInt()))
                     .thenReturn(Optional.of(item));
 
@@ -721,8 +715,8 @@ class StaffServiceTest {
         void addItem_withZeroPrices_shouldWork() {
             sampleDto.setPriceRent(BigDecimal.ZERO);
             sampleDto.setPriceSale(BigDecimal.ZERO);
-            
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(), 
+
+            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
                     anyString(), anyString(), anyString(), anyString(), anyInt()))
                     .thenReturn(Optional.of(item));
 
@@ -742,7 +736,7 @@ class StaffServiceTest {
         @Test
         @DisplayName("Should handle multiple ItemSingle creations for same Item")
         void addItem_multipleTimes_shouldCreateMultipleItemSingles() {
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(), 
+            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
                     anyString(), anyString(), anyString(), anyString(), anyInt()))
                     .thenReturn(Optional.of(item));
 

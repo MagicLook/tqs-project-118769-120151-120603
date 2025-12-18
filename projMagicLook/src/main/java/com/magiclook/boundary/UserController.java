@@ -121,15 +121,14 @@ public class UserController {
             return REDIRECT_LOGIN;
         }
         
-        // Buscar itens para o gênero específico (sem filtros)
         List<Item> items = itemService.getItemsByGender(gender);
         
-        // Adicionar dados para os filtros
         model.addAttribute("filter", new ItemFilterDTO());
         model.addAttribute("colors", itemService.getAllDistinctColors());
         model.addAttribute("brands", itemService.getAllDistinctBrands());
         model.addAttribute("materials", itemService.getAllDistinctMaterials());
         model.addAttribute("categories", itemService.getAllDistinctCategories());
+        model.addAttribute("shopLocations", itemService.getAllDistinctShopLocations()); // Novo
         
         model.addAttribute("user", user);
         model.addAttribute("items", items);
@@ -144,9 +143,9 @@ public class UserController {
     
     @PostMapping("/items/{gender}/filter")
     public String filterItems(@PathVariable String gender,
-                             @ModelAttribute ItemFilterDTO filter,
-                             HttpSession session,
-                             Model model) {
+                            @ModelAttribute ItemFilterDTO filter,
+                            HttpSession session,
+                            Model model) {
         
         User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
         
@@ -163,6 +162,7 @@ public class UserController {
             filter.getBrand(),
             filter.getMaterial(),
             filter.getCategory(),
+            filter.getShopLocation(), // Novo filtro
             filter.getMinPrice(),
             filter.getMaxPrice()
         );
@@ -173,6 +173,7 @@ public class UserController {
         model.addAttribute("brands", itemService.getAllDistinctBrands());
         model.addAttribute("materials", itemService.getAllDistinctMaterials());
         model.addAttribute("categories", itemService.getAllDistinctCategories());
+        model.addAttribute("shopLocations", itemService.getAllDistinctShopLocations()); // Novo
         
         model.addAttribute("user", user);
         model.addAttribute("items", filteredItems);
@@ -207,7 +208,7 @@ public class UserController {
         model.addAttribute("user", user);
         model.addAttribute("recentItems", recentItems);
         model.addAttribute(ATTR_CART_COUNT, session.getAttribute(ATTR_CART_COUNT) != null ? session.getAttribute(ATTR_CART_COUNT) : 0);
-        model.addAttribute(ATTR_ACTIVE_PAGE, "dashboard");
+        model.addAttribute(ATTR_ACTIVE_PAGE, VIEW_DASHBOARD);
         return VIEW_DASHBOARD;
     }
 

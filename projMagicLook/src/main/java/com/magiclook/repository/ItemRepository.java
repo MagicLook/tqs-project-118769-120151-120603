@@ -36,11 +36,15 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
     @Query("SELECT DISTINCT i.itemType.category FROM Item i")
     List<String> findAllDistinctCategories();
     
-    @Query("SELECT i FROM Item i WHERE i.itemType.gender = :gender " +
+    @Query("SELECT DISTINCT s.location FROM Item i JOIN i.shop s")
+    List<String> findAllDistinctShopLocations();
+    
+    @Query("SELECT i FROM Item i JOIN i.shop s WHERE i.itemType.gender = :gender " +
            "AND (:color IS NULL OR i.color = :color) " +
            "AND (:brand IS NULL OR i.brand = :brand) " +
            "AND (:material IS NULL OR i.material = :material) " +
            "AND (:category IS NULL OR i.itemType.category = :category) " +
+           "AND (:shopLocation IS NULL OR s.location = :shopLocation) " +
            "AND (:minPrice IS NULL OR i.priceRent >= :minPrice) " +
            "AND (:maxPrice IS NULL OR i.priceRent <= :maxPrice)")
     List<Item> findByGenderAndFilters(
@@ -49,6 +53,7 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
             @Param("brand") String brand,
             @Param("material") String material,
             @Param("category") String category,
+            @Param("shopLocation") String shopLocation,
             @Param("minPrice") Double minPrice,
             @Param("maxPrice") Double maxPrice);
             
