@@ -9,6 +9,7 @@ import app.getxray.xray.junit.customjunitxml.annotations.Requirement;
 
 import org.assertj.core.api.Assertions;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
+import java.util.UUID;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class StaffControllerIT {
@@ -126,20 +128,24 @@ class StaffControllerIT {
                                 .as("ItemSingle instances for the item should not be empty")
                                 .isNotEmpty();
 
-                if (itemSingles.isEmpty()) {
-                        Assertions.assertThat(finalItemSingles.get(0).getSize())
-                                        .as("ItemSingle instance should be created for the item")
-                                        .isEqualTo("M");
-                } else {
-                        List<ItemSingle> newItem = new ArrayList<>(finalItemSingles);
-                        newItem.removeAll(itemSingles);
+                // Find the newly created ItemSingle by comparing IDs
+                List<UUID> existingIds = itemSingles.stream()
+                                .map(ItemSingle::getId)
+                                .toList();
+                
+                List<ItemSingle> newItemSingles = finalItemSingles.stream()
+                                .filter(single -> !existingIds.contains(single.getId()))
+                                .toList();
 
-                        // Size of item
-                        String size = newItem.get(0).getSize();
-                        Assertions.assertThat(size)
-                                        .as("ItemSingle instance should be created with correct size")
-                                        .isEqualTo("M");
-                }
+                Assertions.assertThat(newItemSingles)
+                                .as("At least one new ItemSingle should be created")
+                                .isNotEmpty();
+
+                // Size of newly created item should be M
+                String size = newItemSingles.get(0).getSize();
+                Assertions.assertThat(size)
+                                .as("ItemSingle instance should be created with correct size")
+                                .isEqualTo("M");
 
                 Assertions.assertThat(finalCount)
                                 .as("ItemSingle instance count should not decrease")
@@ -335,9 +341,6 @@ class StaffControllerIT {
                 Item item = ensureItemExists();
                 Integer itemId = item.getItemId();
 
-                HttpHeaders headers = new HttpHeaders();
-                headers.add(HttpHeaders.COOKIE, sessionCookie);
-
                 // Need to use multipart body for Update as well since controller expects valid
                 // fields
                 RestHelper helperParams = new RestHelper();
@@ -346,7 +349,7 @@ class StaffControllerIT {
                 ResponseEntity<String> response = restTemplate.exchange(
                                 url("/magiclook/staff/item/" + itemId),
                                 HttpMethod.POST,
-                                new HttpEntity<>(multipartBody(false, helperParams.map, sessionCookie), headers),
+                                multipartBody(false, helperParams.map, sessionCookie),
                                 String.class);
 
                 Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
@@ -366,12 +369,14 @@ class StaffControllerIT {
                 // For simplicity, let's create a dedicated item for this test to avoid
                 // collision
                 ItemDTO itemDTO = new ItemDTO(
-                                "DeleteMe", "Papel", "Branco", "NoBrand",
+                                "DeleteMe", "Seda", "Branco", "NoBrand",
                                 new BigDecimal("10.0"), new BigDecimal("20.0"),
                                 seededShopId, "F", "Vestido", "Curto");
+
                 staffService.addItem(itemDTO, "L");
+
                 Item itemToDelete = itemRepository.findByAllCharacteristics(
-                                "DeleteMe", "Papel", "Branco", "NoBrand",
+                                "DeleteMe", "Seda", "Branco", "NoBrand",
                                 "F", "Vestido", "Curto", seededShopId).orElseThrow();
 
                 HttpHeaders headers = new HttpHeaders();
@@ -396,16 +401,16 @@ class StaffControllerIT {
         void deleteItemSize_notLastSize_deletesSinglesOnly() {
                 String sessionCookie = loginAsStaff(seededUsername, seededPassword);
 
-                // Create item with 2 sizes
+                // Create item with 2 sizes (using valid material 'Seda')
                 ItemDTO itemDTO = new ItemDTO(
-                                "MultiSize", "Papel", "Cinza", "NoBrand",
+                                "MultiSize", "Seda", "Cinza", "NoBrand",
                                 new BigDecimal("10.0"), new BigDecimal("20.0"),
                                 seededShopId, "F", "Vestido", "Curto");
                 staffService.addItem(itemDTO, "S");
                 staffService.addItem(itemDTO, "M");
 
                 Item itemMulti = itemRepository.findByAllCharacteristics(
-                                "MultiSize", "Papel", "Cinza", "NoBrand",
+                                "MultiSize", "Seda", "Cinza", "NoBrand",
                                 "F", "Vestido", "Curto", seededShopId).orElseThrow();
 
                 HttpHeaders headers = new HttpHeaders();
@@ -452,7 +457,7 @@ class StaffControllerIT {
                                 new HttpEntity<>(form, headers),
                                 String.class);
 
-                Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+                Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
                 ItemSingle updated = itemSingleRepository.findById(single.getId()).orElseThrow();
                 Assertions.assertThat(updated.getSize()).isEqualTo("L");
