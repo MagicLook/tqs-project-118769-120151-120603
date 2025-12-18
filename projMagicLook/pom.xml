@@ -166,11 +166,9 @@
 				<version>${xray-maven-plugin.version}</version>
 				<configuration>
 					<cloud>true</cloud>
-					<projectKey>ST</projectKey>
+					<projectKey>SCRUM</projectKey>
 					<reportFormat>junit</reportFormat>
-					<reportFile>target/surefire-reports/TEST-*IT.xml</reportFile>
-					<clientId>${xray.clientId}</clientId>
-					<clientSecret>${xray.clientSecret}</clientSecret>
+					<reportFile>target/TEST-junit-jupiter.xml</reportFile>
 				</configuration>
 			</plugin>
 		</plugins>
