@@ -13,14 +13,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
-import java.text.SimpleDateFormat;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -44,7 +39,7 @@ public class BookingControllerTest {
     @Mock
     private Model model;
 
-    @InjectMocks
+    // Removemos @InjectMocks e criaremos o controller manualmente
     private BookingController bookingController;
 
     private User testUser;
@@ -61,6 +56,9 @@ public class BookingControllerTest {
         testItemType = createTestItemType();
         testItem = createTestItem();
         testBooking = createTestBooking();
+        
+        // Inicializar o controller com injeção de construtor
+        bookingController = new BookingController(bookingService, itemService, userService);
     }
 
     // ========== TESTES DE FORMULÁRIO DE RESERVA ==========
@@ -191,7 +189,7 @@ public class BookingControllerTest {
             model
         );
 
-        // Assert - O controlador redireciona com erro no model
+        // Assert
         assertEquals("redirect:/magiclook/dashboard", viewName);
         verify(model).addAttribute("error", "Item não encontrado.");
         verify(bookingService, never()).checkAvailability(anyInt(), any(), any());
@@ -234,7 +232,7 @@ public class BookingControllerTest {
         // Arrange - data de início no passado
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
-        // O controlador REAL chama checkAvailability mesmo com datas inválidas
+        // O controlador chama checkAvailability primeiro
         when(bookingService.checkAvailability(anyInt(), any(), any())).thenReturn(true);
         
         Calendar cal = Calendar.getInstance();
@@ -257,7 +255,7 @@ public class BookingControllerTest {
         assertEquals("booking/bookingForm", viewName);
         verify(model).addAttribute(eq("error"), anyString());
         verify(model).addAttribute("item", testItem);
-        // O controlador pode ou não chamar checkAvailability, não podemos assumir que nunca será chamado
+        verify(bookingService, times(1)).checkAvailability(anyInt(), any(), any());
         verify(bookingService, never()).createBooking(any(com.magiclook.dto.BookingRequestDTO.class), any(User.class));
     }
 
@@ -436,7 +434,7 @@ public class BookingControllerTest {
         // Arrange
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
         when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
-        // O controlador REAL chama checkAvailability mesmo com datas inválidas
+        // O controlador chama checkAvailability primeiro
         when(bookingService.checkAvailability(anyInt(), any(), any())).thenReturn(true);
         
         Calendar cal = Calendar.getInstance();
@@ -459,7 +457,7 @@ public class BookingControllerTest {
         assertEquals("booking/bookingForm", viewName);
         verify(model).addAttribute(eq("error"), anyString());
         verify(model).addAttribute("item", testItem);
-        // Não podemos garantir que checkAvailability nunca será chamado
+        verify(bookingService, times(1)).checkAvailability(anyInt(), any(), any());
         verify(bookingService, never()).createBooking(any(com.magiclook.dto.BookingRequestDTO.class), any(User.class));
     }
 

@@ -4,7 +4,6 @@ import com.magiclook.data.*;
 import com.magiclook.dto.*;
 import com.magiclook.service.*;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,6 @@ import java.util.UUID;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.stream.Collectors;
 import java.util.ArrayList;
 
 @Controller
@@ -42,14 +40,16 @@ public class BookingController {
     private static final String ATTR_FILTER = "filter";
     private static final String ATTR_SEARCH = "search";
     
-    @Autowired
-    private BookingService bookingService;
+    private final BookingService bookingService;
+    private final ItemService itemService;
+    private final UserService userService;
     
-    @Autowired
-    private ItemService itemService;
-    
-    @Autowired
-    private UserService userService;
+    // Injeção por construtor
+    public BookingController(BookingService bookingService, ItemService itemService, UserService userService) {
+        this.bookingService = bookingService;
+        this.itemService = itemService;
+        this.userService = userService;
+    }
     
     // Show booking form for specific item
     @GetMapping("/booking/{itemId}")
@@ -175,37 +175,13 @@ public class BookingController {
         }
         
         // Ordenar por data de início decrescente (mais recentes primeiro)
-        bookings.sort((b1, b2) -> {
-            if (b1.getStartUseDate() == null && b2.getStartUseDate() == null) return 0;
-            if (b1.getStartUseDate() == null) return 1;
-            if (b2.getStartUseDate() == null) return -1;
-            return b2.getStartUseDate().compareTo(b1.getStartUseDate());
-        });
+        sortBookingsByStartDateDesc(bookings);
         
         // Aplicar filtro de status (Ativas/Passadas)
-        if (filter != null && !filter.isEmpty()) {
-            Date today = new Date();
-            
-            if ("active".equals(filter)) {
-                // Reservas ativas: data de fim no futuro
-                bookings = bookings.stream()
-                    .filter(booking -> booking.getEndUseDate().after(today))
-                    .collect(Collectors.toList());
-            } else if ("past".equals(filter)) {
-                // Reservas passadas: data de fim no passado
-                bookings = bookings.stream()
-                    .filter(booking -> booking.getEndUseDate().before(today))
-                    .collect(Collectors.toList());
-            }
-        }
+        bookings = applyFilter(bookings, filter);
         
         // Aplicar pesquisa por nome do item
-        if (search != null && !search.isEmpty()) {
-            String searchLower = search.toLowerCase();
-            bookings = bookings.stream()
-                .filter(booking -> booking.getItem().getName().toLowerCase().contains(searchLower))
-                .collect(Collectors.toList());
-        }
+        bookings = applySearch(bookings, search);
         
         model.addAttribute(ATTR_BOOKINGS, bookings);
         model.addAttribute(ATTR_FILTER, filter);
@@ -214,6 +190,50 @@ public class BookingController {
         model.addAttribute("activePage", "/booking/myBookings");
         
         return VIEW_MY_BOOKINGS;
+    }
+
+    private void sortBookingsByStartDateDesc(List<Booking> bookings) {
+        bookings.sort((b1, b2) -> {
+            if (b1.getStartUseDate() == null && b2.getStartUseDate() == null) return 0;
+            if (b1.getStartUseDate() == null) return 1;
+            if (b2.getStartUseDate() == null) return -1;
+            return b2.getStartUseDate().compareTo(b1.getStartUseDate());
+        });
+    }
+
+    private List<Booking> applyFilter(List<Booking> bookings, String filter) {
+        if (filter == null || filter.isEmpty()) {
+            return bookings;
+        }
+        
+        Date today = new Date();
+        
+        if ("active".equals(filter)) {
+            // Reservas ativas: data de fim no futuro
+            return bookings.stream()
+                .filter(booking -> booking.getEndUseDate() != null && booking.getEndUseDate().after(today))
+                .collect(java.util.stream.Collectors.toList());
+        } else if ("past".equals(filter)) {
+            // Reservas passadas: data de fim no passado
+            return bookings.stream()
+                .filter(booking -> booking.getEndUseDate() != null && booking.getEndUseDate().before(today))
+                .collect(java.util.stream.Collectors.toList());
+        }
+        
+        return bookings;
+    }
+
+    private List<Booking> applySearch(List<Booking> bookings, String search) {
+        if (search == null || search.isEmpty()) {
+            return bookings;
+        }
+        
+        String searchLower = search.toLowerCase();
+        return bookings.stream()
+            .filter(booking -> booking.getItem() != null && 
+                   booking.getItem().getName() != null &&
+                   booking.getItem().getName().toLowerCase().contains(searchLower))
+            .collect(java.util.stream.Collectors.toList());
     }
 
     @GetMapping("/my-bookings/{id}")
@@ -305,7 +325,7 @@ public class BookingController {
                         conflictMap.put("end", b.getEndUseDate().toString());
                         return conflictMap;
                     })
-                    .collect(Collectors.toList());
+                    .collect(java.util.stream.Collectors.toList());
                 response.put("conflicts", conflictList);
             }
             
