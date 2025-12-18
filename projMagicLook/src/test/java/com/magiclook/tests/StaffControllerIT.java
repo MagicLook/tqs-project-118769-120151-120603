@@ -9,6 +9,7 @@ import app.getxray.xray.junit.customjunitxml.annotations.Requirement;
 
 import org.assertj.core.api.Assertions;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
+import java.util.UUID;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class StaffControllerIT {
@@ -45,16 +47,16 @@ class StaffControllerIT {
 
         @Autowired
         private StaffService staffService;
-        
+
         @Autowired
-        private ItemRepository itemRepository; 
-        
+        private ItemRepository itemRepository;
+
         @Autowired
         private ItemSingleRepository itemSingleRepository; // Add this to verify DB persistence
-        
-        private String jSessionId;  // Store session cookie
-        
-        private String seededUsername; 
+
+        private String jSessionId; // Store session cookie
+
+        private String seededUsername;
         private String seededPassword;
         private Shop seededShop;
         private Integer seededShopId;
@@ -66,7 +68,7 @@ class StaffControllerIT {
 
                 Staff staff = staffService.login(seededUsername, seededPassword);
                 Assertions.assertThat(staff).isNotNull();
-                
+
                 seededShop = staff.getShop();
                 seededShopId = seededShop.getShopId();
         }
@@ -76,40 +78,42 @@ class StaffControllerIT {
         @DisplayName("POST /magiclook/staff/item → success creates item and redirects")
         void addItem_success_createsItemAndRedirectsToDashboard() {
                 String sessionCookie = loginAsStaff(seededUsername, seededPassword);
-                
+
                 // Check if exists
-                Optional<Item> foundItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul", "Zara", "F", "Vestido", "Curto", seededShopId);
-                
+                Optional<Item> foundItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul",
+                                "Zara", "F", "Vestido", "Curto", seededShopId);
+
                 // 2. Get initial itemSingle instances for that item
                 Integer initialCount = 0;
                 List<ItemSingle> itemSingles = List.of();
                 if (foundItem.isPresent()) {
 
                         Item item = foundItem.get();
-                        
+
                         itemSingles = itemSingleRepository.findByItem_ItemId(item.getItemId());
                         initialCount = itemSingles.size();
 
                 }
-                
+
                 // Make POST request
                 ResponseEntity<String> response = restTemplate.exchange(
-                        url("/magiclook/staff/item"),
-                        HttpMethod.POST,
-                        multipartBody(false, null, sessionCookie),
-                        String.class);
+                                url("/magiclook/staff/item"),
+                                HttpMethod.POST,
+                                multipartBody(false, null, sessionCookie),
+                                String.class);
 
                 Assertions.assertThat(response.getStatusCode())
-                        .isEqualTo(HttpStatus.FOUND);
-                
+                                .isEqualTo(HttpStatus.FOUND);
+
                 // Body is empty on redirect; redirect is enough to prove success path
-                
+
                 if (foundItem.isEmpty()) {
                         // New type item was created
-                        Optional<Item> newItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul", "Zara", "F", "Vestido", "Curto", seededShopId);
+                        Optional<Item> newItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul",
+                                        "Zara", "F", "Vestido", "Curto", seededShopId);
                         Assertions.assertThat(newItem)
-                                .as("A new item should be created")
-                                .isPresent();
+                                        .as("A new item should be created")
+                                        .isPresent();
 
                         foundItem = newItem;
                 }
@@ -121,29 +125,31 @@ class StaffControllerIT {
                 Integer finalCount = finalItemSingles.size();
 
                 Assertions.assertThat(finalItemSingles)
-                        .as("ItemSingle instances for the item should not be empty")
-                        .isNotEmpty();
+                                .as("ItemSingle instances for the item should not be empty")
+                                .isNotEmpty();
 
-                if (itemSingles.isEmpty()) {
-                        Assertions.assertThat(finalItemSingles.get(0).getSize())
-                                .as("ItemSingle instance should be created for the item")
-                                .isEqualTo("M"); 
-                }
-                else {
-                        List<ItemSingle> newItem = new ArrayList<>(finalItemSingles);
-                        newItem.removeAll(itemSingles);
+                // Find the newly created ItemSingle by comparing IDs
+                List<UUID> existingIds = itemSingles.stream()
+                                .map(ItemSingle::getId)
+                                .toList();
+                
+                List<ItemSingle> newItemSingles = finalItemSingles.stream()
+                                .filter(single -> !existingIds.contains(single.getId()))
+                                .toList();
 
-                        // Size of item
-                        String size = newItem.get(0).getSize();
-                        Assertions.assertThat(size)
+                Assertions.assertThat(newItemSingles)
+                                .as("At least one new ItemSingle should be created")
+                                .isNotEmpty();
+
+                // Size of newly created item should be M
+                String size = newItemSingles.get(0).getSize();
+                Assertions.assertThat(size)
                                 .as("ItemSingle instance should be created with correct size")
                                 .isEqualTo("M");
-                }
-                
+
                 Assertions.assertThat(finalCount)
-                        .as("ItemSingle instance count should not decrease")
-                        .isGreaterThanOrEqualTo(initialCount);
-                
+                                .as("ItemSingle instance count should not decrease")
+                                .isGreaterThanOrEqualTo(initialCount);
 
         }
 
@@ -152,9 +158,10 @@ class StaffControllerIT {
         @DisplayName("POST /magiclook/staff/item → invalid size returns error on dashboard")
         void addItem_invalidSize_showsErrorOnDashboard() {
                 String sessionCookie = loginAsStaff(seededUsername, seededPassword);
-                
-                Optional<Item> foundItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul", "Zara", "F", "Vestido", "Curto", seededShopId);
-                
+
+                Optional<Item> foundItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul",
+                                "Zara", "F", "Vestido", "Curto", seededShopId);
+
                 Integer initialCount = 0;
                 if (foundItem.isPresent()) {
                         // Get initial itemSingle instances for that item
@@ -166,27 +173,28 @@ class StaffControllerIT {
                 override.add("size", "XXXL");
 
                 ResponseEntity<String> response = restTemplate.exchange(
-                        url("/magiclook/staff/item"),
-                        HttpMethod.POST,
-                        multipartBody(false, override, sessionCookie),
-                        String.class);
-                
+                                url("/magiclook/staff/item"),
+                                HttpMethod.POST,
+                                multipartBody(false, override, sessionCookie),
+                                String.class);
+
                 if (foundItem.isPresent()) {
                         Item item = foundItem.get();
                         // Verify no new instance of itemSingle was created
                         Integer finalCount = itemSingleRepository.findByItem_ItemId(item.getItemId()).size();
 
                         Assertions.assertThat(finalCount)
-                                .as("ItemSingle instance should NOT be created on validation error")
-                                .isEqualTo(initialCount);
+                                        .as("ItemSingle instance should NOT be created on validation error")
+                                        .isEqualTo(initialCount);
                 }
 
                 else {
                         // Item didn't exist before, so no instances should exist now
-                        Optional<Item> postAttemptItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul", "Zara", "F", "Vestido", "Curto", seededShopId);
+                        Optional<Item> postAttemptItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda",
+                                        "Azul", "Zara", "F", "Vestido", "Curto", seededShopId);
                         Assertions.assertThat(postAttemptItem)
-                                .as("Item should NOT be created on validation error")
-                                .isNotPresent();
+                                        .as("Item should NOT be created on validation error")
+                                        .isNotPresent();
                 }
         }
 
@@ -196,17 +204,17 @@ class StaffControllerIT {
         void addItem_notLoggedIn_redirectsToLogin() {
                 // Don't login - use fresh client
                 TestRestTemplate anonClient = new TestRestTemplate();
-                
+
                 ResponseEntity<String> response = anonClient.postForEntity(
-                        url("/magiclook/staff/item"), 
-                        multipartBody(false, null, null), 
-                        String.class);
+                                url("/magiclook/staff/item"),
+                                multipartBody(false, null, null),
+                                String.class);
 
                 Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
                 Assertions.assertThat(response.getHeaders().getLocation())
-                        .isNotNull();
+                                .isNotNull();
                 Assertions.assertThat(response.getHeaders().getLocation().getPath().replaceAll(";jsessionid=.*", ""))
-                        .isEqualTo("/magiclook/staff/login");
+                                .isEqualTo("/magiclook/staff/login");
         }
 
         @Test
@@ -218,32 +226,33 @@ class StaffControllerIT {
                 // Ensure base item exists before uploading image
                 Item ensuredItem = ensureItemExists();
                 Optional<Item> foundItem = Optional.of(ensuredItem);
-                
+
                 // 2. Get initial itemSingle instances for that item
                 Integer initialCount = 0;
                 List<ItemSingle> itemSingles = List.of();
                 if (foundItem.isPresent()) {
 
                         Item item = foundItem.get();
-                        
+
                         itemSingles = itemSingleRepository.findByItem_ItemId(item.getItemId());
                         initialCount = itemSingles.size();
 
                 }
-                
+
                 ResponseEntity<String> response = restTemplate.postForEntity(
-                        url("/magiclook/staff/item"), 
-                        multipartBody(true, null, sessionCookie), 
-                        String.class);
+                                url("/magiclook/staff/item"),
+                                multipartBody(true, null, sessionCookie),
+                                String.class);
 
                 Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-                
+
                 if (foundItem.isEmpty()) {
                         // New type item was created
-                        Optional<Item> newItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul", "Zara", "F", "Vestido", "Curto", seededShopId);
+                        Optional<Item> newItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul",
+                                        "Zara", "F", "Vestido", "Curto", seededShopId);
                         Assertions.assertThat(newItem)
-                                .as("A new item should be created")
-                                .isPresent();
+                                        .as("A new item should be created")
+                                        .isPresent();
 
                         foundItem = newItem;
                 }
@@ -252,44 +261,43 @@ class StaffControllerIT {
 
                 String imagePath = item.getImagePath();
                 Assertions.assertThat(imagePath)
-                        .as("Image path should be set on the item")
-                        .isNotNull()
-                        .isNotEmpty();
+                                .as("Image path should be set on the item")
+                                .isNotNull()
+                                .isNotEmpty();
 
                 // Verify the new instance of itemSingle was created
                 List<ItemSingle> finalItemSingles = itemSingleRepository.findByItem_ItemId(item.getItemId());
                 Integer finalCount = finalItemSingles.size();
 
                 Assertions.assertThat(finalItemSingles)
-                        .as("ItemSingle instances for the item should not be empty")
-                        .isNotEmpty();
+                                .as("ItemSingle instances for the item should not be empty")
+                                .isNotEmpty();
 
                 if (itemSingles.isEmpty()) {
                         Assertions.assertThat(finalItemSingles.get(0).getSize())
-                                .as("ItemSingle instance should be created for the item")
-                                .isEqualTo("M"); 
-                }
-                else {
+                                        .as("ItemSingle instance should be created for the item")
+                                        .isEqualTo("M");
+                } else {
                         List<ItemSingle> newItem = new ArrayList<>(finalItemSingles);
                         newItem.removeAll(itemSingles);
 
                         // Size of item
                         String size = newItem.get(0).getSize();
                         Assertions.assertThat(size)
-                                .as("ItemSingle instance should be created with correct size")
-                                .isEqualTo("M");
+                                        .as("ItemSingle instance should be created with correct size")
+                                        .isEqualTo("M");
                 }
-                
+
                 Assertions.assertThat(finalCount)
-                        .as("ItemSingle instance should be created for the item")
-                        .isEqualTo(initialCount + 1);
+                                .as("ItemSingle instance should be created for the item")
+                                .isEqualTo(initialCount + 1);
         }
 
         @Test
         @Requirement("SCRUM-10")
         @DisplayName("GET /magiclook/staff/item → lists items for logged-in staff")
         void getItems_loggedIn_returnsItemsPage() {
-                        String sessionCookie = loginAsStaff(seededUsername, seededPassword);
+                String sessionCookie = loginAsStaff(seededUsername, seededPassword);
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.add(HttpHeaders.COOKIE, sessionCookie);
@@ -315,12 +323,149 @@ class StaffControllerIT {
                 headers.add(HttpHeaders.COOKIE, sessionCookie);
 
                 ResponseEntity<String> response = restTemplate.exchange(
-                                url("/magiclook/staff/item/" + item.getItemId()), HttpMethod.GET, new HttpEntity<>(headers), String.class);
+                                url("/magiclook/staff/item/" + item.getItemId()), HttpMethod.GET,
+                                new HttpEntity<>(headers), String.class);
 
                 Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
                 Assertions.assertThat(response.getBody())
                                 .contains(item.getName())
                                 .contains("Detalhes do Item");
+        }
+
+        @Test
+        @Requirement("SCRUM-24")
+        @DisplayName("POST /magiclook/staff/item/{id} -> update item")
+        void updateItem_success_updatesItemDetails() {
+                String sessionCookie = loginAsStaff(seededUsername, seededPassword);
+
+                Item item = ensureItemExists();
+                Integer itemId = item.getItemId();
+
+                // Need to use multipart body for Update as well since controller expects valid
+                // fields
+                RestHelper helperParams = new RestHelper();
+                helperParams.map.add("name", "Vestido Atualizado");
+
+                ResponseEntity<String> response = restTemplate.exchange(
+                                url("/magiclook/staff/item/" + itemId),
+                                HttpMethod.POST,
+                                multipartBody(false, helperParams.map, sessionCookie),
+                                String.class);
+
+                Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+
+                Item updatedItem = itemRepository.findById(itemId).orElseThrow();
+                Assertions.assertThat(updatedItem.getName()).isEqualTo("Vestido Atualizado");
+        }
+
+        @Test
+        @Requirement("SCRUM-24")
+        @DisplayName("DELETE /magiclook/staff/item/{id}/size/{size} -> deletes item if last size")
+        void deleteItemSize_lastSize_deletesItemAndSingles() {
+                String sessionCookie = loginAsStaff(seededUsername, seededPassword);
+
+                // Ensure only one size "M" exists (ensureItemExists creates "M" by default)
+                // If there are others, delete them or create new item.
+                // For simplicity, let's create a dedicated item for this test to avoid
+                // collision
+                ItemDTO itemDTO = new ItemDTO(
+                                "DeleteMe", "Seda", "Branco", "NoBrand",
+                                new BigDecimal("10.0"), new BigDecimal("20.0"),
+                                seededShopId, "F", "Vestido", "Curto");
+
+                staffService.addItem(itemDTO, "L");
+
+                Item itemToDelete = itemRepository.findByAllCharacteristics(
+                                "DeleteMe", "Seda", "Branco", "NoBrand",
+                                "F", "Vestido", "Curto", seededShopId).orElseThrow();
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.add(HttpHeaders.COOKIE, sessionCookie);
+
+                ResponseEntity<String> response = restTemplate.exchange(
+                                url("/magiclook/staff/item/" + itemToDelete.getItemId() + "/size/L"),
+                                HttpMethod.DELETE,
+                                new HttpEntity<>(headers),
+                                String.class);
+
+                Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+                // Verify item is gone
+                Optional<Item> checkItem = itemRepository.findById(itemToDelete.getItemId());
+                Assertions.assertThat(checkItem).isEmpty();
+        }
+
+        @Test
+        @Requirement("SCRUM-24")
+        @DisplayName("DELETE /magiclook/staff/item/{id}/size/{size} -> deletes single only")
+        void deleteItemSize_notLastSize_deletesSinglesOnly() {
+                String sessionCookie = loginAsStaff(seededUsername, seededPassword);
+
+                // Create item with 2 sizes (using valid material 'Seda')
+                ItemDTO itemDTO = new ItemDTO(
+                                "MultiSize", "Seda", "Cinza", "NoBrand",
+                                new BigDecimal("10.0"), new BigDecimal("20.0"),
+                                seededShopId, "F", "Vestido", "Curto");
+                staffService.addItem(itemDTO, "S");
+                staffService.addItem(itemDTO, "M");
+
+                Item itemMulti = itemRepository.findByAllCharacteristics(
+                                "MultiSize", "Seda", "Cinza", "NoBrand",
+                                "F", "Vestido", "Curto", seededShopId).orElseThrow();
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.add(HttpHeaders.COOKIE, sessionCookie);
+
+                ResponseEntity<String> response = restTemplate.exchange(
+                                url("/magiclook/staff/item/" + itemMulti.getItemId() + "/size/S"),
+                                HttpMethod.DELETE,
+                                new HttpEntity<>(headers),
+                                String.class);
+
+                Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+                // Verify item still exists
+                Optional<Item> checkItem = itemRepository.findById(itemMulti.getItemId());
+                Assertions.assertThat(checkItem).isPresent();
+
+                // Verify size S is gone
+                List<ItemSingle> singles = itemSingleRepository.findByItem_ItemId(itemMulti.getItemId());
+                Assertions.assertThat(singles).extracting("size").doesNotContain("S").contains("M");
+        }
+
+        @Test
+        @Requirement("SCRUM-25")
+        @DisplayName("POST /magiclook/staff/itemsingle/update/{id} -> updates state and size")
+        void updateItemSingle_success_updatesStateAndSize() {
+                String sessionCookie = loginAsStaff(seededUsername, seededPassword);
+
+                Item item = ensureItemExists();
+                ItemSingle single = itemSingleRepository.findByItem_ItemId(item.getItemId()).get(0);
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.add(HttpHeaders.COOKIE, sessionCookie);
+                headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+                MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+                form.add("size", "L");
+                form.add("state", "RENTED");
+                form.add("itemId", String.valueOf(item.getItemId()));
+
+                ResponseEntity<String> response = restTemplate.exchange(
+                                url("/magiclook/staff/itemsingle/update/" + single.getId()),
+                                HttpMethod.POST,
+                                new HttpEntity<>(form, headers),
+                                String.class);
+
+                Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+                ItemSingle updated = itemSingleRepository.findById(single.getId()).orElseThrow();
+                Assertions.assertThat(updated.getSize()).isEqualTo("L");
+                Assertions.assertThat(updated.getState()).isEqualTo("RENTED");
+        }
+
+        static class RestHelper {
+                public MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         }
 
         // Helper methods
@@ -332,17 +477,18 @@ class StaffControllerIT {
                 form.add("usernameOrEmail", username);
                 form.add("password", password);
 
-                // Use a redirect-disabled RestTemplate to capture Set-Cookie from the initial 302
+                // Use a redirect-disabled RestTemplate to capture Set-Cookie from the initial
+                // 302
                 CloseableHttpClient httpClient = HttpClients.custom()
-                        .disableRedirectHandling()
-                        .build();
+                                .disableRedirectHandling()
+                                .build();
                 RestTemplate noRedirect = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
                 ResponseEntity<Void> response = noRedirect.exchange(
-                        url("/magiclook/staff/login"),
-                        HttpMethod.POST,
-                        new HttpEntity<>(form, headers),
-                        Void.class);
+                                url("/magiclook/staff/login"),
+                                HttpMethod.POST,
+                                new HttpEntity<>(form, headers),
+                                Void.class);
 
                 String raw = response.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
                 if (raw == null) {
@@ -353,9 +499,9 @@ class StaffControllerIT {
         }
 
         private HttpEntity<MultiValueMap<String, Object>> multipartBody(
-                boolean includeImage, 
-                MultiValueMap<String, Object> overrides,
-                String sessionCookie) {
+                        boolean includeImage,
+                        MultiValueMap<String, Object> overrides,
+                        String sessionCookie) {
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.MULTIPART_FORM_DATA);
                 if (sessionCookie != null && !sessionCookie.isBlank()) {
@@ -376,20 +522,20 @@ class StaffControllerIT {
                 body.add("shop", String.valueOf(seededShopId));
 
                 if (includeImage) {
-                Resource image = new ByteArrayResource("fake image content".getBytes()) {
-                        @Override
-                        public String getFilename() {
-                        return "vestido.jpg";
-                        }
-                };
-                body.add("image", image);
+                        Resource image = new ByteArrayResource("fake image content".getBytes()) {
+                                @Override
+                                public String getFilename() {
+                                        return "vestido.jpg";
+                                }
+                        };
+                        body.add("image", image);
                 }
 
                 if (overrides != null) {
-                overrides.forEach((k, values) -> {
-                        body.remove(k);
-                        values.forEach(v -> body.add(k, v));
-                });
+                        overrides.forEach((k, values) -> {
+                                body.remove(k);
+                                values.forEach(v -> body.add(k, v));
+                        });
                 }
 
                 return new HttpEntity<>(body, headers);
@@ -399,33 +545,33 @@ class StaffControllerIT {
                 return URI.create("http://localhost:" + port + path);
         }
 
-        // Ensure there is at least one item associated with the seeded shop for detail tests
+        // Ensure there is at least one item associated with the seeded shop for detail
+        // tests
         private Item ensureItemExists() {
                 Optional<Item> foundItem = itemRepository.findByAllCharacteristics(
-                        "Vestido Azul", "Seda", "Azul", "Zara", "F", "Vestido", "Curto", seededShopId);
+                                "Vestido Azul", "Seda", "Azul", "Zara", "F", "Vestido", "Curto", seededShopId);
 
                 if (foundItem.isPresent()) {
                         return foundItem.get();
                 }
 
                 ItemDTO itemDTO = new ItemDTO(
-                        "Vestido Azul",
-                        "Seda",
-                        "Azul",
-                        "Zara",
-                        new BigDecimal("250.00"),
-                        new BigDecimal("5000.00"),
-                        seededShopId,
-                        "F",
-                        "Vestido",
-                        "Curto"
-                );
+                                "Vestido Azul",
+                                "Seda",
+                                "Azul",
+                                "Zara",
+                                new BigDecimal("250.00"),
+                                new BigDecimal("5000.00"),
+                                seededShopId,
+                                "F",
+                                "Vestido",
+                                "Curto");
 
                 int result = staffService.addItem(itemDTO, "M");
                 Assertions.assertThat(result).isZero();
 
                 return itemRepository.findByAllCharacteristics(
-                        "Vestido Azul", "Seda", "Azul", "Zara", "F", "Vestido", "Curto", seededShopId)
-                        .orElseThrow();
+                                "Vestido Azul", "Seda", "Azul", "Zara", "F", "Vestido", "Curto", seededShopId)
+                                .orElseThrow();
         }
 }
