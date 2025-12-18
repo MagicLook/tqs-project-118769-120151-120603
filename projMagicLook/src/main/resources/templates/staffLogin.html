@@ -7,7 +7,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-image: url('/img/fundoLogin.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -68,16 +71,13 @@
                     <div class="mb-3">
                         <label for="usernameOrEmail" class="form-label">Username ou Email</label>
                         <input type="text" class="form-control" id="usernameOrEmail" 
-                               name="usernameOrEmail" required
-                               placeholder="username ou email@magiclook.com">
-                        <small class="text-muted">Pode usar username ou email para fazer login</small>
+                               name="usernameOrEmail" required>
                     </div>
                     
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <input type="password" class="form-control" id="password" 
-                               name="password" required
-                               placeholder="••••••••">
+                               name="password" required>
                     </div>
                     
                     <div class="d-grid gap-2">
@@ -92,33 +92,22 @@
                 <!-- Credenciais de teste -->
                 <div class="staff-credentials">
                     <h6 class="mb-3"><i class="fas fa-key"></i> Credenciais de Teste</h6>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <small class="text-muted d-block">Username:</small>
-                            <code>anasi</code>
-                        </div>
-                        <div class="col-md-6">
-                            <small class="text-muted d-block">Password:</small>
-                            <code>admin123</code>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-6">
-                            <small class="text-muted d-block">Email:</small>
-                            <code>ana.silva@magiclook.com</code>
-                        </div>
-                        <div class="col-md-6">
-                            <small class="text-muted d-block">Loja:</small>
-                            <span>Loja Centro</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="text-center mt-3">
-                    <p class="mb-2">Não é staff?</p>
-                    <a th:href="@{/magiclook/login}" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-user"></i> Ir para Login de Cliente
-                    </a>
+                    <p class="mb-2">
+                        <small class="text-muted d-block">Username:</small>
+                        <code>admin</code>
+                    </p>
+                    <p class="mb-2">
+                        <small class="text-muted d-block">Password:</small>
+                        <code>admin123</code>
+                    </p>
+                    <p class="mb-2">
+                        <small class="text-muted d-block">Email:</small>
+                        <code>ana.silva@magiclook.com</code>
+                    </p>
+                    <p class="mb-0">
+                        <small class="text-muted d-block">Loja:</small>
+                        <span>Loja Centro</span>
+                    </p>
                 </div>
             </div>
         </div>

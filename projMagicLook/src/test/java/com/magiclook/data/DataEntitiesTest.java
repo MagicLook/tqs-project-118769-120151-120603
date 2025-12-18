@@ -1,135 +1,196 @@
 package com.magiclook.data;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-class AllDataEntitiesTest {
-
+public class DataEntitiesTest {
+    
+    private Item item;
+    private Shop shop;
+    private ItemType itemType;
+    private User user;
+    private Booking booking;
+    
+    @BeforeEach
+    public void setUp() {
+        // Create shop
+        shop = new Shop("Test Shop", "Test Location");
+        shop.setShopId(1);
+        
+        // Create item type
+        itemType = new ItemType("M", "Clothing", "Shirt");
+        itemType.setId(1);
+        
+        // Create item
+        item = new Item(
+            "Test Shirt",
+            "Cotton",
+            "Blue",
+            "Test Brand",
+            new BigDecimal("19.99"),
+            new BigDecimal("99.99"),
+            shop,
+            itemType
+        );
+        item.setItemId(1);
+        
+        // Create user
+        user = new User(
+            "John",
+            "Doe",
+            "john@test.com",
+            "123456789",
+            "password123",
+            "johndoe"
+        );
+        user.setUserId(UUID.randomUUID());
+        
+        // Create booking dates
+        Date pickupDate = new Date(System.currentTimeMillis() + 86400000); // Tomorrow
+        Date startUseDate = new Date(System.currentTimeMillis() + 172800000); // Day after tomorrow
+        Date endUseDate = new Date(System.currentTimeMillis() + 259200000); // 3 days from now
+        Date returnDate = new Date(System.currentTimeMillis() + 345600000); // 4 days from now
+        
+        // Create booking
+        booking = new Booking();
+        booking.setBookingId(UUID.randomUUID());
+        booking.setPickupDate(pickupDate);
+        booking.setStartUseDate(startUseDate);
+        booking.setEndUseDate(endUseDate);
+        booking.setReturnDate(returnDate);
+        booking.setTotalDays(2);
+        booking.setTotalPrice(new BigDecimal("39.98"));
+        booking.setState("CONFIRMED");
+        booking.setItem(item);
+        booking.setUser(user);
+    }
+    
     @Test
-    void testAllEntities() {
-        // Testar User
-        User user = new User();
-        UUID userId = UUID.randomUUID();
-        user.setUserId(userId);
-        user.setFirstName("John");
-        user.setLastName("Doe");
-        user.setEmail("john@test.com");
-        user.setUsername("john");
-        user.setPassword("pass123");
-        user.setTelephone("912345678");
-
-        assertEquals(userId, user.getUserId());
+    public void testBookingCreation() {
+        assertNotNull(booking);
+        assertNotNull(booking.getBookingId());
+        assertEquals("CONFIRMED", booking.getState());
+        assertEquals(item, booking.getItem());
+        assertEquals(user, booking.getUser());
+        assertEquals(2, booking.getTotalDays());
+        assertEquals(new BigDecimal("39.98"), booking.getTotalPrice());
+    }
+    
+    @Test
+    public void testBookingDates() {
+        assertNotNull(booking.getPickupDate());
+        assertNotNull(booking.getStartUseDate());
+        assertNotNull(booking.getEndUseDate());
+        assertNotNull(booking.getReturnDate());
+        
+        // Verify dates are in correct order
+        assertTrue(booking.getPickupDate().before(booking.getStartUseDate()));
+        assertTrue(booking.getStartUseDate().before(booking.getEndUseDate()));
+        assertTrue(booking.getEndUseDate().before(booking.getReturnDate()));
+    }
+    
+    @Test
+    public void testCalculateUseDays() {
+        // Create dates with known difference
+        Date start = new Date();
+        Date end = new Date(start.getTime() + (3 * 86400000)); // 3 days later
+        
+        booking.setStartUseDate(start);
+        booking.setEndUseDate(end);
+        
+        // Calculate difference in days
+        long diff = end.getTime() - start.getTime();
+        long expectedDays = (diff / (1000 * 60 * 60 * 24)) + 1;
+        
+        assertEquals(expectedDays, booking.calculateUseDays());
+    }
+    
+    @Test
+    public void testItemCreation() {
+        assertNotNull(item);
+        assertEquals("Test Shirt", item.getName());
+        assertEquals("Cotton", item.getMaterial());
+        assertEquals("Blue", item.getColor());
+        assertEquals("Test Brand", item.getBrand());
+        assertEquals(new BigDecimal("19.99"), item.getPriceRent());
+        assertEquals(new BigDecimal("99.99"), item.getPriceSale());
+        assertEquals(shop, item.getShop());
+        assertEquals(itemType, item.getItemType());
+    }
+    
+    @Test
+    public void testItemAvailability() {
+        // Initially available
+        assertTrue(item.isAvailable());
+        
+        // Set as unavailable
+        item.setAvailable(false);
+        assertFalse(item.isAvailable());
+        
+        // Set next available date
+        Date nextDate = new Date();
+        item.setNextAvailableDate(nextDate);
+        assertEquals(nextDate, item.getNextAvailableDate());
+    }
+    
+    @Test
+    public void testUserCreation() {
+        assertNotNull(user);
         assertEquals("John", user.getFirstName());
         assertEquals("Doe", user.getLastName());
         assertEquals("john@test.com", user.getEmail());
-        assertEquals("john", user.getUsername());
-        assertEquals("pass123", user.getPassword());
-        assertEquals("912345678", user.getTelephone());
+        assertEquals("123456789", user.getTelephone());
+        assertEquals("johndoe", user.getUsername());
+        assertEquals("password123", user.getPassword());
         assertEquals("John Doe", user.getFullName());
-
-        // Testar User com construtor
-        User user2 = new User("Jane", "Smith", "jane@test.com", "987654321", "pass456", "jane");
-        assertEquals("Jane", user2.getFirstName());
-        assertEquals("Smith", user2.getLastName());
-        assertEquals("Jane Smith", user2.getFullName());
-
-        // Testar Staff
-        Shop shop = new Shop();
-        shop.setShopId(1);
-        shop.setName("Loja Teste");
-        shop.setLocation("Localização");
-
-        Staff staff = new Staff();
-        UUID staffId = UUID.randomUUID();
-        staff.setStaffId(staffId);
-        staff.setName("Staff Name");
-        staff.setEmail("staff@test.com");
-        staff.setUsername("staffuser");
-        staff.setPassword("pass123");
-        staff.setShop(shop);
-        staff.setRole("ADMIN");
-
-        assertEquals(staffId, staff.getStaffId());
-        assertEquals("Staff Name", staff.getName());
-        assertEquals("staff@test.com", staff.getEmail());
-        assertEquals("staffuser", staff.getUsername());
-        assertEquals("pass123", staff.getPassword());
-        assertEquals(shop, staff.getShop());
-        assertEquals("ADMIN", staff.getRole());
-
-        // Testar Shop
+    }
+    
+    @Test
+    public void testShopCreation() {
+        assertNotNull(shop);
+        assertEquals("Test Shop", shop.getName());
+        assertEquals("Test Location", shop.getLocation());
         assertEquals(1, shop.getShopId());
-        assertEquals("Loja Teste", shop.getName());
-        assertEquals("Localização", shop.getLocation());
-
-        Shop shop2 = new Shop("Nova Loja", "Nova Localização");
-        assertEquals("Nova Loja", shop2.getName());
-        assertEquals("Nova Localização", shop2.getLocation());
-
-        // Testar ItemType
-        ItemType itemType = new ItemType();
-        itemType.setId(1);
-        itemType.setGender("M");
-        itemType.setCategory("Camiseta");
-
-        assertEquals(1, itemType.getId());
+    }
+    
+    @Test
+    public void testItemTypeCreation() {
+        assertNotNull(itemType);
         assertEquals("M", itemType.getGender());
-        assertEquals("Camiseta", itemType.getCategory());
-
-        ItemType itemType2 = new ItemType("F", "Vestido", "Curto");
-        assertEquals("F", itemType2.getGender());
-        assertEquals("Vestido", itemType2.getCategory());
-
-        // Testar Item
-        Item item = new Item();
-        item.setItemId(1);
-        item.setName("Camiseta");
-        item.setMaterial("Algodão");
-        item.setColor("Azul");
-        item.setBrand("Marca");
-        item.setPriceRent(new BigDecimal("10.00"));
-        item.setPriceSale(new BigDecimal("50.00"));
-        item.setShop(shop);
-        item.setItemType(itemType);
-
-        assertEquals(1, item.getItemId());
-        assertEquals("Camiseta", item.getName());
-        assertEquals("Algodão", item.getMaterial());
-        assertEquals("Azul", item.getColor());
-        assertEquals("Marca", item.getBrand());
-        assertEquals(new BigDecimal("10.00"), item.getPriceRent());
-        assertEquals(new BigDecimal("50.00"), item.getPriceSale());
-        assertEquals(shop, item.getShop());
-        assertEquals(itemType, item.getItemType());
-
-        // Testar Booking
-        Booking booking = new Booking();
-        UUID bookingId = UUID.randomUUID();
-        Date now = new Date();
-        booking.setBookingId(bookingId);
-        booking.setBookingDate(now);
-        booking.setReturnDate(now);
-        booking.setState("ACTIVE");
-        booking.setItem(item);
-        booking.setUser(user);
-
-        assertEquals(bookingId, booking.getBookingId());
-        assertEquals(now, booking.getBookingDate());
-        assertEquals(now, booking.getReturnDate());
-        assertEquals("ACTIVE", booking.getState());
-        assertEquals(item, booking.getItem());
-        assertEquals(user, booking.getUser());
-
-        // Testar Booking com construtor
-        Booking booking2 = new Booking(now, now, "PENDING", item);
-        assertEquals(now, booking2.getBookingDate());
-        assertEquals(now, booking2.getReturnDate());
-        assertEquals("PENDING", booking2.getState());
-        assertEquals(item, booking2.getItem());
+        assertEquals("Clothing", itemType.getCategory());
+        assertEquals("Shirt", itemType.getSubcategory());
+        assertEquals(1, itemType.getId());
+    }
+    
+    @Test
+    public void testBookingConstructor() {
+        Date pickupDate = new Date();
+        Date startUseDate = new Date(pickupDate.getTime() + 86400000);
+        Date endUseDate = new Date(startUseDate.getTime() + 86400000);
+        Date returnDate = new Date(endUseDate.getTime() + 86400000);
+        
+        Booking newBooking = new Booking(
+            pickupDate,
+            startUseDate,
+            endUseDate,
+            returnDate,
+            "PENDING",
+            item,
+            user
+        );
+        
+        assertNotNull(newBooking);
+        assertEquals(pickupDate, newBooking.getPickupDate());
+        assertEquals(startUseDate, newBooking.getStartUseDate());
+        assertEquals(endUseDate, newBooking.getEndUseDate());
+        assertEquals(returnDate, newBooking.getReturnDate());
+        assertEquals("PENDING", newBooking.getState());
+        assertEquals(item, newBooking.getItem());
+        assertEquals(user, newBooking.getUser());
+        assertNotNull(newBooking.getCreatedAt());
     }
 }

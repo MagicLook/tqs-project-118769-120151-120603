@@ -199,7 +199,7 @@ public class UserControllerTest {
         filter.setColor("Blue");
         
         List<Item> filteredItems = createTestItems(2);
-        when(itemService.searchItemsWithFilters("M", "Blue", null, null, null, null, null))
+        when(itemService.searchItemsWithFilters("M", "Blue", null, null, null, null, null, null))
             .thenReturn(filteredItems);
         
         String viewName = userController.filterItems("men", filter, session, model);

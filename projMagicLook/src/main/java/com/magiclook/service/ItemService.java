@@ -5,10 +5,10 @@ import com.magiclook.data.ItemSingle;
 import com.magiclook.data.Shop;
 import com.magiclook.repository.ItemRepository;
 import com.magiclook.repository.ItemSingleRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ItemService {
@@ -35,11 +35,9 @@ public class ItemService {
     }
 
     public List<Item> getRecentItems(int limit) {
-        List<Item> allItems = itemRepository.findAll();
-        if (allItems.size() > limit) {
-            return allItems.subList(0, limit);
-        }
-        return allItems;
+        return itemRepository.findAll().stream()
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
     public List<String> getAllDistinctColors() {
@@ -57,12 +55,25 @@ public class ItemService {
     public List<String> getAllDistinctCategories() {
         return itemRepository.findAllDistinctCategories();
     }
+    
+    public List<String> getAllDistinctShopLocations() {
+        return itemRepository.findAllDistinctShopLocations();
+    }
 
     public List<Item> searchItemsWithFilters(String gender, String color, String brand, 
                                              String material, String category, 
+                                             String shopLocation,
                                              Double minPrice, Double maxPrice) {
-        return itemRepository.findByGenderAndFilters(gender, color, brand, material, 
-                                                    category, minPrice, maxPrice);
+        // Converter strings vazias para null
+        String cleanedColor = (color == null || color.isEmpty()) ? null : color;
+        String cleanedBrand = (brand == null || brand.isEmpty()) ? null : brand;
+        String cleanedMaterial = (material == null || material.isEmpty()) ? null : material;
+        String cleanedCategory = (category == null || category.isEmpty()) ? null : category;
+        String cleanedShopLocation = (shopLocation == null || shopLocation.isEmpty()) ? null : shopLocation;
+        
+        return itemRepository.findByGenderAndFilters(gender, cleanedColor, cleanedBrand, 
+                                                    cleanedMaterial, cleanedCategory,
+                                                    cleanedShopLocation, minPrice, maxPrice);
     }
 
     public List<Item> getAllItemsByState(String state) {
@@ -78,6 +89,14 @@ public class ItemService {
     }
     
     public Item getItemById(Integer itemId) {
-        return itemRepository.findById(itemId).orElse(null);
+        if (itemId == null) {
+            return null;
+        }
+        try {
+            return itemRepository.findById(itemId).orElse(null);
+        } catch (Exception e) {
+            System.err.println("Erro ao buscar item com ID " + itemId + ": " + e.getMessage());
+            return null;
+        }
     }
 }

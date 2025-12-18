@@ -261,10 +261,11 @@ public class StaffService extends ClientService {
             shops = shopRepository.saveAll(shops);
 
             List<Staff> staffList = Arrays.asList(
-                    new Staff("Ana Silva", "ana.silva@magiclook.com", "admin123", "anasi", shops.get(0)),
-                    new Staff("Carlos Santos", "carlos.santos@magiclook.com", "admin456", "carloss", shops.get(1)),
-                    new Staff("Maria Oliveira", "maria.oliveira@magiclook.com", "admin789", "mariao", shops.get(2)));
-
+                new Staff("Ana Silva", "ana.silva@magiclook.com", "admin123", "admin", shops.get(0)),
+                new Staff("Carlos Santos", "carlos.santos@magiclook.com", "admin456", "carloss", shops.get(1)),
+                new Staff("Maria Oliveira", "maria.oliveira@magiclook.com", "admin789", "mariao", shops.get(2))
+            );
+            
             seedDefaultItems();
 
             staffRepository.saveAll(staffList);

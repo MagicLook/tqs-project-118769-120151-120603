@@ -89,42 +89,42 @@ class ItemServiceTest {
     @Test
     void testSearchItemsWithFilters_WithDifferentFilterCombinations() {
         // Test 1: Filter by color only
-        when(itemRepository.findByGenderAndFilters("M", "Blue", null, null, null, null, null))
+        when(itemRepository.findByGenderAndFilters("M", "Blue", null, null, null, null, null, null))
             .thenReturn(Arrays.asList(shirt));
         
-        List<Item> blueItems = itemService.searchItemsWithFilters("M", "Blue", null, null, null, null, null);
+        List<Item> blueItems = itemService.searchItemsWithFilters("M", "Blue", null, null, null, null, null, null);
         assertThat(blueItems).hasSize(1);
         assertThat(blueItems.get(0).getColor()).isEqualTo("Blue");
 
         // Test 2: Filter by brand and category
-        when(itemRepository.findByGenderAndFilters("M", null, "Zara", null, "Shirt", null, null))
+        when(itemRepository.findByGenderAndFilters("M", null, "Zara", null, "Shirt", null, null, null))
             .thenReturn(Arrays.asList(shirt));
         
-        List<Item> zaraShirts = itemService.searchItemsWithFilters("M", null, "Zara", null, "Shirt", null, null);
+        List<Item> zaraShirts = itemService.searchItemsWithFilters("M", null, "Zara", null, "Shirt", null, null, null);
         assertThat(zaraShirts).hasSize(1);
 
         // Test 3: Filter by price range
-        when(itemRepository.findByGenderAndFilters("M", null, null, null, null, 30.0, 40.0))
+        when(itemRepository.findByGenderAndFilters("M", null, null, null, null, null, 30.0, 40.0))
             .thenReturn(Arrays.asList(pants));
         
-        List<Item> priceFiltered = itemService.searchItemsWithFilters("M", null, null, null, null, 30.0, 40.0);
+        List<Item> priceFiltered = itemService.searchItemsWithFilters("M", null, null, null, null, null, 30.0, 40.0);
         assertThat(priceFiltered).hasSize(1);
         assertThat(priceFiltered.get(0).getName()).isEqualTo("Black Pants");
 
         // Test 4: Complex filter combination
-        when(itemRepository.findByGenderAndFilters("F", "Red", "Mango", "Silk", "Dress", 40.0, 60.0))
+        when(itemRepository.findByGenderAndFilters("F", "Red", "Mango", "Silk", "Dress", null, 40.0, 60.0))
             .thenReturn(Arrays.asList(dress));
         
-        List<Item> complexFilter = itemService.searchItemsWithFilters("F", "Red", "Mango", "Silk", "Dress", 40.0, 60.0);
+        List<Item> complexFilter = itemService.searchItemsWithFilters("F", "Red", "Mango", "Silk", "Dress", null, 40.0, 60.0);
         assertThat(complexFilter).hasSize(1);
     }
 
     @Test
     void testSearchItemsWithFilters_WithNullFilters_ReturnsAllGenderItems() {
-        when(itemRepository.findByGenderAndFilters("M", null, null, null, null, null, null))
+        when(itemRepository.findByGenderAndFilters("M", null, null, null, null, null, null, null))
             .thenReturn(Arrays.asList(shirt, pants));
         
-        List<Item> allMaleItems = itemService.searchItemsWithFilters("M", null, null, null, null, null, null);
+        List<Item> allMaleItems = itemService.searchItemsWithFilters("M", null, null, null, null, null, null, null);
         assertThat(allMaleItems).hasSize(2);
     }
 

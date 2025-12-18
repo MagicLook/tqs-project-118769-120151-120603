@@ -63,7 +63,7 @@ class StaffControllerIT {
 
         @BeforeEach
         void setUp() {
-                seededUsername = "anasi";
+                seededUsername = "admin";
                 seededPassword = "admin123";
 
                 Staff staff = staffService.login(seededUsername, seededPassword);
