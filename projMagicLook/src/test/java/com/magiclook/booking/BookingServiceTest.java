@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -635,5 +636,388 @@ public class BookingServiceTest {
         assertEquals(50, info.getPercent());
         assertEquals(new BigDecimal("50.00"), info.getAmount());
         verify(bookingRepository, times(1)).save(testBooking);
+    }
+
+    @Test
+    void testCreateSimpleBooking_Success() {
+        LocalDate startDate = LocalDate.now().plusDays(7);
+        LocalDate endDate = LocalDate.now().plusDays(10);
+        
+        when(itemRepository.findById(anyInt()))
+            .thenReturn(Optional.of(testItem));
+        
+        // Mock para isItemAvailable
+        when(itemSingleRepository.findByItem_ItemId(anyInt()))
+            .thenReturn(List.of(testItemSingle));
+        
+        when(bookingRepository.countOverlappingBookingsForItemSingle(
+            any(UUID.class), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(0L);
+        
+        when(bookingRepository.save(any(Booking.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+        
+        Booking result = bookingService.createSimpleBooking(
+            testItem.getItemId(), startDate, endDate, testUser);
+        
+        assertNotNull(result);
+        assertEquals(testItem, result.getItem());
+        assertEquals(testUser, result.getUser());
+        assertEquals("CONFIRMED", result.getState());
+        assertNotNull(result.getTotalPrice());
+        assertTrue(result.getTotalPrice().compareTo(BigDecimal.ZERO) > 0);
+        
+        verify(itemRepository, times(1)).findById(testItem.getItemId());
+        verify(bookingRepository, times(1)).save(any(Booking.class));
+    }
+
+    @Test
+    void testCreateSimpleBooking_ItemNotFound() {
+        LocalDate startDate = LocalDate.now().plusDays(7);
+        LocalDate endDate = LocalDate.now().plusDays(10);
+        
+        when(itemRepository.findById(anyInt()))
+            .thenReturn(Optional.empty());
+        
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            bookingService.createSimpleBooking(1, startDate, endDate, testUser);
+        });
+        
+        assertEquals("Item não encontrado", exception.getMessage());
+        verify(itemRepository, times(1)).findById(1);
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    void testCreateSimpleBooking_ItemNotAvailable() {
+        LocalDate startDate = LocalDate.now().plusDays(7);
+        LocalDate endDate = LocalDate.now().plusDays(10);
+        
+        when(itemRepository.findById(anyInt()))
+            .thenReturn(Optional.of(testItem));
+        
+        // Mock para isItemAvailable retornar false
+        when(itemSingleRepository.findByItem_ItemId(anyInt()))
+            .thenReturn(List.of(testItemSingle));
+        
+        when(bookingRepository.countOverlappingBookingsForItemSingle(
+            any(UUID.class), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(1L); // Indica que há sobreposição, não disponível
+        
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            bookingService.createSimpleBooking(testItem.getItemId(), startDate, endDate, testUser);
+        });
+        
+        assertEquals("Item não disponível nas datas selecionadas", exception.getMessage());
+        verify(itemRepository, times(1)).findById(testItem.getItemId());
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    void testCreateSimpleBooking_NoAvailableItemSingle() {
+        LocalDate startDate = LocalDate.now().plusDays(7);
+        LocalDate endDate = LocalDate.now().plusDays(10);
+        
+        when(itemRepository.findById(anyInt()))
+            .thenReturn(Optional.of(testItem));
+        
+        // Mock para isItemAvailable retornar true (apenas para passar a primeira verificação)
+        when(itemSingleRepository.findByItem_ItemId(anyInt()))
+            .thenReturn(List.of(testItemSingle));
+        
+        when(bookingRepository.countOverlappingBookingsForItemSingle(
+            any(UUID.class), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(0L); // Para isItemAvailable
+        
+        // Mas para findAvailableItemSingleForDates, vamos retornar null
+        // Precisamos mockar o método findAvailableItemSingleForDates indiretamente
+        // Como é um método privado, vamos simular a situação onde não há ItemSingle disponível
+        // Vamos garantir que a consulta para encontrar ItemSingle disponível falhe
+        when(itemSingleRepository.findByItem_ItemId(testItem.getItemId()))
+            .thenReturn(List.of(testItemSingle)) // Para isItemAvailable
+            .thenReturn(List.of()); // Para a segunda chamada em findAvailableItemSingleForDates
+        
+        // Ou podemos mockar para que countOverlappingBookingsForItemSingle retorne 1 na segunda chamada
+        when(bookingRepository.countOverlappingBookingsForItemSingle(
+            any(UUID.class), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(0L) // Para isItemAvailable
+            .thenReturn(1L); // Para findAvailableItemSingleForDates
+        
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            bookingService.createSimpleBooking(testItem.getItemId(), startDate, endDate, testUser);
+        });
+        
+        assertEquals("Nenhuma unidade disponível para as datas selecionadas", exception.getMessage());
+        verify(itemRepository, times(1)).findById(testItem.getItemId());
+        verify(bookingRepository, never()).save(any(Booking.class));
+    }
+
+    @Test
+    void testGetAvailableSizesForItem_Success() {
+        // Criar vários ItemSingles com diferentes tamanhos
+        ItemSingle itemSingleM = new ItemSingle("AVAILABLE", testItem, "M");
+        ItemSingle itemSingleL = new ItemSingle("AVAILABLE", testItem, "L");
+        ItemSingle itemSingleS = new ItemSingle("AVAILABLE", testItem, "S");
+        ItemSingle itemSingleUnavailable = new ItemSingle("MAINTENANCE", testItem, "XL");
+        
+        List<ItemSingle> itemSingles = List.of(
+            itemSingleM, itemSingleL, itemSingleS, itemSingleUnavailable
+        );
+        
+        when(itemSingleRepository.findByItem_ItemId(testItem.getItemId()))
+            .thenReturn(itemSingles);
+        
+        List<String> sizes = bookingService.getAvailableSizesForItem(testItem.getItemId());
+        
+        assertNotNull(sizes);
+        assertEquals(3, sizes.size()); // Apenas "AVAILABLE"
+        assertTrue(sizes.contains("M"));
+        assertTrue(sizes.contains("L"));
+        assertTrue(sizes.contains("S"));
+        assertFalse(sizes.contains("XL")); // Não disponível
+        
+        // Verificar se está ordenado
+        assertEquals("L", sizes.get(0));
+        assertEquals("M", sizes.get(1));
+        assertEquals("S", sizes.get(2));
+        
+        verify(itemSingleRepository, times(1)).findByItem_ItemId(testItem.getItemId());
+    }
+
+    @Test
+    void testGetAvailableSizesForItem_Empty() {
+        when(itemSingleRepository.findByItem_ItemId(testItem.getItemId()))
+            .thenReturn(List.of());
+        
+        List<String> sizes = bookingService.getAvailableSizesForItem(testItem.getItemId());
+        
+        assertNotNull(sizes);
+        assertTrue(sizes.isEmpty());
+        verify(itemSingleRepository, times(1)).findByItem_ItemId(testItem.getItemId());
+    }
+
+    @Test
+    void testGetAvailableSizesForItem_NoAvailableState() {
+        ItemSingle itemSingle1 = new ItemSingle("MAINTENANCE", testItem, "M");
+        ItemSingle itemSingle2 = new ItemSingle("DAMAGED", testItem, "L");
+        
+        when(itemSingleRepository.findByItem_ItemId(testItem.getItemId()))
+            .thenReturn(List.of(itemSingle1, itemSingle2));
+        
+        List<String> sizes = bookingService.getAvailableSizesForItem(testItem.getItemId());
+        
+        assertNotNull(sizes);
+        assertTrue(sizes.isEmpty());
+        verify(itemSingleRepository, times(1)).findByItem_ItemId(testItem.getItemId());
+    }
+
+    @Test
+    void testGetSizeAvailabilityCount_Success() {
+        // Criar ItemSingles com diferentes tamanhos e estados
+        ItemSingle itemSingleM1 = new ItemSingle("AVAILABLE", testItem, "M");
+        ItemSingle itemSingleM2 = new ItemSingle("AVAILABLE", testItem, "M");
+        ItemSingle itemSingleL = new ItemSingle("AVAILABLE", testItem, "L");
+        ItemSingle itemSingleS = new ItemSingle("AVAILABLE", testItem, "S");
+        ItemSingle itemSingleMaintenance = new ItemSingle("MAINTENANCE", testItem, "M");
+        ItemSingle itemSingleNullSize = new ItemSingle("AVAILABLE", testItem, null);
+        
+        List<ItemSingle> itemSingles = List.of(
+            itemSingleM1, itemSingleM2, itemSingleL, 
+            itemSingleS, itemSingleMaintenance, itemSingleNullSize
+        );
+        
+        when(itemSingleRepository.findByItem_ItemId(testItem.getItemId()))
+            .thenReturn(itemSingles);
+        
+        Map<String, Integer> sizeCount = bookingService.getSizeAvailabilityCount(testItem.getItemId());
+        
+        assertNotNull(sizeCount);
+        assertEquals(4, sizeCount.size()); // M, L, S, Único
+        
+        // Verificar contagens
+        assertEquals(2, sizeCount.get("M")); // Apenas 2 disponíveis
+        assertEquals(1, sizeCount.get("L"));
+        assertEquals(1, sizeCount.get("S"));
+        assertEquals(1, sizeCount.get("Único")); // Tamanho null é "Único"
+        
+        // "MAINTENANCE" não deve ser contado
+        assertFalse(sizeCount.containsKey("MAINTENANCE"));
+        
+        verify(itemSingleRepository, times(1)).findByItem_ItemId(testItem.getItemId());
+    }
+
+    @Test
+    void testGetSizeAvailabilityCount_Empty() {
+        when(itemSingleRepository.findByItem_ItemId(testItem.getItemId()))
+            .thenReturn(List.of());
+        
+        Map<String, Integer> sizeCount = bookingService.getSizeAvailabilityCount(testItem.getItemId());
+        
+        assertNotNull(sizeCount);
+        assertTrue(sizeCount.isEmpty());
+        verify(itemSingleRepository, times(1)).findByItem_ItemId(testItem.getItemId());
+    }
+
+    @Test
+    void testGetSizeAvailabilityForDates_Success() {
+        // Configurar datas
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 7);
+        Date startUseDate = cal.getTime();
+        
+        cal.add(Calendar.DAY_OF_MONTH, 3);
+        Date endUseDate = cal.getTime();
+        
+        // Criar ItemSingles
+        ItemSingle itemSingleM1 = new ItemSingle("AVAILABLE", testItem, "M");
+        ItemSingle itemSingleM2 = new ItemSingle("AVAILABLE", testItem, "M");
+        ItemSingle itemSingleL = new ItemSingle("AVAILABLE", testItem, "L");
+        ItemSingle itemSingleS = new ItemSingle("AVAILABLE", testItem, "S");
+        ItemSingle itemSingleUnavailable = new ItemSingle("MAINTENANCE", testItem, "XL");
+        // Atribuir IDs únicos para garantir stubs por id funcionem corretamente
+        try {
+            java.lang.reflect.Field idField = ItemSingle.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(itemSingleM1, UUID.randomUUID());
+            idField.set(itemSingleM2, UUID.randomUUID());
+            idField.set(itemSingleL, UUID.randomUUID());
+            idField.set(itemSingleS, UUID.randomUUID());
+            idField.set(itemSingleUnavailable, UUID.randomUUID());
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+        
+        List<ItemSingle> itemSingles = List.of(
+            itemSingleM1, itemSingleM2, itemSingleL, 
+            itemSingleS, itemSingleUnavailable
+        );
+        
+        when(itemSingleRepository.findByItem_ItemId(testItem.getItemId()))
+            .thenReturn(itemSingles);
+        
+        // Mock para countOverlappingBookingsForItemSingle
+        when(bookingRepository.countOverlappingBookingsForItemSingle(
+            eq(itemSingleM1.getId()), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(0L);
+        when(bookingRepository.countOverlappingBookingsForItemSingle(
+            eq(itemSingleM2.getId()), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(1L);
+        when(bookingRepository.countOverlappingBookingsForItemSingle(
+            eq(itemSingleL.getId()), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(0L);
+        when(bookingRepository.countOverlappingBookingsForItemSingle(
+            eq(itemSingleS.getId()), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(0L);
+        
+        Map<String, Integer> availability = bookingService.getSizeAvailabilityForDates(
+            testItem.getItemId(), startUseDate, endUseDate);
+        
+        assertNotNull(availability);
+        assertEquals(3, availability.size()); // M, L, S (XL não está disponível fisicamente)
+        
+        // Verificar contagens
+        assertEquals(1, availability.get("M")); // Apenas 1 dos 2 está disponível
+        assertEquals(1, availability.get("L"));
+        assertEquals(1, availability.get("S"));
+        assertFalse(availability.containsKey("XL"));
+        
+        verify(itemSingleRepository, times(1)).findByItem_ItemId(testItem.getItemId());
+    }
+
+    @Test
+    void testGetSizeAvailabilityForDates_AllUnavailable() {
+        // Configurar datas
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 7);
+        Date startUseDate = cal.getTime();
+        
+        cal.add(Calendar.DAY_OF_MONTH, 3);
+        Date endUseDate = cal.getTime();
+        
+        // Criar ItemSingles todos com sobreposição
+        ItemSingle itemSingleM = new ItemSingle("AVAILABLE", testItem, "M");
+        ItemSingle itemSingleL = new ItemSingle("AVAILABLE", testItem, "L");
+        // Atribuir IDs únicos
+        try {
+            java.lang.reflect.Field idField2 = ItemSingle.class.getDeclaredField("id");
+            idField2.setAccessible(true);
+            idField2.set(itemSingleM, UUID.randomUUID());
+            idField2.set(itemSingleL, UUID.randomUUID());
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+        
+        List<ItemSingle> itemSingles = List.of(itemSingleM, itemSingleL);
+        
+        when(itemSingleRepository.findByItem_ItemId(testItem.getItemId()))
+            .thenReturn(itemSingles);
+        
+        // Todos têm sobreposição
+        when(bookingRepository.countOverlappingBookingsForItemSingle(
+            eq(itemSingleM.getId()), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(1L);
+        when(bookingRepository.countOverlappingBookingsForItemSingle(
+            eq(itemSingleL.getId()), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(1L);
+        
+        Map<String, Integer> availability = bookingService.getSizeAvailabilityForDates(
+            testItem.getItemId(), startUseDate, endUseDate);
+        
+        assertNotNull(availability);
+        assertTrue(availability.isEmpty()); // Nenhum disponível
+        
+        verify(itemSingleRepository, times(1)).findByItem_ItemId(testItem.getItemId());
+    }
+
+    @Test
+    void testGetSizeAvailabilityForDates_EmptyList() {
+        // Configurar datas
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 7);
+        Date startUseDate = cal.getTime();
+        
+        cal.add(Calendar.DAY_OF_MONTH, 3);
+        Date endUseDate = cal.getTime();
+        
+        when(itemSingleRepository.findByItem_ItemId(testItem.getItemId()))
+            .thenReturn(List.of());
+        
+        Map<String, Integer> availability = bookingService.getSizeAvailabilityForDates(
+            testItem.getItemId(), startUseDate, endUseDate);
+        
+        assertNotNull(availability);
+        assertTrue(availability.isEmpty());
+        
+        verify(itemSingleRepository, times(1)).findByItem_ItemId(testItem.getItemId());
+    }
+
+    @Test
+    void testGetSizeAvailabilityForDates_NullSizeHandling() {
+        // Configurar datas
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 7);
+        Date startUseDate = cal.getTime();
+        
+        cal.add(Calendar.DAY_OF_MONTH, 3);
+        Date endUseDate = cal.getTime();
+        
+        // Criar ItemSingle com tamanho null
+        ItemSingle itemSingleNull = new ItemSingle("AVAILABLE", testItem, null);
+        
+        when(itemSingleRepository.findByItem_ItemId(testItem.getItemId()))
+            .thenReturn(List.of(itemSingleNull));
+        
+        when(bookingRepository.countOverlappingBookingsForItemSingle(
+            any(UUID.class), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
+            .thenReturn(0L);
+        
+        Map<String, Integer> availability = bookingService.getSizeAvailabilityForDates(
+            testItem.getItemId(), startUseDate, endUseDate);
+        
+        assertNotNull(availability);
+        assertEquals(1, availability.size());
+        assertEquals(1, availability.get("Único")); // Tamanho null deve ser mapeado para "Único"
+        
+        verify(itemSingleRepository, times(1)).findByItem_ItemId(testItem.getItemId());
     }
 }
