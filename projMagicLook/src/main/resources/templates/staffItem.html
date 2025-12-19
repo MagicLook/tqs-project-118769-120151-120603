@@ -108,22 +108,13 @@
                         <a class="nav-link" th:href="@{/magiclook/staff/dashboard}">
                             <i class="bi bi-speedometer2"></i> Dashboard
                         </a>
-                        <a class="nav-link active" th:href="@{/magiclook/staff/item}">
+                        <a class="nav-link active" id="item-link" th:href="@{/magiclook/staff/item}">
                             <i class="bi bi-tags"></i> Itens da Loja
                             <span class="badge bg-light text-dark float-end" th:text="${itemCount}"></span>
                         </a>
                         <a class="nav-link" href="#">
                             <i class="bi bi-calendar-check"></i> Reservas
                             <span class="badge bg-light text-dark float-end">12</span>
-                        </a>
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-people"></i> Clientes
-                        </a>
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-bar-chart"></i> Relatórios
-                        </a>
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-gear"></i> Configurações
                         </a>
                         <hr class="text-white-50 my-3">
                         <a class="nav-link text-danger" th:href="@{/magiclook/staff/logout}">
