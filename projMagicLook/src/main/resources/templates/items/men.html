@@ -1,24 +1,139 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/navbar :: head(~{::title})">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roupa para Homens - MagicLook</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
+        /* Styles from Navbar Fragment */
+        :root {
+            --primary-color: #b8860b;
+            --secondary-color: #8b6f3d;
+            --accent-color: #f4c95d;
+            --nav-overlay-dark: rgba(33, 26, 16, 0.65);
+            --nav-overlay-light: rgba(142, 110, 60, 0.45);
+        }
+
+        .navbar-magic {
+            background: linear-gradient(125deg, var(--nav-overlay-dark), var(--nav-overlay-light)),
+                url('/img/Navbar.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 15px 0;
+        }
+
+        .nav-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white !important;
+            text-decoration: none;
+            margin-left: auto;
+        }
+
+        .nav-brand i {
+            margin-right: 8px;
+        }
+
+        .nav-link-custom {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 10px 20px !important;
+            border-radius: 25px;
+            margin: 0 5px;
+            transition: all 0.3s;
+        }
+
+        .nav-link-custom:hover,
+        .nav-link-custom.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white !important;
+            transform: translateY(-2px);
+        }
+
+        .nav-link-custom i {
+            margin-right: 8px;
+        }
+
+        .btn-profile {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 25px;
+            padding: 8px 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-profile:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-cart {
+            background: var(--accent-color);
+            border: none;
+            color: white;
+            border-radius: 25px;
+            padding: 8px 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-cart:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: white;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: white;
+            color: var(--accent-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Page Styles */
         .content-wrapper {
             padding-top: 80px;
             min-height: calc(100vh - 80px);
         }
-        
+
         .category-card {
             transition: transform 0.3s, box-shadow 0.3s;
             border: none;
             overflow: hidden;
         }
-        
+
         .category-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
-        
+
         .category-img {
             height: 200px;
             background: linear-gradient(45deg, #2575fc, #6a11cb);
@@ -28,58 +143,49 @@
             color: white;
             font-size: 4rem;
         }
-        
+
         .item-card {
-            transition: all 0.3s;
-            border: 1px solid #eaeaea;
+            border: 1px solid #dee2e6;
             border-radius: 10px;
             overflow: hidden;
-            height: 100%;
-        }
-        
-        .item-card:hover {
-            border-color: #6a11cb;
-            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.1);
-            transform: translateY(-3px);
-        }
-        
-        .item-img {
-            height: 200px;
-            background-color: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ccc;
-            font-size: 3rem;
-            overflow: hidden;
-            position: relative; /* Adicione esta linha */
+            transition: all 0.3s;
         }
 
-        .item-img img {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-            object-fit: contain; /* Alterado de 'cover' para 'contain' */
+        .item-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+            border-color: #6a11cb;
         }
-        
+
+        .item-image {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            background: #f8f9fa;
+            transition: transform 0.5s ease;
+        }
+
+        .item-card:hover .item-image {
+            transform: scale(1.03);
+        }
+
         .badge-available {
             background-color: #28a745;
             color: white;
         }
-        
+
         .badge-rented {
             background-color: #ffc107;
             color: #000;
         }
-        
+
         .filter-section {
             background: #f8f9fa;
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 30px;
         }
-        
+
         .active-filters {
             background: #6a11cb;
             color: white;
@@ -87,7 +193,7 @@
             border-radius: 20px;
             font-size: 0.9rem;
         }
-        
+
         .reserve-btn {
             background: linear-gradient(135deg, #2575fc, #6a11cb);
             border: none;
@@ -97,12 +203,12 @@
             font-weight: 500;
             transition: all 0.3s;
         }
-        
+
         .reserve-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
         }
-        
+
         .item-info {
             padding: 15px;
             display: flex;
@@ -112,16 +218,18 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Inclui a navbar -->
     <div th:replace="fragments/navbar :: navbar"></div>
-    
+
     <!-- Conteúdo da página -->
     <div class="container content-wrapper">
         <!-- Cabeçalho da Categoria -->
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card border-0" style="background-image: url('/img/ParaHomem.png'); background-size: cover; background-position: center;">
+                <div class="card border-0"
+                    style="background-image: url('/img/ParaHomem.png'); background-size: cover; background-position: center;">
                     <div class="card-body p-4 text-white">
                         <div class="row align-items-center">
                             <div class="col-md-8">
@@ -139,7 +247,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Seção de Filtros -->
         <div class="filter-section">
             <h4 class="mb-3">
@@ -148,81 +256,69 @@
                     <i class="bi bi-check-circle"></i> Filtros Ativos
                 </span>
             </h4>
-            
+
             <form method="post" th:action="@{/magiclook/items/men/filter}">
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label for="color" class="form-label">Cor</label>
                         <select class="form-select" id="color" name="color">
                             <option value="">Todas as cores</option>
-                            <option th:each="color : ${colors}" 
-                                    th:value="${color}"
-                                    th:text="${color}"
-                                    th:selected="${filter?.color == color}">
+                            <option th:each="color : ${colors}" th:value="${color}" th:text="${color}"
+                                th:selected="${filter?.color == color}">
                             </option>
                         </select>
                     </div>
-                    
+
                     <div class="col-md-3">
                         <label for="brand" class="form-label">Marca</label>
                         <select class="form-select" id="brand" name="brand">
                             <option value="">Todas as marcas</option>
-                            <option th:each="brand : ${brands}" 
-                                    th:value="${brand}"
-                                    th:text="${brand}"
-                                    th:selected="${filter?.brand == brand}">
+                            <option th:each="brand : ${brands}" th:value="${brand}" th:text="${brand}"
+                                th:selected="${filter?.brand == brand}">
                             </option>
                         </select>
                     </div>
-                    
+
                     <div class="col-md-3">
                         <label for="material" class="form-label">Material</label>
                         <select class="form-select" id="material" name="material">
                             <option value="">Todos os materiais</option>
-                            <option th:each="material : ${materials}" 
-                                    th:value="${material}"
-                                    th:text="${material}"
-                                    th:selected="${filter?.material == material}">
+                            <option th:each="material : ${materials}" th:value="${material}" th:text="${material}"
+                                th:selected="${filter?.material == material}">
                             </option>
                         </select>
                     </div>
-                    
+
                     <div class="col-md-3">
                         <label for="category" class="form-label">Categoria</label>
                         <select class="form-select" id="category" name="category">
                             <option value="">Todas as categorias</option>
-                            <option th:each="category : ${categories}" 
-                                    th:value="${category}"
-                                    th:text="${category}"
-                                    th:selected="${filter?.category == category}">
+                            <option th:each="category : ${categories}" th:value="${category}" th:text="${category}"
+                                th:selected="${filter?.category == category}">
                             </option>
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="row g-3 mt-2">
                     <div class="col-md-3">
                         <label for="minPrice" class="form-label">Preço Mínimo (€)</label>
-                        <input type="number" class="form-control" id="minPrice" 
-                               name="minPrice" th:value="${filter?.minPrice}" 
-                               step="0.01" min="0" placeholder="0.00">
+                        <input type="number" class="form-control" id="minPrice" name="minPrice"
+                            th:value="${filter?.minPrice}" step="0.01" min="0" placeholder="0.00">
                     </div>
-                    
+
                     <div class="col-md-3">
                         <label for="maxPrice" class="form-label">Preço Máximo (€)</label>
-                        <input type="number" class="form-control" id="maxPrice" 
-                               name="maxPrice" th:value="${filter?.maxPrice}" 
-                               step="0.01" min="0" placeholder="100.00">
+                        <input type="number" class="form-control" id="maxPrice" name="maxPrice"
+                            th:value="${filter?.maxPrice}" step="0.01" min="0" placeholder="100.00">
                     </div>
 
                     <div class="col-md-3">
                         <label for="shopLocation" class="form-label">Localização da Loja</label>
                         <select class="form-select" id="shopLocation" name="shopLocation">
                             <option value="">Todas as localizações</option>
-                            <option th:each="location : ${shopLocations}" 
-                                    th:value="${location}"
-                                    th:text="${location}"
-                                    th:selected="${filter?.shopLocation == location}">
+                            <option th:each="location : ${shopLocations}" th:value="${location}" th:text="${location}"
+                                th:selected="${filter?.shopLocation == location}">
                             </option>
                         </select>
                     </div>
@@ -231,10 +327,8 @@
                         <label for="subcategory" class="form-label">Subtipo</label>
                         <select class="form-select" id="subcategory" name="subcategory">
                             <option value="">Todos os subtipos</option>
-                            <option th:each="subcat : ${subcategories}" 
-                                    th:value="${subcat}"
-                                    th:text="${subcat}"
-                                    th:selected="${filter?.subcategory == subcat}">
+                            <option th:each="subcat : ${subcategories}" th:value="${subcat}" th:text="${subcat}"
+                                th:selected="${filter?.subcategory == subcat}">
                             </option>
                         </select>
                     </div>
@@ -243,14 +337,12 @@
                         <label for="size" class="form-label">Tamanho</label>
                         <select class="form-select" id="size" name="size">
                             <option value="">Todos os tamanhos</option>
-                            <option th:each="sizeOpt : ${sizes}" 
-                                    th:value="${sizeOpt}"
-                                    th:text="${sizeOpt}"
-                                    th:selected="${filter?.size == sizeOpt}">
+                            <option th:each="sizeOpt : ${sizes}" th:value="${sizeOpt}" th:text="${sizeOpt}"
+                                th:selected="${filter?.size == sizeOpt}">
                             </option>
                         </select>
                     </div>
-                    
+
                     <div class="col-md-6 d-flex align-items-end">
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
@@ -260,10 +352,10 @@
                                 <i class="bi bi-x-circle"></i> Limpar Filtros
                             </a>
                         </div>
-                        
+
                         <div class="ms-auto">
                             <span class="badge bg-info" th:if="${hasFilters}">
-                                <i class="bi bi-funnel"></i> 
+                                <i class="bi bi-funnel"></i>
                                 <span th:text="${itemCount} + ' itens encontrados'"></span>
                             </span>
                         </div>
@@ -271,7 +363,7 @@
                 </div>
             </form>
         </div>
-        
+
         <!-- Lista de Itens -->
         <div class="row mb-4">
             <div class="col-md-12">
@@ -284,52 +376,64 @@
                         <small th:text="${itemCount} + ' itens encontrados com os filtros aplicados'"></small>
                     </div>
                 </div>
-                
+
                 <div class="row g-4">
                     <!-- Item -->
-                    <div class="col-md-4 col-lg-3" th:each="item : ${items}">
-                        <div class="card item-card">
-                            <div class="item-img">
+                    <div class="col-xxl-3 col-xl-4 col-md-6 d-flex align-items-stretch" th:each="item : ${items}">
+                        <div class="item-card h-100 d-flex flex-column w-100">
+                            <div class="position-relative overflow-hidden">
                                 <th:block th:if="${item.imagePath}">
-                                    <img th:src="@{${item.imagePath}}" alt="Imagem do item">
+                                    <img th:src="@{${item.imagePath}}" class="item-image" th:alt="${item.name}">
                                 </th:block>
                                 <th:block th:unless="${item.imagePath}">
-                                    <i class="bi bi-image"></i>
+                                    <div class="item-image d-flex align-items-center justify-content-center text-muted">
+                                        <i class="bi bi-image fs-1"></i>
+                                    </div>
                                 </th:block>
                             </div>
-                            <div class="item-info">
-                                <div>
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h6 class="card-title mb-0" style="font-weight: 600;" th:text="${item.name}"></h6>
-                                        <span class="badge badge-status">
-                                            <i class="bi bi-calendar-check"></i> Ver Datas
-                                        </span>
+                            <div class="p-3 d-flex flex-column flex-grow-1">
+                                <h6 class="mb-2 text-center fw-bold" th:text="${item.name}">Nome do Item</h6>
+                                <div class="small text-muted mb-2">
+                                    <div>
+                                        <strong>Cor:</strong>
+                                        <span th:text="${item.color}">Azul</span>
                                     </div>
-                                    <p class="card-text text-muted mb-2">
-                                        <small><strong>Marca:</strong> <span th:text="${item.brand}"></span></small><br>
-                                        <small><strong>Cor:</strong> <span th:text="${item.color}"></span></small><br>
-                                        <small><strong>Material:</strong> <span th:text="${item.material}"></span></small>
-                                    </p>
+                                    <div>
+                                        <strong>Material:</strong>
+                                        <span th:text="${item.material}">Seda</span>
+                                    </div>
+                                    <div th:if="${item.brand != null}">
+                                        <strong>Marca:</strong>
+                                        <span th:text="${item.brand}">Marca</span>
+                                    </div>
                                 </div>
-                                
-                                <div class="mt-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div>
-                                            <strong class="text-primary" style="font-size: 1.2rem;" th:text="'€' + ${item.priceRent}"></strong>
-                                            <small class="text-muted">/dia</small>
-                                        </div>
+                                <div class="mb-2"
+                                    th:with="sizes=${itemSizes != null ? itemSizes.get(item.itemId) : null}">
+                                    <div class="small fw-bold mb-1">Tamanhos:</div>
+                                    <div class="d-flex gap-1 flex-wrap">
+                                        <th:block th:if="${sizes != null}">
+                                            <span th:each="size : ${sizes}" class="badge bg-secondary"
+                                                th:text="${size}">M</span>
+                                            <span th:if="${sizes.isEmpty()}"
+                                                class="badge bg-light text-dark border">Indisponível</span>
+                                        </th:block>
                                     </div>
-                                    
-                                    <!-- BOTÃO SEMPRE ATIVO E CLICÁVEL -->
-                                    <a th:href="@{/magiclook/booking/{id}(id=${item.itemId})}" 
-                                       class="btn reserve-btn w-100">
-                                        <i class="bi bi-calendar-plus"></i> Ver Datas & Reservar
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3 mt-auto">
+                                    <span class="text-primary fw-bold fs-5"
+                                        th:text="'€' + ${item.priceRent} + '/dia'">€50/dia</span>
+                                    <small class="text-muted text-decoration-line-through" th:if="${item.priceSale > 0}"
+                                        th:text="'€' + ${item.priceSale}">€200</small>
+                                </div>
+                                <div class="d-grid">
+                                    <a th:href="@{/magiclook/booking/{id}(id=${item.itemId})}" class="btn reserve-btn">
+                                        <i class="bi bi-calendar-plus"></i> Reservar
                                     </a>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Se não houver itens -->
                     <div class="col-12" th:unless="${items != null and !items.empty}">
                         <div class="text-center py-5">
@@ -342,7 +446,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Paginação -->
                 <div class="d-flex justify-content-center mt-5" th:if="${items != null and !items.empty}">
                     <nav>
@@ -368,15 +472,15 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Inicializar dropdowns manualmente se necessário
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             var dropdowns = document.querySelectorAll('.dropdown-toggle');
-            dropdowns.forEach(function(dropdown) {
-                dropdown.addEventListener('click', function(e) {
+            dropdowns.forEach(function (dropdown) {
+                dropdown.addEventListener('click', function (e) {
                     e.stopPropagation();
                     var dropdownMenu = this.nextElementSibling;
                     dropdownMenu.classList.toggle('show');
@@ -385,4 +489,5 @@
         });
     </script>
 </body>
+
 </html>
