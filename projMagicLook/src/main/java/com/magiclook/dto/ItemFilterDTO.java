@@ -24,6 +24,18 @@ public class ItemFilterDTO {
         this.shopLocation = null;
     }
 
+    // Convenience constructor used by tests (includes shopLocation as last arg)
+    public ItemFilterDTO(String color, String brand, String material, String category,
+                        double minPrice, double maxPrice, String shopLocation) {
+        this.color = color;
+        this.brand = brand;
+        this.material = material;
+        this.category = category;
+        this.minPrice = Double.valueOf(minPrice);
+        this.maxPrice = Double.valueOf(maxPrice);
+        this.shopLocation = shopLocation;
+    }
+
     public ItemFilterDTO(String color, String brand, String material, String category, 
                         String subcategory, Double minPrice, Double maxPrice, 
                         String shopLocation, String size) {

@@ -570,4 +570,70 @@ public class BookingServiceTest {
             bookingService.getCurrentBookingState(booking);
         });
     }
+
+    @Test
+    void testGetRefundInfo_100Percent() {
+        testBooking.setTotalPrice(new BigDecimal("200.00"));
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 40); // far in the future
+        testBooking.setStartUseDate(cal.getTime());
+
+        com.magiclook.dto.RefundInfoDTO info = bookingService.getRefundInfo(testBooking);
+        assertEquals(100, info.getPercent());
+        assertEquals(new BigDecimal("200.00"), info.getAmount());
+    }
+
+    @Test
+    void testGetRefundInfo_50Percent() {
+        testBooking.setTotalPrice(new BigDecimal("200.00"));
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 20);
+        testBooking.setStartUseDate(cal.getTime());
+
+        com.magiclook.dto.RefundInfoDTO info = bookingService.getRefundInfo(testBooking);
+        assertEquals(50, info.getPercent());
+        assertEquals(new BigDecimal("100.00"), info.getAmount());
+    }
+
+    @Test
+    void testGetRefundInfo_25Percent() {
+        testBooking.setTotalPrice(new BigDecimal("80.00"));
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 10);
+        testBooking.setStartUseDate(cal.getTime());
+
+        com.magiclook.dto.RefundInfoDTO info = bookingService.getRefundInfo(testBooking);
+        assertEquals(25, info.getPercent());
+        assertEquals(new BigDecimal("20.00"), info.getAmount());
+    }
+
+    @Test
+    void testGetRefundInfo_0Percent_Within48h() {
+        testBooking.setTotalPrice(new BigDecimal("80.00"));
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.HOUR, 24); // less than 48 hours
+        testBooking.setStartUseDate(cal.getTime());
+
+        com.magiclook.dto.RefundInfoDTO info = bookingService.getRefundInfo(testBooking);
+        assertEquals(0, info.getPercent());
+        assertEquals(new BigDecimal("0.00"), info.getAmount());
+    }
+
+    @Test
+    void testCancelBooking_ChangesStateAndReturnsRefund() {
+        testBooking.setTotalPrice(new BigDecimal("100.00"));
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 20);
+        testBooking.setStartUseDate(cal.getTime());
+        testBooking.setState("CONFIRMED");
+
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        com.magiclook.dto.RefundInfoDTO info = bookingService.cancelBooking(testBooking);
+
+        assertEquals("CANCELLED", testBooking.getState());
+        assertEquals(50, info.getPercent());
+        assertEquals(new BigDecimal("50.00"), info.getAmount());
+        verify(bookingRepository, times(1)).save(testBooking);
+    }
 }

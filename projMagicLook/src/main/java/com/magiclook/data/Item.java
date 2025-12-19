@@ -26,6 +26,12 @@ public class Item implements Serializable{
     @Column(length = 500)
     private String imagePath;
 
+    @Column(name = "next_available_date")
+    private Date nextAvailableDate;
+
+    @Column(name = "is_available")
+    private boolean available = true;
+
     @ManyToOne
     @JoinColumn(name = "shop_id")
     private Shop shop;
@@ -51,6 +57,7 @@ public class Item implements Serializable{
         this.itemType = itemType;
     }
 
+    // Getters and setters
     public Integer getItemId() { return itemId; }
     public void setItemId(Integer itemId) { this.itemId = itemId; }
 
@@ -84,10 +91,9 @@ public class Item implements Serializable{
     public List<ItemSingle> getItemSingles() { return itemSingles; }
     public void setItemSingles(List<ItemSingle> itemSingles) { this.itemSingles = itemSingles; }
 
-    @Transient
-    public boolean isAvailable() {
-        if (itemSingles == null) return false;
-        return itemSingles.stream()
-            .anyMatch(is -> "AVAILABLE".equals(is.getState()));
-    }
+    public boolean isAvailable() { return available; }
+    public void setAvailable(boolean available) { this.available = available; }
+
+    public Date getNextAvailableDate() { return nextAvailableDate; }
+    public void setNextAvailableDate(Date nextAvailableDate) { this.nextAvailableDate = nextAvailableDate; }
 }

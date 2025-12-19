@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,7 +31,26 @@ public class BookingService {
     @Autowired
     private UserRepository userRepository;
     
+    // Mapa de locks por item para evitar concorrência
+    private static final Map<String, Object> itemLocks = new ConcurrentHashMap<>();
+    
+    // Lock global para todas as reservas
+    private static final Object GLOBAL_BOOKING_LOCK = new Object();
+    
+    // Obter lock para um item específico
+    private Object getItemLock(Integer itemId, String size) {
+        String lockKey = itemId + (size != null ? "_" + size : "");
+        return itemLocks.computeIfAbsent(lockKey, k -> new Object());
+    }
+    
     public Booking createBooking(BookingRequestDTO bookingRequest, User user) {
+        // Usar lock global para evitar qualquer concorrência (mais seguro)
+        synchronized (GLOBAL_BOOKING_LOCK) {
+            return doCreateBooking(bookingRequest, user);
+        }
+    }
+    
+    private Booking doCreateBooking(BookingRequestDTO bookingRequest, User user) {
         // Validate dates
         if (!bookingRequest.isValidDates()) {
             throw new IllegalArgumentException("Datas inválidas");
@@ -40,58 +60,39 @@ public class BookingService {
         Item item = itemRepository.findById(bookingRequest.getItemId())
             .orElseThrow(() -> new RuntimeException("Item não encontrado"));
         
-        // Buscar o usuário atualizado (para evitar problemas de sessão)
-        User currentUser = userRepository.findById(user.getUserId())
-            .orElseThrow(() -> new RuntimeException("Utilizador não encontrado"));
+        // Verificar utilizador autenticado e obter a entidade atualizada se possível
+        if (user == null) {
+            throw new RuntimeException("Utilizador não autenticado");
+        }
+
+        User currentUser = userRepository.findById(user.getUserId()).orElse(user);
         
         // Calcular datas
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(bookingRequest.getStartUseDate());
-        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        calendar.add(Calendar.DAY_OF_MONTH, -1); // 1 dia antes para pickup
         Date pickupDate = calendar.getTime();
         
         Date startUseDate = bookingRequest.getStartUseDate();
         Date endUseDate = bookingRequest.getEndUseDate();
         
         calendar.setTime(endUseDate);
-        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        calendar.add(Calendar.DAY_OF_MONTH, 1); // 1 dia depois para devolução
         Date returnDate = calendar.getTime();
-        
-        calendar.add(Calendar.DAY_OF_MONTH, 1);
-        Date laundryDate = calendar.getTime();
         
         // Calcular dias e preço
         long useDays = bookingRequest.getUseDays();
         BigDecimal totalPrice = item.getPriceRent().multiply(BigDecimal.valueOf(useDays));
         
-        // Encontrar ItemSingle disponível
-        ItemSingle availableItemSingle = null;
-        
-        // Buscar todos ItemSingles do item
-        List<ItemSingle> itemSingles = itemSingleRepository.findByItem_ItemId(bookingRequest.getItemId());
-        
-        for (ItemSingle itemSingle : itemSingles) {
-            // Verificar se tem o tamanho certo (se especificado)
-            if (bookingRequest.getSize() != null && !bookingRequest.getSize().isEmpty()) {
-                if (!bookingRequest.getSize().equals(itemSingle.getSize())) {
-                    continue;
-                }
-            }
-            
-            // Verificar se está disponível
-            if (!ItemSingle.STATE_AVAILABLE.equals(itemSingle.getState())) {
-                continue;
-            }
-            
-            // Verificar se não tem reservas conflitantes
-            Long overlapping = bookingRepository.countOverlappingBookingsForItemSingle(
-                itemSingle.getId(), pickupDate, startUseDate, endUseDate, returnDate);
-            
-            if (overlapping == 0) {
-                availableItemSingle = itemSingle;
-                break;
-            }
-        }
+        // Encontrar ItemSingle disponível PARA AS DATAS
+        ItemSingle availableItemSingle = findAvailableItemSingleForDates(
+            bookingRequest.getItemId(), 
+            bookingRequest.getSize(),
+            pickupDate, 
+            startUseDate, 
+            endUseDate, 
+            returnDate
+        );
         
         if (availableItemSingle == null) {
             String errorMsg = bookingRequest.getSize() != null && !bookingRequest.getSize().isEmpty()
@@ -100,9 +101,13 @@ public class BookingService {
             throw new RuntimeException(errorMsg);
         }
         
+        // Verificar se o ItemSingle está disponível fisicamente (não em manutenção)
+        if (!ItemSingle.STATE_AVAILABLE.equals(availableItemSingle.getState())) {
+            throw new RuntimeException("Item está em manutenção e não está disponível");
+        }
+        
         // Criar reserva
         Booking booking = new Booking();
-        booking.setBookingId(UUID.randomUUID());
         booking.setPickupDate(pickupDate);
         booking.setStartUseDate(startUseDate);
         booking.setEndUseDate(endUseDate);
@@ -115,43 +120,37 @@ public class BookingService {
         booking.setUser(currentUser);
         booking.setCreatedAt(new Date());
         
-        availableItemSingle.setState(ItemSingle.STATE_RESERVED);
+        // IMPORTANTE: NÃO alteramos o estado do ItemSingle!
+        // A disponibilidade é determinada pelas reservas, não pelo estado
         
+        // Salvar booking
         return bookingRepository.save(booking);
     }
     
+    // Adicionar método createBookingWithSize para compatibilidade
     public Booking createBookingWithSize(BookingRequestDTO bookingRequest, User user) {
-        // Alias for createBooking with size
         return createBooking(bookingRequest, user);
     }
     
-    private ItemSingle findAvailableItemSingle(Integer itemId, String size, 
-                                             Date pickupDate, Date startUseDate, 
-                                             Date endUseDate, Date laundryDate) {
-        List<ItemSingle> itemSingles;
+    private ItemSingle findAvailableItemSingleForDates(Integer itemId, String size, 
+                                                      Date pickupDate, Date startUseDate, 
+                                                      Date endUseDate, Date returnDate) {
         
-        if (size != null && !size.isEmpty()) {
-            // Buscar ItemSingle por tamanho específico (estado AVAILABLE)
-            itemSingles = itemSingleRepository.findByItem_ItemId(itemId)
-                .stream()
-                .filter(is -> size.equals(is.getSize()) && "AVAILABLE".equals(is.getState()))
-                .toList();
-        } else {
-            // Buscar qualquer ItemSingle disponível
-            itemSingles = itemSingleRepository.findByItem_ItemId(itemId)
-                .stream()
-                .filter(is -> "AVAILABLE".equals(is.getState()))
-                .toList();
-        }
+        // Buscar todos ItemSingles do item que estão fisicamente disponíveis
+        List<ItemSingle> itemSingles = itemSingleRepository.findByItem_ItemId(itemId)
+            .stream()
+            .filter(is -> ItemSingle.STATE_AVAILABLE.equals(is.getState())) // Apenas fisicamente disponíveis
+            .filter(is -> size == null || size.isEmpty() || size.equals(is.getSize())) // Filtrar por tamanho
+            .collect(Collectors.toList());
         
         if (itemSingles.isEmpty()) {
             return null;
         }
         
-        // Verificar quais não têm reservas conflitantes
+        // Verificar qual não tem reservas conflitantes
         for (ItemSingle itemSingle : itemSingles) {
-            Long overlapping = countOverlappingBookingsForItemSingle(
-                itemSingle.getId(), pickupDate, startUseDate, endUseDate, laundryDate);
+            Long overlapping = bookingRepository.countOverlappingBookingsForItemSingle(
+                itemSingle.getId(), pickupDate, startUseDate, endUseDate, returnDate);
             
             if (overlapping == 0) {
                 return itemSingle;
@@ -161,12 +160,52 @@ public class BookingService {
         return null;
     }
     
-    // Método auxiliar para contar reservas conflitantes para um ItemSingle
-    private Long countOverlappingBookingsForItemSingle(UUID itemSingleId, Date pickupDate, 
-                                                      Date startUseDate, Date endUseDate, Date laundryDate) {
-        // Usando query JPQL para contar reservas conflitantes
-        return bookingRepository.countOverlappingBookingsForItemSingle(
-            itemSingleId, pickupDate, startUseDate, endUseDate, laundryDate);
+    // Adicionar método findAvailableItemSingle antigo para compatibilidade
+    private ItemSingle findAvailableItemSingle(Integer itemId, String size, 
+                                             Date pickupDate, Date startUseDate, 
+                                             Date endUseDate, Date laundryDate) {
+        return findAvailableItemSingleForDates(itemId, size, pickupDate, startUseDate, endUseDate, laundryDate);
+    }
+    
+    public boolean checkAvailability(Integer itemId, Date startUseDate, Date endUseDate) {
+        return checkAvailabilityWithSize(itemId, null, startUseDate, endUseDate);
+    }
+    
+    public boolean checkAvailabilityWithSize(Integer itemId, String size, Date startUseDate, Date endUseDate) {
+        // Usar lock global para evitar concorrência durante verificação
+        synchronized (GLOBAL_BOOKING_LOCK) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(startUseDate);
+            calendar.add(Calendar.DAY_OF_MONTH, -1);
+            Date pickupDate = calendar.getTime();
+            
+            calendar.setTime(endUseDate);
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+            Date returnDate = calendar.getTime();
+            
+            // Buscar ItemSingles fisicamente disponíveis
+            List<ItemSingle> availableItemSingles = itemSingleRepository.findByItem_ItemId(itemId)
+                .stream()
+                .filter(is -> ItemSingle.STATE_AVAILABLE.equals(is.getState()))
+                .filter(is -> size == null || size.isEmpty() || size.equals(is.getSize()))
+                .collect(Collectors.toList());
+            
+            if (availableItemSingles.isEmpty()) {
+                return false;
+            }
+            
+            // Verificar se algum não tem conflitos
+            for (ItemSingle itemSingle : availableItemSingles) {
+                Long overlapping = bookingRepository.countOverlappingBookingsForItemSingle(
+                    itemSingle.getId(), pickupDate, startUseDate, endUseDate, returnDate);
+                
+                if (overlapping == 0) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
     }
     
     public List<Booking> getUserBookings(User user) {
@@ -174,47 +213,6 @@ public class BookingService {
             throw new RuntimeException("Utilizador não autenticado");
         }
         return bookingRepository.findByUserOrderByCreatedAtDesc(user);
-    }
-    
-    public boolean checkAvailability(Integer itemId, Date startUseDate, Date endUseDate) {
-        // For backward compatibility, this method doesn't consider size
-        // It checks if there's any available ItemSingle for the given dates
-        return checkAvailabilityWithSize(itemId, null, startUseDate, endUseDate);
-    }
-    
-    public boolean checkAvailabilityWithSize(Integer itemId, String size, Date startUseDate, Date endUseDate) {
-        // Buscar ItemSingles disponíveis
-        List<ItemSingle> availableItemSingles = itemSingleRepository
-            .findByItem_ItemId(itemId)
-            .stream()
-            .filter(is -> "AVAILABLE".equals(is.getState()))
-            .filter(is -> size == null || size.isEmpty() || size.equals(is.getSize()))
-            .collect(Collectors.toList());
-        
-        if (availableItemSingles.isEmpty()) {
-            return false;
-        }
-        
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(startUseDate);
-        calendar.add(Calendar.DAY_OF_MONTH, -1);
-        Date pickupDate = calendar.getTime();
-        
-        calendar.setTime(endUseDate);
-        calendar.add(Calendar.DAY_OF_MONTH, 2);
-        Date laundryDate = calendar.getTime();
-        
-        // Verificar se algum ItemSingle está disponível para as datas
-        for (ItemSingle itemSingle : availableItemSingles) {
-            Long overlapping = bookingRepository.countOverlappingBookingsForItemSingle(
-                itemSingle.getId(), pickupDate, startUseDate, endUseDate, laundryDate);
-            
-            if (overlapping == 0) {
-                return true;
-            }
-        }
-        
-        return false;
     }
     
     public BigDecimal calculatePrice(Integer itemId, long useDays) {
@@ -304,7 +302,7 @@ public class BookingService {
         Date laundryDate = calendar.getTime();
         
         // Encontrar ItemSingle disponível (qualquer tamanho)
-        ItemSingle availableItemSingle = findAvailableItemSingle(
+        ItemSingle availableItemSingle = findAvailableItemSingleForDates(
             itemId, null, pickupDate, startDate, endDate, laundryDate);
         
         if (availableItemSingle == null) {
@@ -317,7 +315,6 @@ public class BookingService {
         
         // Criar booking
         Booking booking = new Booking();
-        booking.setBookingId(UUID.randomUUID());
         booking.setPickupDate(pickupDate);
         booking.setStartUseDate(startDate);
         booking.setEndUseDate(endDate);
@@ -329,10 +326,6 @@ public class BookingService {
         booking.setItemSingle(availableItemSingle);
         booking.setUser(user);
         booking.setCreatedAt(new Date());
-        
-        // Atualizar estado do ItemSingle
-        availableItemSingle.setState("RESERVED");
-        itemSingleRepository.save(availableItemSingle);
         
         return bookingRepository.save(booking);
     }
@@ -363,8 +356,64 @@ public class BookingService {
             return "ACTIVE";
         }
     }
+
+    /**
+     * Calculate refund percentage and amount for a given booking based on time to start date.
+     * Rules (applied in order):
+     *  - >= 30 days before start: 100%
+     *  - >= 15 days and < 30 days: 50%
+     *  - >= 48 hours and < 15 days: 25%
+     *  - < 48 hours: 0%
+     */
+    public com.magiclook.dto.RefundInfoDTO getRefundInfo(Booking booking) {
+        if (booking == null || booking.getStartUseDate() == null || booking.getTotalPrice() == null) {
+            return new com.magiclook.dto.RefundInfoDTO(0, java.math.BigDecimal.ZERO);
+        }
+
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(java.time.ZoneId.systemDefault());
+        java.time.ZonedDateTime start = booking.getStartUseDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate().atStartOfDay(java.time.ZoneId.systemDefault());
+
+        long hours = java.time.Duration.between(now, start).toHours();
+
+        int percent;
+        if (hours >= 30L * 24L) { // >= 30 days
+            percent = 100;
+        } else if (hours >= 15L * 24L) { // >= 15 days
+            percent = 50;
+        } else if (hours >= 48L) { // >= 48 hours
+            percent = 25;
+        } else {
+            percent = 0;
+        }
+
+        java.math.BigDecimal amount = booking.getTotalPrice()
+            .multiply(java.math.BigDecimal.valueOf(percent))
+            .divide(java.math.BigDecimal.valueOf(100))
+            .setScale(2, java.math.RoundingMode.HALF_UP);
+
+        return new com.magiclook.dto.RefundInfoDTO(percent, amount);
+    }
+
+    /**
+     * Cancel a booking: set state to CANCELLED and persist. Returns the refund info computed.
+     */
+    public com.magiclook.dto.RefundInfoDTO cancelBooking(Booking booking) {
+        if (booking == null) throw new IllegalArgumentException("Reserva inexistente");
+
+        // If already cancelled or completed, no-op
+        if ("CANCELLED".equals(booking.getState()) || "COMPLETED".equals(booking.getState())) {
+            return getRefundInfo(booking);
+        }
+
+        com.magiclook.dto.RefundInfoDTO info = getRefundInfo(booking);
+
+        booking.setState("CANCELLED");
+        bookingRepository.save(booking);
+
+        return info;
+    }
     
-    // Novo método para obter tamanhos disponíveis para um item
+    // Método para obter tamanhos disponíveis para um item
     public List<String> getAvailableSizesForItem(Integer itemId) {
         return itemSingleRepository.findByItem_ItemId(itemId)
             .stream()
@@ -375,7 +424,7 @@ public class BookingService {
             .toList();
     }
     
-    // Novo método para obter contagem por tamanho
+    // Método para obter contagem por tamanho
     public Map<String, Integer> getSizeAvailabilityCount(Integer itemId) {
         Map<String, Integer> sizeCount = new HashMap<>();
         
@@ -390,5 +439,38 @@ public class BookingService {
         }
         
         return sizeCount;
+    }
+    
+    public Map<String, Integer> getSizeAvailabilityForDates(Integer itemId, Date startUseDate, Date endUseDate) {
+        Map<String, Integer> availability = new HashMap<>();
+        
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startUseDate);
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        Date pickupDate = calendar.getTime();
+        
+        calendar.setTime(endUseDate);
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        Date returnDate = calendar.getTime();
+        
+        // Buscar todos ItemSingles fisicamente disponíveis
+        List<ItemSingle> allItemSingles = itemSingleRepository.findByItem_ItemId(itemId)
+            .stream()
+            .filter(is -> ItemSingle.STATE_AVAILABLE.equals(is.getState()))
+            .collect(Collectors.toList());
+        
+        // Para cada tamanho, contar quantos não têm conflitos
+        for (ItemSingle itemSingle : allItemSingles) {
+            String size = itemSingle.getSize() != null ? itemSingle.getSize() : "Único";
+            
+            Long overlapping = bookingRepository.countOverlappingBookingsForItemSingle(
+                itemSingle.getId(), pickupDate, startUseDate, endUseDate, returnDate);
+            
+            if (overlapping == 0) {
+                availability.put(size, availability.getOrDefault(size, 0) + 1);
+            }
+        }
+        
+        return availability;
     }
 }

@@ -10,16 +10,15 @@ public class ItemSingle implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public static final String STATE_AVAILABLE = "AVAILABLE";
-    public static final String STATE_RESERVED = "RESERVED";
-    public static final String STATE_RENTED = "RENTED";
     public static final String STATE_MAINTENANCE = "MAINTENANCE";
+    // Remova os estados RESERVED e RENTED
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(columnDefinition = "VARCHAR(20) DEFAULT 'AVAILABLE'")
-    private String state; // Estado atual
+    private String state; // Apenas "AVAILABLE" ou "MAINTENANCE"
 
     private String size; // Tamanho do item
 

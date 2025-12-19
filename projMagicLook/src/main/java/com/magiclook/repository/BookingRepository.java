@@ -47,13 +47,13 @@ public interface BookingRepository extends JpaRepository<Booking, UUID>{
         @Param("endUseDate") Date endUseDate);
     
     @Query("SELECT COUNT(b) FROM Booking b WHERE b.itemSingle.id = :itemSingleId " +
-           "AND b.state != 'CANCELLED' " +
-           "AND ((b.pickupDate <= :returnDate AND b.returnDate >= :pickupDate) OR " +
-           "(b.startUseDate <= :endUseDate AND b.endUseDate >= :startUseDate))")
+              "AND b.state != 'CANCELLED' " +
+              "AND ((b.pickupDate <= :returnDate AND b.returnDate >= :pickupDate) OR " +
+              "(b.startUseDate <= :endUseDate AND b.endUseDate >= :startUseDate))")
     Long countOverlappingBookingsForItemSingle(
-        @Param("itemSingleId") UUID itemSingleId,
-        @Param("pickupDate") Date pickupDate,
-        @Param("startUseDate") Date startUseDate,
-        @Param("endUseDate") Date endUseDate,
-        @Param("returnDate") Date returnDate);
+       @Param("itemSingleId") UUID itemSingleId,
+       @Param("pickupDate") Date pickupDate,
+       @Param("startUseDate") Date startUseDate,
+       @Param("endUseDate") Date endUseDate,
+       @Param("returnDate") Date returnDate);
 }

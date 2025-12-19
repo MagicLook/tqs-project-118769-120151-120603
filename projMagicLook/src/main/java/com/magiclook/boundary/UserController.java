@@ -125,6 +125,21 @@ public class UserController {
                 minPrice, maxPrice, shopLocation, size);
     }
 
+    // Convenience overload for unit tests (direct call)
+    public String showMenItems(HttpSession session, Model model) {
+        User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
+        if (user == null) {
+            return REDIRECT_LOGIN;
+        }
+
+        List<Item> items = itemService.getItemsByGender("M");
+        model.addAttribute("user", user);
+        model.addAttribute("items", items);
+        model.addAttribute("itemCount", items.size());
+        model.addAttribute(ATTR_ACTIVE_PAGE, "men");
+        return "items/men";
+    }
+
     @GetMapping("/items/women")
     public String showWomenItems(
             @RequestParam(required = false) String color,
@@ -142,6 +157,21 @@ public class UserController {
         return showGenderItems(session, model, "F", "women", 
                 color, brand, material, category, subcategory, 
                 minPrice, maxPrice, shopLocation, size);
+    }
+
+    // Convenience overload for unit tests (direct call)
+    public String showWomenItems(HttpSession session, Model model) {
+        User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
+        if (user == null) {
+            return REDIRECT_LOGIN;
+        }
+
+        List<Item> items = itemService.getItemsByGender("F");
+        model.addAttribute("user", user);
+        model.addAttribute("items", items);
+        model.addAttribute("itemCount", items.size());
+        model.addAttribute(ATTR_ACTIVE_PAGE, "women");
+        return "items/women";
     }
     
     private String showGenderItems(HttpSession session, Model model, 
@@ -241,6 +271,36 @@ public class UserController {
         }
         
         return redirectUrl.toString();
+    }
+
+    // Convenience overload for unit tests that takes an ItemFilterDTO
+    public String filterItems(String gender, ItemFilterDTO filter, HttpSession session, Model model) {
+        User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
+        if (user == null) {
+            return REDIRECT_LOGIN;
+        }
+
+        String genderCode = "men".equals(gender) ? "M" : "F";
+
+        List<Item> items = itemService.searchItemsWithFilters(
+            genderCode,
+            filter.getColor(),
+            filter.getBrand(),
+            filter.getMaterial(),
+            filter.getCategory(),
+            filter.getShopLocation(),
+            filter.getMinPrice(),
+            filter.getMaxPrice()
+        );
+
+        model.addAttribute("filter", filter);
+        model.addAttribute("items", items);
+        model.addAttribute("hasFilters", filter.hasFilters());
+        model.addAttribute("itemCount", items.size());
+        model.addAttribute("user", user);
+        model.addAttribute(ATTR_ACTIVE_PAGE, gender);
+
+        return "items/" + gender;
     }
     
     // ========== LIMPAR FILTROS ==========
