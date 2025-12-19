@@ -24,7 +24,7 @@ import java.io.File;
 
 @Service
 @Transactional
-public class StaffService{
+public class StaffService {
 
     @Autowired
     private StaffRepository staffRepository;
@@ -52,12 +52,15 @@ public class StaffService{
 
     @Autowired
     StaffService(StaffRepository staffRepository, ItemRepository itemRepository, ShopRepository shopRepository,
-            ItemTypeRepository itemTypeRepository, ItemSingleRepository itemSingleRepository) {
+            ItemTypeRepository itemTypeRepository, ItemSingleRepository itemSingleRepository,
+            BookingRepository bookingRepository, NotificationRepository notificationRepository) {
         this.staffRepository = staffRepository;
         this.itemRepository = itemRepository;
         this.shopRepository = shopRepository;
         this.itemTypeRepository = itemTypeRepository;
         this.itemSingleRepository = itemSingleRepository;
+        this.bookingRepository = bookingRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     public String saveImage(MultipartFile image, Integer itemId) throws IOException {
@@ -134,7 +137,7 @@ public class StaffService{
                     single.setDamageReason(damageReason);
 
                     // Notify users
-                    createDamageNotifications(single.getItem(), damageReason);
+                    createDamageNotifications(single, damageReason);
                 }
             }
             if (changed) {
@@ -143,8 +146,8 @@ public class StaffService{
         });
     }
 
-    private void createDamageNotifications(Item item, String damageReason) {
-        if (item == null)
+    private void createDamageNotifications(ItemSingle itemSingle, String damageReason) {
+        if (itemSingle == null)
             return;
 
         // 2. Notify upcoming users (next 3 days)
@@ -154,8 +157,8 @@ public class StaffService{
         cal.add(Calendar.DAY_OF_YEAR, 3);
         Date threeDaysLater = cal.getTime();
 
-        List<Booking> upcomingBookings = bookingRepository.findOverlappingBookings(
-                item.getItemId(),
+        List<Booking> upcomingBookings = bookingRepository.findOverlappingBookingsForItemSingle(
+                itemSingle,
                 now, // pickup (conservative)
                 now, // start
                 threeDaysLater, // end
@@ -163,7 +166,8 @@ public class StaffService{
         );
 
         for (Booking booking : upcomingBookings) {
-            String msg = "A sua reserva para " + item.getName() + " poderá ser afetada devido a danos no item."
+            String msg = "A sua reserva para " + itemSingle.getItem().getName()
+                    + " poderá ser afetada devido a danos no item."
                     + (damageReason != null ? " Motivo: " + damageReason : "");
             Notification notification = new Notification(booking.getUser(), msg);
             notificationRepository.save(notification);

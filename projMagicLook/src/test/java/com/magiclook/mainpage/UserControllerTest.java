@@ -153,10 +153,10 @@ public class UserControllerTest {
 
         assertEquals("items/men", viewName);
 
-        // capture filter passed into model
+        // capture filter passed into model - verify called exactly once
         @SuppressWarnings("unchecked")
         org.mockito.ArgumentCaptor<com.magiclook.dto.ItemFilterDTO> captor = org.mockito.ArgumentCaptor.forClass(com.magiclook.dto.ItemFilterDTO.class);
-        verify(model).addAttribute(eq("filter"), captor.capture());
+        verify(model, times(1)).addAttribute(eq("filter"), captor.capture());
         com.magiclook.dto.ItemFilterDTO captured = captor.getValue();
         assertEquals(color, captured.getColor());
         assertEquals(brand, captured.getBrand());

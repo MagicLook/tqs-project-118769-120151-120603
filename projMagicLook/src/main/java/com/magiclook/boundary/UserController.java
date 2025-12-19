@@ -127,9 +127,9 @@ public class UserController {
             @RequestParam(required = false) String size,
             HttpSession session,
             Model model) {
-        
-        return showGenderItems(session, model, "M", "men", 
-                color, brand, material, category, subcategory, 
+
+        return showGenderItems(session, model, "M", "men",
+                color, brand, material, category, subcategory,
                 minPrice, maxPrice, shopLocation, size);
     }
 
@@ -162,9 +162,9 @@ public class UserController {
             @RequestParam(required = false) String size,
             HttpSession session,
             Model model) {
-        
-        return showGenderItems(session, model, "F", "women", 
-                color, brand, material, category, subcategory, 
+
+        return showGenderItems(session, model, "F", "women",
+                color, brand, material, category, subcategory,
                 minPrice, maxPrice, shopLocation, size);
     }
 
@@ -182,37 +182,34 @@ public class UserController {
         model.addAttribute(ATTR_ACTIVE_PAGE, "women");
         return "items/women";
     }
-    
-    private String showGenderItems(HttpSession session, Model model, 
-                                   String genderCode, String pageName,
-                                   String color, String brand, String material, 
-                                   String category, String subcategory,
-                                   Double minPrice, Double maxPrice,
-                                   String shopLocation, String size) {
-        
+
+    private String showGenderItems(HttpSession session, Model model,
+            String genderCode, String pageName,
+            String color, String brand, String material,
+            String category, String subcategory,
+            Double minPrice, Double maxPrice,
+            String shopLocation, String size) {
+
         User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
 
         if (user == null) {
             return REDIRECT_LOGIN;
         }
 
-        model.addAttribute("filter", new ItemFilterDTO());
-        
         // Criar filtro com os parâmetros
-        ItemFilterDTO filter = new ItemFilterDTO(color, brand, material, category, 
-                                               subcategory, minPrice, maxPrice, 
-                                               shopLocation, size);
-        
+        ItemFilterDTO filter = new ItemFilterDTO(color, brand, material, category,
+                subcategory, minPrice, maxPrice,
+                shopLocation, size);
+
         // Buscar itens com filtros
         List<Item> items = itemService.findByGenderAndFilters(genderCode, filter);
-        
+
         // Obter opções para os filtros
         model.addAttribute("filter", filter);
         model.addAttribute("colors", itemService.getAllDistinctColors());
         model.addAttribute("brands", itemService.getAllDistinctBrands());
         model.addAttribute("materials", itemService.getAllDistinctMaterials());
         model.addAttribute("categories", itemService.getAllDistinctCategories());
-        model.addAttribute("shopLocations", itemService.getAllDistinctShopLocations()); // Novo
 
         long unreadNotifications = notificationRepository.countByUserAndReadFalse(user);
         model.addAttribute("unreadNotifications", unreadNotifications);
@@ -220,14 +217,14 @@ public class UserController {
         model.addAttribute("subcategories", itemService.getAllDistinctSubcategoriesByGender(genderCode));
         model.addAttribute("sizes", itemService.getAllDistinctSizesByGender(genderCode));
         model.addAttribute("shopLocations", itemService.getAllDistinctShopLocations());
-        
+
         model.addAttribute("user", user);
         model.addAttribute("items", items);
         model.addAttribute("itemCount", items.size());
         model.addAttribute(ATTR_ACTIVE_PAGE, pageName);
         model.addAttribute("gender", pageName);
         model.addAttribute("hasFilters", filter.hasFilters());
-        
+
         return "items/" + pageName;
     }
 
@@ -236,42 +233,48 @@ public class UserController {
     @PostMapping("/items/{gender}/filter")
     @Timed(value = "request.filterItems")
     public String filterItems(@PathVariable String gender,
-        @RequestParam(required = false) String color,
-        @RequestParam(required = false) String brand,
-        @RequestParam(required = false) String material,
-        @RequestParam(required = false) String category,
-        @RequestParam(required = false) String subcategory,
-        @RequestParam(required = false) Double minPrice,
-        @RequestParam(required = false) Double maxPrice,
-        @RequestParam(required = false) String shopLocation,
-        @RequestParam(required = false) String size) {
-        
+            @RequestParam(required = false) String color,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String material,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String subcategory,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) String shopLocation,
+            @RequestParam(required = false) String size) {
+
         // Construir URL com parâmetros
         StringBuilder redirectUrl = new StringBuilder("redirect:/magiclook/items/").append(gender);
         boolean firstParam = true;
-        
+
         if (color != null && !color.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("color=").append(URLEncoder.encode(color, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("color=")
+                    .append(URLEncoder.encode(color, StandardCharsets.UTF_8));
             firstParam = false;
         }
         if (brand != null && !brand.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("brand=").append(URLEncoder.encode(brand, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("brand=")
+                    .append(URLEncoder.encode(brand, StandardCharsets.UTF_8));
             firstParam = false;
         }
         if (material != null && !material.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("material=").append(URLEncoder.encode(material, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("material=")
+                    .append(URLEncoder.encode(material, StandardCharsets.UTF_8));
             firstParam = false;
         }
         if (category != null && !category.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("category=").append(URLEncoder.encode(category, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("category=")
+                    .append(URLEncoder.encode(category, StandardCharsets.UTF_8));
             firstParam = false;
         }
         if (subcategory != null && !subcategory.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("subcategory=").append(URLEncoder.encode(subcategory, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("subcategory=")
+                    .append(URLEncoder.encode(subcategory, StandardCharsets.UTF_8));
             firstParam = false;
         }
         if (size != null && !size.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("size=").append(URLEncoder.encode(size, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("size=")
+                    .append(URLEncoder.encode(size, StandardCharsets.UTF_8));
             firstParam = false;
         }
         if (minPrice != null) {
@@ -283,10 +286,11 @@ public class UserController {
             firstParam = false;
         }
         if (shopLocation != null && !shopLocation.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("shopLocation=").append(URLEncoder.encode(shopLocation, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("shopLocation=")
+                    .append(URLEncoder.encode(shopLocation, StandardCharsets.UTF_8));
             firstParam = false;
         }
-        
+
         return redirectUrl.toString();
     }
 
@@ -300,15 +304,14 @@ public class UserController {
         String genderCode = "men".equals(gender) ? "M" : "F";
 
         List<Item> items = itemService.searchItemsWithFilters(
-            genderCode,
-            filter.getColor(),
-            filter.getBrand(),
-            filter.getMaterial(),
-            filter.getCategory(),
-            filter.getShopLocation(),
-            filter.getMinPrice(),
-            filter.getMaxPrice()
-        );
+                genderCode,
+                filter.getColor(),
+                filter.getBrand(),
+                filter.getMaterial(),
+                filter.getCategory(),
+                filter.getShopLocation(),
+                filter.getMinPrice(),
+                filter.getMaxPrice());
 
         model.addAttribute("filter", filter);
         model.addAttribute("items", items);
@@ -345,7 +348,7 @@ public class UserController {
         // Notifications
         long unreadNotifications = notificationRepository.countByUserAndReadFalse(user);
         model.addAttribute("unreadNotifications", unreadNotifications);
-        model.addAttribute("notifications", notificationRepository.findByUserOrderByDateDesc(user));
+        model.addAttribute("notifications", notificationRepository.findByUserAndReadFalseOrderByDateDesc(user));
 
         model.addAttribute("user", user);
         model.addAttribute("recentItems", recentItems);
@@ -363,5 +366,30 @@ public class UserController {
             session.invalidate();
         }
         return REDIRECT_LOGIN + "?logout";
+    }
+
+    // ========== NOTIFICATIONS ==========
+
+    @PostMapping("/notification/read/{id}")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> markNotificationAsRead(
+            @PathVariable java.util.UUID id,
+            HttpSession session) {
+
+        User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
+        if (user == null) {
+            return org.springframework.http.ResponseEntity.status(401).build();
+        }
+
+        return notificationRepository.findById(id)
+                .map(notification -> {
+                    if (!notification.getUser().getUserId().equals(user.getUserId())) {
+                        return org.springframework.http.ResponseEntity.status(403).build();
+                    }
+                    notification.setRead(true);
+                    notificationRepository.save(notification);
+                    return org.springframework.http.ResponseEntity.ok().build();
+                })
+                .orElse(org.springframework.http.ResponseEntity.notFound().build());
     }
 }
