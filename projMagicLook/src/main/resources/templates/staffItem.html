@@ -490,7 +490,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Same JavaScript as staffDashboard
         const categories = {
             'F': {
                 'Vestido': ['Curto', 'Médio', 'Comprido'],
@@ -522,7 +521,6 @@
         const subcategorySelect = document.getElementById('subcategorySelect');
         const materialSelect = document.getElementById('materialSelect');
 
-        // Edit Elements
         const editGenderSelect = document.getElementById('editGenderSelect');
         const editCategorySelect = document.getElementById('editCategorySelect');
         const editSubcategorySelect = document.getElementById('editSubcategorySelect');
@@ -536,7 +534,6 @@
             populateSelect(editMaterialSelect, materials, 'Selecione o material...');
         }
 
-        // Add Item Logic
         if (genderSelect) {
             genderSelect.addEventListener('change', function () {
                 const gender = this.value;
@@ -587,7 +584,6 @@
             document.getElementById('editPriceRent').value = priceRent;
             document.getElementById('editPriceSale').value = priceSale;
 
-            // Populate Sizes
             const sizesContainer = document.getElementById('editSizesContainer');
             sizesContainer.innerHTML = '';
             if (sizesRaw) {

@@ -8,7 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        /* Styles from Navbar Fragment */
         :root {
             --primary-color: #b8860b;
             --secondary-color: #8b6f3d;
@@ -117,7 +116,6 @@
             font-weight: bold;
         }
 
-        /* Page Styles */
         .content-wrapper {
             padding-top: 80px;
             min-height: calc(100vh - 80px);
@@ -290,9 +288,9 @@
                     </div>
 
                     <div class="col-md-3">
-                        <label for="category" class="form-label">Categoria</label>
+                        <label for="category" class="form-label">Tipo</label>
                         <select class="form-select" id="category" name="category">
-                            <option value="">Todas as categorias</option>
+                            <option value="">Todos os Tipos</option>
                             <option th:each="category : ${categories}" th:value="${category}" th:text="${category}"
                                 th:selected="${filter?.category == category}">
                             </option>
@@ -476,7 +474,6 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Inicializar dropdowns manualmente se necessário
         document.addEventListener('DOMContentLoaded', function () {
             var dropdowns = document.querySelectorAll('.dropdown-toggle');
             dropdowns.forEach(function (dropdown) {

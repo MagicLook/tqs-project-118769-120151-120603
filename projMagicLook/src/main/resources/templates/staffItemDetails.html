@@ -87,7 +87,7 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar (Same as staffItem) -->
+            <!-- Sidebar -->
             <div class="col-md-3 col-lg-2 px-0 staff-sidebar">
                 <div class="p-4">
                     <h4 class="mb-4">
@@ -362,7 +362,6 @@
             new bootstrap.Modal(document.getElementById('editItemSingleModal')).show();
         }
 
-        // Toggle damage reason field based on state
         const stateSelect = document.getElementById('editSingleState');
         const damageContainer = document.getElementById('damageReasonContainer');
         const damageInput = document.getElementById('editDamageReason');
@@ -380,14 +379,12 @@
 
         stateSelect.addEventListener('change', toggleDamageField);
 
-        // Handle edit single item form submission
         document.getElementById('editItemSingleForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const state = document.getElementById('editSingleState').value;
             const damageVal = damageInput.value ? damageInput.value.trim() : '';
 
-            // Validation for Damage Reason
             if (state === 'DAMAGED') {
                 if (damageVal.length < 3) {
                     alert("O motivo do dano deve ter pelo menos 3 caracteres.");
