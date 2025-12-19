@@ -41,6 +41,12 @@ class StaffServiceTest {
     @Mock
     private ItemTypeRepository itemTypeRepository;
 
+    @Mock
+    private NotificationRepository notificationRepository;
+
+    @Mock
+    private BookingRepository bookingRepository;
+
     @InjectMocks
     private StaffService staffService;
 
@@ -91,7 +97,7 @@ class StaffServiceTest {
     void testLogin_WithValidEmail_ShouldReturnStaff() {
         String email = "staff@test.com";
         String password = "password123";
-        
+
         when(staffRepository.findByEmail(email)).thenReturn(Optional.of(testStaff));
 
         Staff result = staffService.login(email, password);
@@ -107,7 +113,7 @@ class StaffServiceTest {
     void testLogin_WithValidUsername_ShouldReturnStaff() {
         String username = "staffuser";
         String password = "password123";
-        
+
         when(staffRepository.findByEmail(username)).thenReturn(Optional.empty());
         when(staffRepository.findByUsername(username)).thenReturn(Optional.of(testStaff));
 
@@ -124,7 +130,7 @@ class StaffServiceTest {
     void testLogin_WithInvalidCredentials_ShouldReturnNull() {
         String username = "wronguser";
         String password = "wrongpass";
-        
+
         when(staffRepository.findByEmail(username)).thenReturn(Optional.empty());
         when(staffRepository.findByUsername(username)).thenReturn(Optional.empty());
 
@@ -140,7 +146,7 @@ class StaffServiceTest {
         String email = "staff@test.com";
         String correctPassword = "password123";
         String wrongPassword = "wrongpassword";
-        
+
         testStaff.setPassword(correctPassword);
         when(staffRepository.findByEmail(email)).thenReturn(Optional.of(testStaff));
         when(staffRepository.findByUsername(email)).thenReturn(Optional.empty());
@@ -197,7 +203,7 @@ class StaffServiceTest {
 
         when(itemSingleRepository.findById(id)).thenReturn(Optional.of(testItemSingle));
 
-        staffService.updateItemSingle(id, newSize, newState);
+        staffService.updateItemSingle(id, newSize, newState, null);
 
         assertEquals(newSize, testItemSingle.getSize());
         assertEquals(newState, testItemSingle.getState());
@@ -215,7 +221,7 @@ class StaffServiceTest {
 
         when(itemSingleRepository.findById(id)).thenReturn(Optional.of(testItemSingle));
 
-        staffService.updateItemSingle(id, newSize, null);
+        staffService.updateItemSingle(id, newSize, null, null);
 
         assertEquals(newSize, testItemSingle.getSize());
         assertEquals("AVAILABLE", testItemSingle.getState());
@@ -232,7 +238,7 @@ class StaffServiceTest {
 
         when(itemSingleRepository.findById(id)).thenReturn(Optional.of(testItemSingle));
 
-        staffService.updateItemSingle(id, null, newState);
+        staffService.updateItemSingle(id, null, newState, null);
 
         assertEquals("M", testItemSingle.getSize());
         assertEquals(newState, testItemSingle.getState());
@@ -248,7 +254,7 @@ class StaffServiceTest {
 
         when(itemSingleRepository.findById(id)).thenReturn(Optional.of(testItemSingle));
 
-        staffService.updateItemSingle(id, "", "");
+        staffService.updateItemSingle(id, "", "", null);
 
         assertEquals("M", testItemSingle.getSize());
         assertEquals("AVAILABLE", testItemSingle.getState());
@@ -261,7 +267,7 @@ class StaffServiceTest {
 
         when(itemSingleRepository.findById(id)).thenReturn(Optional.empty());
 
-        staffService.updateItemSingle(id, "L", "RENTED");
+        staffService.updateItemSingle(id, "L", "RENTED", null);
 
         verify(itemSingleRepository).findById(id);
         verify(itemSingleRepository, never()).saveAndFlush(any());
