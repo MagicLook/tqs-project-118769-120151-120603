@@ -387,7 +387,6 @@ public class BookingController {
 
             if (!allowed) {
                 session.setAttribute("message", "Cancelamento não permitido");
-                if (staff != null) return "redirect:/magiclook/staff/dashboard";
                 return "redirect:/magiclook/my-bookings/" + id;
             }
 
@@ -395,7 +394,6 @@ public class BookingController {
 
             session.setAttribute("message", "Reserva cancelada com sucesso. Reembolso: " + info.getAmount() + " (" + info.getPercent() + "%).");
 
-            if (staff != null) return "redirect:/magiclook/staff/dashboard";
             return "redirect:/magiclook/my-bookings/" + id;
 
         } catch (Exception e) {
