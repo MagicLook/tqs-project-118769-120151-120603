@@ -12,7 +12,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Deploy with Docker Compose
+      - name: Set permissions and deploy with Docker Compose
         run: |
-          docker-compose down
+          sudo usermod -aG docker $USER
+          sudo chmod 666 /var/run/docker.sock
+          docker-compose down || true
           docker-compose up -d --build
