@@ -39,14 +39,16 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
     @Query("SELECT DISTINCT s.location FROM Item i JOIN i.shop s")
     List<String> findAllDistinctShopLocations();
     
-    @Query("SELECT i FROM Item i JOIN i.shop s WHERE i.itemType.gender = :gender " +
-           "AND (:color IS NULL OR i.color = :color) " +
-           "AND (:brand IS NULL OR i.brand = :brand) " +
-           "AND (:material IS NULL OR i.material = :material) " +
-           "AND (:category IS NULL OR i.itemType.category = :category) " +
-           "AND (:shopLocation IS NULL OR s.location = :shopLocation) " +
-           "AND (:minPrice IS NULL OR i.priceRent >= :minPrice) " +
-           "AND (:maxPrice IS NULL OR i.priceRent <= :maxPrice)")
+    @Query("SELECT DISTINCT i FROM Item i JOIN i.itemSingles isg " +
+        "WHERE i.itemType.gender = :gender " +
+        "AND isg.state = 'AVAILABLE' " +
+        "AND (:color IS NULL OR i.color = :color) " +
+        "AND (:brand IS NULL OR i.brand = :brand) " +
+        "AND (:material IS NULL OR i.material = :material) " +
+        "AND (:category IS NULL OR i.itemType.category = :category) " +
+        "AND (:shopLocation IS NULL OR i.shop.location = :shopLocation) " +
+        "AND (:minPrice IS NULL OR i.priceRent >= :minPrice) " +
+        "AND (:maxPrice IS NULL OR i.priceRent <= :maxPrice)")
     List<Item> findByGenderAndFilters(
             @Param("gender") String gender,
             @Param("color") String color,
@@ -79,4 +81,40 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
 
     @Query("SELECT DISTINCT isg.item FROM ItemSingle isg  WHERE isg.state = :state")
     List<Item> findByItemSinglesState(@Param("state") String state);
+
+        @Query("SELECT DISTINCT i FROM Item i " +
+           "JOIN i.itemSingles isg " +  // JOIN com ItemSingle
+           "WHERE i.itemType.gender = :gender " +
+           "AND (:color IS NULL OR i.color = :color) " +
+           "AND (:brand IS NULL OR i.brand = :brand) " +
+           "AND (:material IS NULL OR i.material = :material) " +
+           "AND (:category IS NULL OR i.itemType.category = :category) " +
+           "AND (:subcategory IS NULL OR i.itemType.subcategory = :subcategory) " + // Novo filtro
+           "AND (:size IS NULL OR isg.size = :size) " + // Novo filtro por tamanho
+           "AND isg.state = 'AVAILABLE' " + // Garantir que há pelo menos um ItemSingle disponível
+           "AND (:shopLocation IS NULL OR i.shop.location = :shopLocation) " +
+           "AND (:minPrice IS NULL OR i.priceRent >= :minPrice) " +
+           "AND (:maxPrice IS NULL OR i.priceRent <= :maxPrice)")
+    List<Item> findByGenderAndFilters(
+            @Param("gender") String gender,
+            @Param("color") String color,
+            @Param("brand") String brand,
+            @Param("material") String material,
+            @Param("category") String category,
+            @Param("subcategory") String subcategory, // Novo parâmetro
+            @Param("size") String size, // Novo parâmetro
+            @Param("shopLocation") String shopLocation,
+            @Param("minPrice") Double minPrice,
+            @Param("maxPrice") Double maxPrice);
+    
+    // Adicione estes métodos para obter valores distintos para os filtros
+    @Query("SELECT DISTINCT i.itemType.subcategory FROM Item i WHERE i.itemType.gender = :gender")
+    List<String> findAllDistinctSubcategoriesByGender(@Param("gender") String gender);
+    
+    @Query("SELECT DISTINCT isg.size FROM ItemSingle isg " +
+           "JOIN isg.item i " +
+           "WHERE i.itemType.gender = :gender " +
+           "AND isg.state = 'AVAILABLE' " +
+           "ORDER BY isg.size")
+    List<String> findAllDistinctSizesByGender(@Param("gender") String gender);
 }

@@ -200,6 +200,18 @@
             color: white;
             transform: translateY(-2px);
         }
+        
+        .size-badge {
+            background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
     </style>
 </head>
 <body>
@@ -364,15 +376,21 @@
                                                     <div class="mb-3">
                                                         <strong><i class="bi bi-tag me-2"></i>Detalhes do Item:</strong>
                                                         <div class="mt-2">
-                                                            <span class="badge bg-light text-dark me-2 mb-1">
+                                                            <!-- Tamanho do Item -->
+                                                            <span class="size-badge me-2 mb-2" 
+                                                                  th:if="${booking.itemSingle != null and booking.itemSingle.size != null}">
+                                                                <i class="bi bi-rulers"></i>
+                                                                <span th:text="${booking.itemSingle.size}"></span>
+                                                            </span>
+                                                            <span class="badge bg-light text-dark me-2 mb-2">
                                                                 <i class="bi bi-palette me-1"></i> 
                                                                 <span th:text="${booking.item.color != null ? booking.item.color : 'N/A'}"></span>
                                                             </span>
-                                                            <span class="badge bg-light text-dark me-2 mb-1">
+                                                            <span class="badge bg-light text-dark me-2 mb-2">
                                                                 <i class="bi bi-bricks me-1"></i> 
                                                                 <span th:text="${booking.item.material != null ? booking.item.material : 'N/A'}"></span>
                                                             </span>
-                                                            <span class="badge bg-light text-dark me-2 mb-1">
+                                                            <span class="badge bg-light text-dark me-2 mb-2">
                                                                 <i class="bi bi-shop-window me-1"></i> 
                                                                 <span th:text="${booking.item.brand != null ? booking.item.brand : 'N/A'}"></span>
                                                             </span>
@@ -392,6 +410,12 @@
                                                                 <i class="bi bi-geo-alt me-2"></i>
                                                                 Local: 
                                                                 <span th:text="${booking.item.shop != null ? booking.item.shop.location : 'N/A'}"></span>
+                                                            </p>
+                                                            <!-- Número da unidade -->
+                                                            <p class="mb-1" th:if="${booking.itemSingle != null}">
+                                                                <i class="bi bi-tag-fill me-2"></i>
+                                                                Unidade: 
+                                                                <span th:text="${booking.itemSingle.id.toString().substring(0,8).toUpperCase()}"></span>
                                                             </p>
                                                         </div>
                                                     </div>

@@ -16,6 +16,8 @@ public class BookingRequestDTO {
     @NotNull(message = "Data de fim de uso é obrigatória")
     @Future(message = "A data deve ser futura")
     private Date endUseDate;
+
+    private String size;
     
     public BookingRequestDTO() {}
     
@@ -44,4 +46,7 @@ public class BookingRequestDTO {
         long diff = endUseDate.getTime() - startUseDate.getTime();
         return (diff / (1000 * 60 * 60 * 24)) + 1;
     }
+
+    public String getSize() { return size; }
+    public void setSize(String size) { this.size = size; }
 }
