@@ -1032,4 +1032,53 @@ public class BookingControllerTest {
         
         return booking;
     }
+
+    @Test
+    void testCancelInfo_BookingNotFound() {
+        when(session.getAttribute("loggedInUser")).thenReturn(testUser);
+        when(bookingService.getBookingById(any(UUID.class))).thenReturn(null);
+
+        Map<String, Object> resp =
+            bookingController.cancelInfo(UUID.randomUUID().toString(), session);
+
+        assertFalse((Boolean) resp.get("canCancel"));
+        assertEquals("Reserva não encontrada", resp.get("message"));
+    }
+
+    @Test
+    void testCancelInfo_Exception() {
+        when(session.getAttribute("loggedInUser")).thenReturn(testUser);
+        when(bookingService.getBookingById(any(UUID.class)))
+            .thenThrow(new RuntimeException("Erro inesperado"));
+
+        Map<String, Object> resp =
+            bookingController.cancelInfo(UUID.randomUUID().toString(), session);
+
+        assertFalse((Boolean) resp.get("canCancel"));
+        assertEquals("Erro inesperado", resp.get("message"));
+    }
+
+    @Test
+    void testCancelBooking_NotAllowed_AsOwner() {
+        when(session.getAttribute("loggedInUser")).thenReturn(testUser);
+        when(session.getAttribute("loggedInStaff")).thenReturn(null);
+        when(bookingService.getBookingById(testBooking.getBookingId()))
+            .thenReturn(testBooking);
+
+        // Estado não permite cancelamento
+        when(bookingService.getCurrentBookingState(testBooking))
+            .thenReturn("COMPLETED");
+
+        String redirect =
+            bookingController.cancelBooking(testBooking.getBookingId().toString(), session);
+
+        assertEquals(
+            "redirect:/magiclook/my-bookings/" + testBooking.getBookingId(),
+            redirect
+        );
+
+        verify(session).setAttribute("message", "Cancelamento não permitido");
+        verify(bookingService, never()).cancelBooking(any());
+    }
+
 }
