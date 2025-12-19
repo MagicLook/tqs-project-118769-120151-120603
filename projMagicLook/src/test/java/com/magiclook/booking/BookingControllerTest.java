@@ -678,6 +678,119 @@ public class BookingControllerTest {
     }
 
     @Test
+    void testShowMyBookings_SortByStartDateDesc_BothNullPreserveOrder() {
+        when(session.getAttribute("loggedInUser")).thenReturn(testUser);
+        Booking b1 = createTestBooking();
+        Booking b2 = createTestBooking();
+        b1.setBookingId(UUID.randomUUID());
+        b2.setBookingId(UUID.randomUUID());
+        b1.setStartUseDate(null);
+        b2.setStartUseDate(null);
+
+        List<Booking> bookings = new ArrayList<>();
+        bookings.add(b1);
+        bookings.add(b2);
+        when(bookingService.getUserBookings(testUser)).thenReturn(bookings);
+
+        String viewName = bookingController.showMyBookings(session, model, null, null);
+
+        assertEquals("booking/myBookings", viewName);
+        @SuppressWarnings("unchecked")
+        org.mockito.ArgumentCaptor<List> captor = org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(model).addAttribute(eq("bookings"), captor.capture());
+        List<Booking> result = captor.getValue();
+        // Since both start dates are null, original order should be preserved (stable sort)
+        assertEquals(b1.getBookingId(), result.get(0).getBookingId());
+        assertEquals(b2.getBookingId(), result.get(1).getBookingId());
+    }
+
+    @Test
+    void testShowMyBookings_SortByStartDateDesc_DescendingOrder() {
+        when(session.getAttribute("loggedInUser")).thenReturn(testUser);
+        Booking b1 = createTestBooking();
+        Booking b2 = createTestBooking();
+        b1.setBookingId(UUID.randomUUID());
+        b2.setBookingId(UUID.randomUUID());
+
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 2);
+        b1.setStartUseDate(cal.getTime());
+
+        cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 5);
+        b2.setStartUseDate(cal.getTime());
+
+        List<Booking> bookings = new ArrayList<>();
+        bookings.add(b1);
+        bookings.add(b2);
+        when(bookingService.getUserBookings(testUser)).thenReturn(bookings);
+
+        String viewName = bookingController.showMyBookings(session, model, null, null);
+
+        assertEquals("booking/myBookings", viewName);
+        @SuppressWarnings("unchecked")
+        org.mockito.ArgumentCaptor<List> captor = org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(model).addAttribute(eq("bookings"), captor.capture());
+        List<Booking> result = captor.getValue();
+        // b2 has later start date and should come first after sorting desc
+        assertEquals(b2.getBookingId(), result.get(0).getBookingId());
+        assertEquals(b1.getBookingId(), result.get(1).getBookingId());
+    }
+
+    @Test
+    void testShowMyBookings_FilterPast_ReturnsOnlyPastStates() {
+        when(session.getAttribute("loggedInUser")).thenReturn(testUser);
+        Booking completed = createTestBooking();
+        completed.setBookingId(UUID.randomUUID());
+        completed.setState("COMPLETED");
+
+        Booking overdue = createTestBooking();
+        overdue.setBookingId(UUID.randomUUID());
+        overdue.setState("OVERDUE");
+
+        Booking confirmed = createTestBooking();
+        confirmed.setBookingId(UUID.randomUUID());
+        confirmed.setState("CONFIRMED");
+
+        List<Booking> bookings = new ArrayList<>();
+        bookings.add(completed);
+        bookings.add(overdue);
+        bookings.add(confirmed);
+
+        when(bookingService.getUserBookings(testUser)).thenReturn(bookings);
+        // The controller calls getCurrentBookingState for each booking; return the booking's own state
+        when(bookingService.getCurrentBookingState(any(Booking.class))).thenAnswer(invocation -> ((Booking) invocation.getArgument(0)).getState());
+
+        String viewName = bookingController.showMyBookings(session, model, "past", null);
+
+        assertEquals("booking/myBookings", viewName);
+        @SuppressWarnings("unchecked")
+        org.mockito.ArgumentCaptor<List> captor = org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(model).addAttribute(eq("bookings"), captor.capture());
+        List<Booking> result = captor.getValue();
+        assertEquals(2, result.size());
+        for (Booking b : result) {
+            assertTrue("COMPLETED".equals(b.getState()) || "OVERDUE".equals(b.getState()));
+        }
+    }
+
+    @Test
+    void testShowMyBookings_FilterUnknown_ReturnsAll() {
+        when(session.getAttribute("loggedInUser")).thenReturn(testUser);
+        Booking a = createTestBooking();
+        Booking b = createTestBooking();
+        List<Booking> bookings = new ArrayList<>();
+        bookings.add(a);
+        bookings.add(b);
+        when(bookingService.getUserBookings(testUser)).thenReturn(bookings);
+
+        String viewName = bookingController.showMyBookings(session, model, "something", null);
+
+        assertEquals("booking/myBookings", viewName);
+        verify(model).addAttribute(eq("bookings"), anyList());
+    }
+
+    @Test
     void testCheckAvailability_API_Success() {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
