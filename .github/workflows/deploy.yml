@@ -8,10 +8,15 @@ jobs:
   deploy:
     runs-on: self-hosted
     steps:
+      - name: Cleanup Workspace
+        run: |
+          sudo rm -rf ./* || true
+          sudo rm -rf ./.??* || true
+    
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
+        
       - name: Set permissions and deploy with Docker Compose
         run: |
           sudo usermod -aG docker $USER
