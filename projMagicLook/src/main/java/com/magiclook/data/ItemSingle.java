@@ -22,6 +22,9 @@ public class ItemSingle implements Serializable {
 
     private String size; // Tamanho do item
 
+    @Column(name = "damage_reason")
+    private String damageReason; // Motivo do dano (se estado for Danificado)
+
     @ManyToOne
     @JoinColumn(name = "item_id")
     private Item item;
@@ -36,14 +39,43 @@ public class ItemSingle implements Serializable {
         this.size = size;
     }
 
-    public String getState() { return state; }
-    public void setState(String state) { this.state = state; }
+    public String getState() {
+        return state;
+    }
 
-    public Item getItem() { return item; }
-    public void setItem(Item item) { this.item = item; }
+    public void setState(String state) {
+        this.state = state;
+    }
 
-    public String getSize() { return size; }
-    public void setSize(String size) { this.size = size; }
+    public Item getItem() {
+        return item;
+    }
 
-    public UUID getId() { return id; }
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public String getDamageReason() {
+        return damageReason;
+    }
+
+    public void setDamageReason(String damageReason) {
+        this.damageReason = damageReason;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 }

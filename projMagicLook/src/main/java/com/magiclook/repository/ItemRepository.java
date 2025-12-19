@@ -13,29 +13,28 @@ import java.util.Optional;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Integer> {
     List<Item> findByNameAndMaterialAndColorAndBrand(
-        String name,
-        String material,
-        String color,
-        String brand
-    );
+            String name,
+            String material,
+            String color,
+            String brand);
 
     List<Item> findByShop(Shop shop);
 
     @Query("SELECT i FROM Item i WHERE i.itemType.gender = :gender")
     List<Item> findByItemTypeGender(@Param("gender") String gender);
-    
+
     @Query("SELECT DISTINCT i.color FROM Item i")
     List<String> findAllDistinctColors();
-    
+
     @Query("SELECT DISTINCT i.brand FROM Item i")
     List<String> findAllDistinctBrands();
-    
+
     @Query("SELECT DISTINCT i.material FROM Item i")
     List<String> findAllDistinctMaterials();
-    
+
     @Query("SELECT DISTINCT i.itemType.category FROM Item i")
     List<String> findAllDistinctCategories();
-    
+
     @Query("SELECT DISTINCT s.location FROM Item i JOIN i.shop s")
     List<String> findAllDistinctShopLocations();
     
@@ -58,15 +57,15 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
             @Param("shopLocation") String shopLocation,
             @Param("minPrice") Double minPrice,
             @Param("maxPrice") Double maxPrice);
-            
+
     @Query("SELECT i FROM Item i WHERE i.name = :name " +
-           "AND i.material = :material " +
-           "AND i.color = :color " +
-           "AND i.brand = :brand " +
-           "AND i.itemType.gender = :gender " +
-           "AND i.itemType.category = :category " +
-           "AND i.itemType.subcategory = :subcategory " +
-           "AND i.shop.shopId = :shopId")
+            "AND i.material = :material " +
+            "AND i.color = :color " +
+            "AND i.brand = :brand " +
+            "AND i.itemType.gender = :gender " +
+            "AND i.itemType.category = :category " +
+            "AND i.itemType.subcategory = :subcategory " +
+            "AND i.shop.shopId = :shopId")
     Optional<Item> findByAllCharacteristics(
             @Param("name") String name,
             @Param("material") String material,
@@ -76,7 +75,7 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
             @Param("category") String category,
             @Param("subcategory") String subcategory,
             @Param("shopId") Integer shopId);
-    
+
     List<Item> findAll();
 
     @Query("SELECT DISTINCT isg.item FROM ItemSingle isg  WHERE isg.state = :state")

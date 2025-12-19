@@ -328,6 +328,12 @@
                                 <option value="DAMAGED">Danificado</option>
                             </select>
                         </div>
+
+                        <div class="mb-3" id="damageReasonContainer" style="display: none;">
+                            <label class="form-label">Motivo do Dano <span class="text-danger">*</span></label>
+                            <textarea id="editDamageReason" name="damageReason" class="form-control" rows="3"
+                                placeholder="Descreva o motivo do dano (min. 3 caracteres)"></textarea>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary"
@@ -354,16 +360,47 @@
             document.getElementById('editSingleSize').value = size;
             document.getElementById('editSingleState').value = state;
 
+            // Trigger state change to set visibility of damage field
+            toggleDamageField();
+
             new bootstrap.Modal(document.getElementById('editItemSingleModal')).show();
         }
+
+        // Toggle damage reason field based on state
+        const stateSelect = document.getElementById('editSingleState');
+        const damageContainer = document.getElementById('damageReasonContainer');
+        const damageInput = document.getElementById('editDamageReason');
+
+        function toggleDamageField() {
+            if (stateSelect.value === 'DAMAGED') {
+                damageContainer.style.display = 'block';
+                damageInput.setAttribute('required', 'required');
+            } else {
+                damageContainer.style.display = 'none';
+                damageInput.removeAttribute('required');
+                damageInput.value = ''; // Clear value when hidden
+            }
+        }
+
+        stateSelect.addEventListener('change', toggleDamageField);
 
         // Handle edit single item form submission
         document.getElementById('editItemSingleForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
+            const state = document.getElementById('editSingleState').value;
+            const damageVal = damageInput.value ? damageInput.value.trim() : '';
+
+            // Validation for Damage Reason
+            if (state === 'DAMAGED') {
+                if (damageVal.length < 3) {
+                    alert("O motivo do dano deve ter pelo menos 3 caracteres.");
+                    return;
+                }
+            }
+
             const id = document.getElementById('editSingleId').value;
             const size = document.getElementById('editSingleSize').value;
-            const state = document.getElementById('editSingleState').value;
             const itemId = this.querySelector('input[name="itemId"]').value;
             const submitBtn = document.getElementById('editSingleSubmitBtn');
             const messageDiv = document.getElementById('editSingleMessage');
@@ -374,6 +411,11 @@
                 const formData = new FormData();
                 formData.append('size', size);
                 formData.append('state', state);
+
+                if (state === 'DAMAGED') {
+                    formData.append('damageReason', damageVal);
+                }
+
                 formData.append('itemId', itemId);
 
                 const response = await fetch('/magiclook/staff/itemsingle/update/' + id, {

@@ -5,15 +5,19 @@ import com.magiclook.data.User;
 import com.magiclook.service.UserService;
 import com.magiclook.dto.LoginDTO;
 import com.magiclook.service.ItemService;
+import com.magiclook.repository.NotificationRepository;
 import com.magiclook.data.Item;
 import com.magiclook.dto.ItemFilterDTO;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import io.micrometer.core.annotation.Timed;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -25,7 +29,8 @@ public class UserController {
 
     private final UserService userService;
     private final ItemService itemService;
-    
+    private final NotificationRepository notificationRepository;
+
     // Constantes para evitar strings duplicadas
     private static final String VIEW_REGISTER = "register";
     private static final String VIEW_LOGIN = "login";
@@ -38,13 +43,15 @@ public class UserController {
     private static final String VIEW_DASHBOARD = "dashboard";
 
     @Autowired
-    public UserController(UserService userService, ItemService itemService) {
+    public UserController(UserService userService, ItemService itemService,
+            NotificationRepository notificationRepository) {
         this.userService = userService;
         this.itemService = itemService;
+        this.notificationRepository = notificationRepository;
     }
 
     // ========== REGISTRO ==========
-    
+
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
         model.addAttribute("user", new UserRegistrationDTO());
@@ -53,13 +60,13 @@ public class UserController {
 
     @PostMapping("/register")
     public String register(@Valid @ModelAttribute("user") UserRegistrationDTO userDTO,
-                          BindingResult result,
-                          Model model) {
-        
+            BindingResult result,
+            Model model) {
+
         if (result.hasErrors()) {
             return VIEW_REGISTER;
         }
-        
+
         try {
             userService.register(userDTO);
             model.addAttribute(ATTR_SUCCESS, "Registro realizado com sucesso! Faça login.");
@@ -71,31 +78,31 @@ public class UserController {
     }
 
     // ========== LOGIN ==========
-    
+
     @GetMapping("/login")
     public String showLoginForm(Model model) {
         model.addAttribute("loginRequest", new LoginDTO());
-        
+
         if (model.containsAttribute(ATTR_SUCCESS)) {
             model.addAttribute(ATTR_SUCCESS, "Registro realizado com sucesso!");
         }
-        
+
         return VIEW_LOGIN;
     }
 
     @PostMapping("/login")
     public String login(@RequestParam String username,
-                       @RequestParam String password,
-                       HttpSession session,
-                       Model model) {
-        
+            @RequestParam String password,
+            HttpSession session,
+            Model model) {
+
         User user = userService.login(username, password);
-        
+
         if (user != null) {
             session.setAttribute(ATTR_LOGGED_IN_USER, user);
             session.setAttribute("userId", user.getUserId());
             session.setAttribute("userName", user.getFirstName());
-            
+
             return "redirect:/magiclook/dashboard";
         } else {
             model.addAttribute(ATTR_ERROR, "Username ou palavra-passe inválidos!");
@@ -107,6 +114,7 @@ public class UserController {
     // ========== ITEMS (Homens e Mulheres) ==========
 
     @GetMapping("/items/men")
+    @Timed(value = "request.getMenItems")
     public String showMenItems(
             @RequestParam(required = false) String color,
             @RequestParam(required = false) String brand,
@@ -119,9 +127,9 @@ public class UserController {
             @RequestParam(required = false) String size,
             HttpSession session,
             Model model) {
-        
-        return showGenderItems(session, model, "M", "men", 
-                color, brand, material, category, subcategory, 
+
+        return showGenderItems(session, model, "M", "men",
+                color, brand, material, category, subcategory,
                 minPrice, maxPrice, shopLocation, size);
     }
 
@@ -141,6 +149,7 @@ public class UserController {
     }
 
     @GetMapping("/items/women")
+    @Timed(value = "request.getWomenItems")
     public String showWomenItems(
             @RequestParam(required = false) String color,
             @RequestParam(required = false) String brand,
@@ -153,9 +162,9 @@ public class UserController {
             @RequestParam(required = false) String size,
             HttpSession session,
             Model model) {
-        
-        return showGenderItems(session, model, "F", "women", 
-                color, brand, material, category, subcategory, 
+
+        return showGenderItems(session, model, "F", "women",
+                color, brand, material, category, subcategory,
                 minPrice, maxPrice, shopLocation, size);
     }
 
@@ -173,88 +182,99 @@ public class UserController {
         model.addAttribute(ATTR_ACTIVE_PAGE, "women");
         return "items/women";
     }
-    
-    private String showGenderItems(HttpSession session, Model model, 
-                                   String genderCode, String pageName,
-                                   String color, String brand, String material, 
-                                   String category, String subcategory,
-                                   Double minPrice, Double maxPrice,
-                                   String shopLocation, String size) {
-        
+
+    private String showGenderItems(HttpSession session, Model model,
+            String genderCode, String pageName,
+            String color, String brand, String material,
+            String category, String subcategory,
+            Double minPrice, Double maxPrice,
+            String shopLocation, String size) {
+
         User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
-        
+
         if (user == null) {
             return REDIRECT_LOGIN;
         }
-        
+
         // Criar filtro com os parâmetros
-        ItemFilterDTO filter = new ItemFilterDTO(color, brand, material, category, 
-                                               subcategory, minPrice, maxPrice, 
-                                               shopLocation, size);
-        
+        ItemFilterDTO filter = new ItemFilterDTO(color, brand, material, category,
+                subcategory, minPrice, maxPrice,
+                shopLocation, size);
+
         // Buscar itens com filtros
         List<Item> items = itemService.findByGenderAndFilters(genderCode, filter);
-        
+
         // Obter opções para os filtros
         model.addAttribute("filter", filter);
         model.addAttribute("colors", itemService.getAllDistinctColors());
         model.addAttribute("brands", itemService.getAllDistinctBrands());
         model.addAttribute("materials", itemService.getAllDistinctMaterials());
         model.addAttribute("categories", itemService.getAllDistinctCategories());
+
+        long unreadNotifications = notificationRepository.countByUserAndReadFalse(user);
+        model.addAttribute("unreadNotifications", unreadNotifications);
+
         model.addAttribute("subcategories", itemService.getAllDistinctSubcategoriesByGender(genderCode));
         model.addAttribute("sizes", itemService.getAllDistinctSizesByGender(genderCode));
         model.addAttribute("shopLocations", itemService.getAllDistinctShopLocations());
-        
+
         model.addAttribute("user", user);
         model.addAttribute("items", items);
         model.addAttribute("itemCount", items.size());
         model.addAttribute(ATTR_ACTIVE_PAGE, pageName);
         model.addAttribute("gender", pageName);
         model.addAttribute("hasFilters", filter.hasFilters());
-        
+
         return "items/" + pageName;
     }
-    
+
     // ========== FILTRAR ITENS ==========
-    
+
     @PostMapping("/items/{gender}/filter")
+    @Timed(value = "request.filterItems")
     public String filterItems(@PathVariable String gender,
-                            @RequestParam(required = false) String color,
-                            @RequestParam(required = false) String brand,
-                            @RequestParam(required = false) String material,
-                            @RequestParam(required = false) String category,
-                            @RequestParam(required = false) String subcategory,
-                            @RequestParam(required = false) Double minPrice,
-                            @RequestParam(required = false) Double maxPrice,
-                            @RequestParam(required = false) String shopLocation,
-                            @RequestParam(required = false) String size) {
-        
+            @RequestParam(required = false) String color,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String material,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String subcategory,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) String shopLocation,
+            @RequestParam(required = false) String size) {
+
         // Construir URL com parâmetros
         StringBuilder redirectUrl = new StringBuilder("redirect:/magiclook/items/").append(gender);
         boolean firstParam = true;
-        
+
         if (color != null && !color.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("color=").append(URLEncoder.encode(color, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("color=")
+                    .append(URLEncoder.encode(color, StandardCharsets.UTF_8));
             firstParam = false;
         }
         if (brand != null && !brand.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("brand=").append(URLEncoder.encode(brand, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("brand=")
+                    .append(URLEncoder.encode(brand, StandardCharsets.UTF_8));
             firstParam = false;
         }
         if (material != null && !material.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("material=").append(URLEncoder.encode(material, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("material=")
+                    .append(URLEncoder.encode(material, StandardCharsets.UTF_8));
             firstParam = false;
         }
         if (category != null && !category.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("category=").append(URLEncoder.encode(category, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("category=")
+                    .append(URLEncoder.encode(category, StandardCharsets.UTF_8));
             firstParam = false;
         }
         if (subcategory != null && !subcategory.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("subcategory=").append(URLEncoder.encode(subcategory, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("subcategory=")
+                    .append(URLEncoder.encode(subcategory, StandardCharsets.UTF_8));
             firstParam = false;
         }
         if (size != null && !size.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("size=").append(URLEncoder.encode(size, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("size=")
+                    .append(URLEncoder.encode(size, StandardCharsets.UTF_8));
             firstParam = false;
         }
         if (minPrice != null) {
@@ -266,10 +286,11 @@ public class UserController {
             firstParam = false;
         }
         if (shopLocation != null && !shopLocation.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("shopLocation=").append(URLEncoder.encode(shopLocation, StandardCharsets.UTF_8));
+            redirectUrl.append(firstParam ? "?" : "&").append("shopLocation=")
+                    .append(URLEncoder.encode(shopLocation, StandardCharsets.UTF_8));
             firstParam = false;
         }
-        
+
         return redirectUrl.toString();
     }
 
@@ -283,15 +304,14 @@ public class UserController {
         String genderCode = "men".equals(gender) ? "M" : "F";
 
         List<Item> items = itemService.searchItemsWithFilters(
-            genderCode,
-            filter.getColor(),
-            filter.getBrand(),
-            filter.getMaterial(),
-            filter.getCategory(),
-            filter.getShopLocation(),
-            filter.getMinPrice(),
-            filter.getMaxPrice()
-        );
+                genderCode,
+                filter.getColor(),
+                filter.getBrand(),
+                filter.getMaterial(),
+                filter.getCategory(),
+                filter.getShopLocation(),
+                filter.getMinPrice(),
+                filter.getMaxPrice());
 
         model.addAttribute("filter", filter);
         model.addAttribute("items", items);
@@ -302,10 +322,11 @@ public class UserController {
 
         return "items/" + gender;
     }
-    
+
     // ========== LIMPAR FILTROS ==========
-    
+
     @GetMapping("/items/{gender}/clear")
+    @Timed(value = "request.clearItemFilters")
     public String clearFilters(@PathVariable String gender, HttpSession session) {
         return "redirect:/magiclook/items/" + gender;
     }
@@ -313,30 +334,62 @@ public class UserController {
     // ============== DASHBOARD ===============
 
     @GetMapping("/dashboard")
+    @Timed(value = "request.getDashboard")
     public String showDashboard(HttpSession session, Model model) {
         User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
-        
+
         if (user == null) {
             return REDIRECT_LOGIN;
         }
-        
+
         // Buscar itens recentes
         List<Item> recentItems = itemService.getRecentItems(6);
-        
+
+        // Notifications
+        long unreadNotifications = notificationRepository.countByUserAndReadFalse(user);
+        model.addAttribute("unreadNotifications", unreadNotifications);
+        model.addAttribute("notifications", notificationRepository.findByUserAndReadFalseOrderByDateDesc(user));
+
         model.addAttribute("user", user);
         model.addAttribute("recentItems", recentItems);
-        model.addAttribute(ATTR_CART_COUNT, session.getAttribute(ATTR_CART_COUNT) != null ? session.getAttribute(ATTR_CART_COUNT) : 0);
+        model.addAttribute(ATTR_CART_COUNT,
+                session.getAttribute(ATTR_CART_COUNT) != null ? session.getAttribute(ATTR_CART_COUNT) : 0);
         model.addAttribute(ATTR_ACTIVE_PAGE, VIEW_DASHBOARD);
         return VIEW_DASHBOARD;
     }
 
     // ========== LOGOUT ==========
-    
+
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         if (session != null) {
             session.invalidate();
         }
         return REDIRECT_LOGIN + "?logout";
+    }
+
+    // ========== NOTIFICATIONS ==========
+
+    @PostMapping("/notification/read/{id}")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> markNotificationAsRead(
+            @PathVariable java.util.UUID id,
+            HttpSession session) {
+
+        User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
+        if (user == null) {
+            return org.springframework.http.ResponseEntity.status(401).build();
+        }
+
+        return notificationRepository.findById(id)
+                .map(notification -> {
+                    if (!notification.getUser().getUserId().equals(user.getUserId())) {
+                        return org.springframework.http.ResponseEntity.status(403).build();
+                    }
+                    notification.setRead(true);
+                    notificationRepository.save(notification);
+                    return org.springframework.http.ResponseEntity.ok().build();
+                })
+                .orElse(org.springframework.http.ResponseEntity.notFound().build());
     }
 }

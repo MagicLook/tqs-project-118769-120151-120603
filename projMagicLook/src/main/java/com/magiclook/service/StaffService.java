@@ -18,11 +18,13 @@ import java.util.Arrays;
 import java.util.*;
 import java.util.Optional;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.io.File;
 
 @Service
 @Transactional
-public class StaffService extends ClientService {
+public class StaffService {
 
     @Autowired
     private StaffRepository staffRepository;
@@ -39,17 +41,26 @@ public class StaffService extends ClientService {
     @Autowired
     private ItemSingleRepository itemSingleRepository;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
+    @Autowired
+    private BookingRepository bookingRepository;
+
     @Value("${app.upload.dir}")
     private String uploadDir;
 
     @Autowired
     StaffService(StaffRepository staffRepository, ItemRepository itemRepository, ShopRepository shopRepository,
-            ItemTypeRepository itemTypeRepository, ItemSingleRepository itemSingleRepository) {
+            ItemTypeRepository itemTypeRepository, ItemSingleRepository itemSingleRepository,
+            BookingRepository bookingRepository, NotificationRepository notificationRepository) {
         this.staffRepository = staffRepository;
         this.itemRepository = itemRepository;
         this.shopRepository = shopRepository;
         this.itemTypeRepository = itemTypeRepository;
         this.itemSingleRepository = itemSingleRepository;
+        this.bookingRepository = bookingRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     public String saveImage(MultipartFile image, Integer itemId) throws IOException {
@@ -110,7 +121,7 @@ public class StaffService extends ClientService {
         }
     }
 
-    public void updateItemSingle(UUID id, String size, String state) {
+    public void updateItemSingle(UUID id, String size, String state, String damageReason) {
         itemSingleRepository.findById(id).ifPresent(single -> {
             boolean changed = false;
             if (size != null && !size.isBlank()) {
@@ -120,11 +131,47 @@ public class StaffService extends ClientService {
             if (state != null && !state.isBlank()) {
                 single.setState(state);
                 changed = true;
+
+                // Logic for DAMAGED state
+                if ("DAMAGED".equals(state)) {
+                    single.setDamageReason(damageReason);
+
+                    // Notify users
+                    createDamageNotifications(single, damageReason);
+                }
             }
             if (changed) {
                 itemSingleRepository.saveAndFlush(single);
             }
         });
+    }
+
+    private void createDamageNotifications(ItemSingle itemSingle, String damageReason) {
+        if (itemSingle == null)
+            return;
+
+        // 2. Notify upcoming users (next 3 days)
+        Date now = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        cal.add(Calendar.DAY_OF_YEAR, 3);
+        Date threeDaysLater = cal.getTime();
+
+        List<Booking> upcomingBookings = bookingRepository.findOverlappingBookingsForItemSingle(
+                itemSingle,
+                now, // pickup (conservative)
+                now, // start
+                threeDaysLater, // end
+                threeDaysLater // laundry (conservative)
+        );
+
+        for (Booking booking : upcomingBookings) {
+            String msg = "A sua reserva para " + itemSingle.getItem().getName()
+                    + " poderá ser afetada devido a danos no item."
+                    + (damageReason != null ? " Motivo: " + damageReason : "");
+            Notification notification = new Notification(booking.getUser(), msg);
+            notificationRepository.save(notification);
+        }
     }
 
     public int addItem(ItemDTO itemDTO, String size) {
