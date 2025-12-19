@@ -291,6 +291,120 @@ public class UserControllerTest {
         assertEquals("redirect:/magiclook/items/women", viewName);
     }
 
+    // ==================== MARK NOTIFICATION AS READ TESTS ====================
+
+    @Test
+    void testMarkNotificationAsRead_WithValidNotification_ShouldReturnOk() {
+        UUID notificationId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        
+        User user = new User();
+        user.setUserId(userId);
+        session.setAttribute("loggedInUser", user);
+        
+        com.magiclook.data.Notification notification = new com.magiclook.data.Notification();
+        notification.setNotificationId(notificationId);
+        notification.setUser(user);
+        notification.setRead(false);
+        
+        when(notificationRepository.findById(notificationId))
+                .thenReturn(java.util.Optional.of(notification));
+        
+        org.springframework.http.ResponseEntity<?> response = 
+                userController.markNotificationAsRead(notificationId, session);
+        
+        assertEquals(org.springframework.http.HttpStatus.OK, response.getStatusCode());
+        assertTrue(notification.isRead());
+        verify(notificationRepository).save(notification);
+    }
+
+    @Test
+    void testMarkNotificationAsRead_WithoutLoggedInUser_ShouldReturn401() {
+        UUID notificationId = UUID.randomUUID();
+        
+        org.springframework.http.ResponseEntity<?> response = 
+                userController.markNotificationAsRead(notificationId, session);
+        
+        assertEquals(org.springframework.http.HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        verify(notificationRepository, never()).findById(any());
+        verify(notificationRepository, never()).save(any());
+    }
+
+    @Test
+    void testMarkNotificationAsRead_WithNonExistentNotification_ShouldReturn404() {
+        UUID notificationId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        
+        User user = new User();
+        user.setUserId(userId);
+        session.setAttribute("loggedInUser", user);
+        
+        when(notificationRepository.findById(notificationId))
+                .thenReturn(java.util.Optional.empty());
+        
+        org.springframework.http.ResponseEntity<?> response = 
+                userController.markNotificationAsRead(notificationId, session);
+        
+        assertEquals(org.springframework.http.HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(notificationRepository).findById(notificationId);
+        verify(notificationRepository, never()).save(any());
+    }
+
+    @Test
+    void testMarkNotificationAsRead_WithDifferentUser_ShouldReturn403() {
+        UUID notificationId = UUID.randomUUID();
+        UUID loggedInUserId = UUID.randomUUID();
+        UUID notificationOwnerId = UUID.randomUUID();
+        
+        User loggedInUser = new User();
+        loggedInUser.setUserId(loggedInUserId);
+        session.setAttribute("loggedInUser", loggedInUser);
+        
+        User notificationOwner = new User();
+        notificationOwner.setUserId(notificationOwnerId);
+        
+        com.magiclook.data.Notification notification = new com.magiclook.data.Notification();
+        notification.setNotificationId(notificationId);
+        notification.setUser(notificationOwner);
+        notification.setRead(false);
+        
+        when(notificationRepository.findById(notificationId))
+                .thenReturn(java.util.Optional.of(notification));
+        
+        org.springframework.http.ResponseEntity<?> response = 
+                userController.markNotificationAsRead(notificationId, session);
+        
+        assertEquals(org.springframework.http.HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertFalse(notification.isRead());
+        verify(notificationRepository).findById(notificationId);
+        verify(notificationRepository, never()).save(any());
+    }
+
+    @Test
+    void testMarkNotificationAsRead_AlreadyRead_ShouldStillReturnOk() {
+        UUID notificationId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        
+        User user = new User();
+        user.setUserId(userId);
+        session.setAttribute("loggedInUser", user);
+        
+        com.magiclook.data.Notification notification = new com.magiclook.data.Notification();
+        notification.setNotificationId(notificationId);
+        notification.setUser(user);
+        notification.setRead(true);
+        
+        when(notificationRepository.findById(notificationId))
+                .thenReturn(java.util.Optional.of(notification));
+        
+        org.springframework.http.ResponseEntity<?> response = 
+                userController.markNotificationAsRead(notificationId, session);
+        
+        assertEquals(org.springframework.http.HttpStatus.OK, response.getStatusCode());
+        assertTrue(notification.isRead());
+        verify(notificationRepository).save(notification);
+    }
+
     private List<Item> createTestItems(int count) {
         List<Item> items = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
