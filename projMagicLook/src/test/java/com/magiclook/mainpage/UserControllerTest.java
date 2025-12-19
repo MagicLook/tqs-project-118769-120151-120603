@@ -123,6 +123,69 @@ public class UserControllerTest {
     }
 
     @Test
+    void testShowMenItems_WithFilters_PopulatesModelAndReturnsView() {
+        User user = new User();
+        user.setUsername("testuser");
+        session.setAttribute("loggedInUser", user);
+
+        // prepare filter params
+        String color = "Blue";
+        String brand = "BrandX";
+        String material = "Silk";
+        String category = "Shirt";
+        String subcategory = "Casual";
+        Double minPrice = 10.0;
+        Double maxPrice = 50.0;
+        String shopLocation = "Lisbon";
+        String size = "M";
+
+        List<Item> filteredItems = createTestItems("M", 2);
+        when(itemService.findByGenderAndFilters(eq("M"), any())).thenReturn(filteredItems);
+        when(itemService.getAllDistinctColors()).thenReturn(List.of("Blue"));
+        when(itemService.getAllDistinctBrands()).thenReturn(List.of("BrandX"));
+        when(itemService.getAllDistinctMaterials()).thenReturn(List.of("Silk"));
+        when(itemService.getAllDistinctCategories()).thenReturn(List.of("Shirt"));
+        when(itemService.getAllDistinctSubcategoriesByGender("M")).thenReturn(List.of("Casual"));
+        when(itemService.getAllDistinctSizesByGender("M")).thenReturn(List.of("M"));
+        when(itemService.getAllDistinctShopLocations()).thenReturn(List.of("Lisbon"));
+
+        String viewName = userController.showMenItems(color, brand, material, category, subcategory, minPrice, maxPrice, shopLocation, size, session, model);
+
+        assertEquals("items/men", viewName);
+
+        // capture filter passed into model
+        @SuppressWarnings("unchecked")
+        org.mockito.ArgumentCaptor<com.magiclook.dto.ItemFilterDTO> captor = org.mockito.ArgumentCaptor.forClass(com.magiclook.dto.ItemFilterDTO.class);
+        verify(model).addAttribute(eq("filter"), captor.capture());
+        com.magiclook.dto.ItemFilterDTO captured = captor.getValue();
+        assertEquals(color, captured.getColor());
+        assertEquals(brand, captured.getBrand());
+        assertEquals(material, captured.getMaterial());
+        assertEquals(category, captured.getCategory());
+        assertEquals(subcategory, captured.getSubcategory());
+        assertEquals(minPrice, captured.getMinPrice());
+        assertEquals(maxPrice, captured.getMaxPrice());
+        assertEquals(shopLocation, captured.getShopLocation());
+        assertEquals(size, captured.getSize());
+
+        verify(model).addAttribute("colors", List.of("Blue"));
+        verify(model).addAttribute("brands", List.of("BrandX"));
+        verify(model).addAttribute("materials", List.of("Silk"));
+        verify(model).addAttribute("categories", List.of("Shirt"));
+        verify(model).addAttribute("subcategories", List.of("Casual"));
+        verify(model).addAttribute("sizes", List.of("M"));
+        verify(model).addAttribute("shopLocations", List.of("Lisbon"));
+        verify(model).addAttribute("items", filteredItems);
+        verify(model).addAttribute("itemCount", 2);
+    }
+
+    @Test
+    void testFilterItems_Post_BuildsRedirectUrlWithParams() {
+        String res = userController.filterItems("men", "blue color", "Acme", "cotton", "Shirt", "Casual", 5.0, 20.0, "Lisbon Downtown", "M");
+        assertEquals("redirect:/magiclook/items/men?color=blue+color&brand=Acme&material=cotton&category=Shirt&subcategory=Casual&size=M&minPrice=5.0&maxPrice=20.0&shopLocation=Lisbon+Downtown", res);
+    }
+    
+    @Test
     void testLogout_ShouldInvalidateSession() {
         User user = new User();
         user.setUsername("testuser");

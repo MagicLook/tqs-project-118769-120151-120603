@@ -121,17 +121,17 @@
         <!-- Cabeçalho da Categoria -->
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card border-0" style="background: linear-gradient(135deg, #2575fc, #6a11cb);">
+                <div class="card border-0" style="background-image: url('/img/ParaHomem.png'); background-size: cover; background-position: center;">
                     <div class="card-body p-4 text-white">
                         <div class="row align-items-center">
                             <div class="col-md-8">
-                                <h1 class="display-6 mb-2"><i class="bi bi-gender-male"></i> Moda Masculina</h1>
-                                <p class="lead mb-0">Trajes elegantes, casacos sofisticados e acessórios premium para o homem moderno.</p>
+                                <h1 class="display-6 mb-2">Para Homem</h1>
+                                <p class="lead mb-0">Fatos de cerimónia</p>
                             </div>
                             <div class="col-md-4 text-end">
-                                <div class="bg-white text-primary rounded p-3 d-inline-block">
+                                <div class="bg-white rounded p-3 d-inline-block" style="color:rgb(0, 0, 0)">
                                     <h4 class="mb-0" th:text="${itemCount != null ? itemCount : 0}">0</h4>
-                                    <small>Itens Disponíveis</small>
+                                    <small>Número de Itens</small>
                                 </div>
                             </div>
                         </div>
@@ -223,6 +223,30 @@
                                     th:value="${location}"
                                     th:text="${location}"
                                     th:selected="${filter?.shopLocation == location}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="subcategory" class="form-label">Subtipo</label>
+                        <select class="form-select" id="subcategory" name="subcategory">
+                            <option value="">Todos os subtipos</option>
+                            <option th:each="subcat : ${subcategories}" 
+                                    th:value="${subcat}"
+                                    th:text="${subcat}"
+                                    th:selected="${filter?.subcategory == subcat}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="size" class="form-label">Tamanho</label>
+                        <select class="form-select" id="size" name="size">
+                            <option value="">Todos os tamanhos</option>
+                            <option th:each="sizeOpt : ${sizes}" 
+                                    th:value="${sizeOpt}"
+                                    th:text="${sizeOpt}"
+                                    th:selected="${filter?.size == sizeOpt}">
                             </option>
                         </select>
                     </div>

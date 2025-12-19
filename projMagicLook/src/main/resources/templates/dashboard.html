@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="fragments/navbar :: head(~{::title})">
     <title>Dashboard - MagicLook</title>
     <style>
@@ -7,33 +8,50 @@
             padding-top: 80px;
             min-height: calc(100vh - 80px);
         }
-        
+
         .category-card {
             transition: transform 0.3s, box-shadow 0.3s;
             border: none;
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             min-height: calc(100vh - 160px);
         }
-        
+
         .category-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
         }
     </style>
 </head>
+
 <body>
     <!-- Inclui a navbar -->
     <div th:replace="fragments/navbar :: navbar"></div>
-    
+
     <!-- Conteúdo da página -->
     <div class="container content-wrapper">
         <div class="row mb-4">
             <div class="col-md-12">
-                <h1></h1>
                 <h1>Bem-vindo, <span th:text="${user.firstName}"></span>!</h1>
                 <p class="lead">Encontre as melhores peças para alugar.</p>
+            </div>
+        </div>
+
+        <!-- Notificações -->
+        <div class="row mb-4" th:if="${notifications != null and !notifications.empty}">
+            <div class="col-12">
+                <div class="alert alert-warning shadow-sm" role="alert" th:each="note : ${notifications}">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                        <div>
+                            <h5 class="alert-heading mb-1">Atenção!</h5>
+                            <p class="mb-1" th:text="${note.message}">Mensagem da notificação</p>
+                            <small class="text-muted"
+                                th:text="${#dates.format(note.date, 'dd/MM/yyyy HH:mm')}">Data</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -41,8 +59,10 @@
             <!-- Homens -->
             <div class="col-lg-6 mb-4 d-flex">
                 <div class="card category-card h-100 w-100 d-flex flex-column position-relative">
-                    <div class="flex-fill" style="background-image: url('/img/PecasHomem.jpg'); background-size: cover; background-position: center;">
-                        <div class="card-body text-center p-5 h-100 d-flex flex-column justify-content-center" style="background: rgba(0,0,0,0.25);">
+                    <div class="flex-fill"
+                        style="background-image: url('/img/PecasHomem.jpg'); background-size: cover; background-position: center;">
+                        <div class="card-body text-center p-5 h-100 d-flex flex-column justify-content-center"
+                            style="background: rgba(0,0,0,0.25);">
                             <h1 class="mt-3 mb-2 text-white">Para Homens</h1>
                             <h2 class="text-white-50">Fatos</h2>
                             <a th:href="@{/magiclook/items/men}" class="stretched-link"></a>
@@ -54,8 +74,10 @@
             <!-- Mulheres -->
             <div class="col-lg-6 mb-4 d-flex">
                 <div class="card category-card h-100 w-100 d-flex flex-column position-relative">
-                    <div class="flex-fill" style="background-image: url('/img/PecasM.jpeg'); background-size: cover; background-position: center;">
-                        <div class="card-body text-center p-5 h-100 d-flex flex-column justify-content-center" style="background: rgba(0,0,0,0.25);">
+                    <div class="flex-fill"
+                        style="background-image: url('/img/PecasM.jpeg'); background-size: cover; background-position: center;">
+                        <div class="card-body text-center p-5 h-100 d-flex flex-column justify-content-center"
+                            style="background: rgba(0,0,0,0.25);">
                             <h1 class="mt-3 mb-2 text-white">Para Mulheres</h1>
                             <h2 class="text-white-50">Vestidos e macacões</h2>
                             <a th:href="@{/magiclook/items/women}" class="stretched-link"></a>
@@ -66,4 +88,5 @@
         </div>
     </div>
 </body>
+
 </html>

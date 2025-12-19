@@ -4,21 +4,18 @@ import com.magiclook.data.*;
 import com.magiclook.dto.*;
 import com.magiclook.service.*;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.UUID;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.stream.Collectors;
 import java.util.ArrayList;
 
 @Controller
@@ -30,21 +27,29 @@ public class BookingController {
     private static final String REDIRECT_LOGIN = "redirect:/magiclook/login";
     private static final String REDIRECT_DASHBOARD = "redirect:/magiclook/dashboard";
     private static final String VIEW_BOOKING_FORM = "booking/bookingForm";
+    private static final String VIEW_MY_BOOKINGS = "booking/myBookings";
+    private static final String VIEW_BOOKING_DETAILS = "booking/booking-details";
+    private static final String VIEW_BOOKING_CONFIRMATION = "booking/bookingConfirmation";
     private static final String ATTR_ERROR = "error";
     private static final String ATTR_AVAILABLE = "available";
     private static final String ATTR_MESSAGE = "message";
     private static final String ATTR_ITEM = "item";
     private static final String ATTR_USER = "user";
     private static final String ATTR_BOOKING = "booking";
+    private static final String ATTR_BOOKINGS = "bookings";
+    private static final String ATTR_FILTER = "filter";
+    private static final String ATTR_SEARCH = "search";
     
-    @Autowired
-    private BookingService bookingService;
+    private final BookingService bookingService;
+    private final ItemService itemService;
+    private final UserService userService;
     
-    @Autowired
-    private ItemService itemService;
-    
-    @Autowired
-    private UserService userService;
+    // Injeção por construtor
+    public BookingController(BookingService bookingService, ItemService itemService, UserService userService) {
+        this.bookingService = bookingService;
+        this.itemService = itemService;
+        this.userService = userService;
+    }
     
     // Show booking form for specific item
     @GetMapping("/booking/{itemId}")
@@ -63,8 +68,16 @@ public class BookingController {
             return REDIRECT_DASHBOARD;
         }
         
+        // Obter tamanhos disponíveis
+        List<String> availableSizes = bookingService.getAvailableSizesForItem(itemId);
+        
+        // Obter contagem por tamanho
+        Map<String, Integer> sizeAvailability = bookingService.getSizeAvailabilityCount(itemId);
+        
         model.addAttribute(ATTR_ITEM, item);
         model.addAttribute(ATTR_USER, user);
+        model.addAttribute("availableSizes", availableSizes);
+        model.addAttribute("sizeAvailability", sizeAvailability);
         return VIEW_BOOKING_FORM;
     }
     
@@ -72,6 +85,7 @@ public class BookingController {
     @PostMapping("/booking/create")
     public String createBooking(
             @RequestParam("itemId") Integer itemId,
+            @RequestParam(value = "size", required = false) String size,
             @RequestParam("startUseDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startUseDate,
             @RequestParam("endUseDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endUseDate,
             HttpSession session,
@@ -90,14 +104,11 @@ public class BookingController {
             return REDIRECT_DASHBOARD;
         }
         
-        // Verificar disponibilidade (usando Date) - manter esta chamada primeiro para compatibilidade com testes
-        boolean isAvailable = bookingService.checkAvailability(itemId, startUseDate, endUseDate);
-        
-        if (!isAvailable) {
-            model.addAttribute(ATTR_ERROR, "Item não disponível nas datas selecionadas. Por favor, escolha outras datas.");
-            model.addAttribute(ATTR_ITEM, item);
-            return VIEW_BOOKING_FORM;
-        }
+        // Obter tamanhos disponíveis para mostrar novamente em caso de erro
+        List<String> availableSizes = bookingService.getAvailableSizesForItem(itemId);
+        Map<String, Integer> sizeAvailability = bookingService.getSizeAvailabilityCount(itemId);
+        model.addAttribute("availableSizes", availableSizes);
+        model.addAttribute("sizeAvailability", sizeAvailability);
         
         // Validar datas
         if (startUseDate == null || endUseDate == null || endUseDate.before(startUseDate)) {
@@ -106,20 +117,37 @@ public class BookingController {
             return VIEW_BOOKING_FORM;
         }
         
-        // Validar que a data de início não é no passado
-        if (startUseDate.before(new Date())) {
+        // Validar que a data de início não é no passado (comparar por data, ignorando hora)
+        java.time.LocalDate startLocal = startUseDate.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+        java.time.LocalDate todayLocal = java.time.LocalDate.now(ZoneId.systemDefault());
+        if (startLocal.isBefore(todayLocal)) {
             model.addAttribute(ATTR_ERROR, "A data de início não pode ser no passado.");
             model.addAttribute(ATTR_ITEM, item);
             return VIEW_BOOKING_FORM;
         }
         
         try {
-            // Usar o método existente do serviço
+            // Criar DTO para passar para o serviço
             BookingRequestDTO bookingRequest = new BookingRequestDTO();
             bookingRequest.setItemId(itemId);
+            bookingRequest.setSize(size);
             bookingRequest.setStartUseDate(startUseDate);
             bookingRequest.setEndUseDate(endUseDate);
             
+            // Verificar disponibilidade explicitamente antes de criar reserva
+            boolean available = bookingService.checkAvailabilityWithSize(itemId, size, startUseDate, endUseDate);
+            if (!available) {
+                String msg = (size != null && !size.isEmpty())
+                    ? "Item não disponível nas datas selecionadas para o tamanho " + size
+                    : "Item não disponível nas datas selecionadas";
+                model.addAttribute(ATTR_ERROR, msg);
+                model.addAttribute(ATTR_ITEM, item);
+                return VIEW_BOOKING_FORM;
+            }
+
+            // Usar o método do serviço - irá criar a reserva
             Booking booking = bookingService.createBooking(bookingRequest, user);
             
             // Redirecionar para confirmação
@@ -148,7 +176,7 @@ public class BookingController {
         
         model.addAttribute(ATTR_BOOKING, booking);
         model.addAttribute(ATTR_USER, user);
-        return "booking/bookingConfirmation";
+        return VIEW_BOOKING_CONFIRMATION;
     }
     
     // Show user's bookings
@@ -169,46 +197,74 @@ public class BookingController {
             bookings = new ArrayList<>();
         }
         
+        // Atualizar estados antes de ordenar
+        for (Booking booking : bookings) {
+            String currentState = bookingService.getCurrentBookingState(booking);
+            booking.setState(currentState);
+        }
+        
         // Ordenar por data de início decrescente (mais recentes primeiro)
+        sortBookingsByStartDateDesc(bookings);
+        
+        // Aplicar filtro de status (Ativas/Passadas)
+        bookings = applyFilter(bookings, filter);
+        
+        // Aplicar pesquisa por nome do item
+        bookings = applySearch(bookings, search);
+        
+        model.addAttribute(ATTR_BOOKINGS, bookings);
+        model.addAttribute(ATTR_FILTER, filter);
+        model.addAttribute(ATTR_SEARCH, search);
+        model.addAttribute(ATTR_USER, user);
+        model.addAttribute("activePage", "myBookings");
+        
+        return VIEW_MY_BOOKINGS;
+    }
+
+    private void sortBookingsByStartDateDesc(List<Booking> bookings) {
         bookings.sort((b1, b2) -> {
             if (b1.getStartUseDate() == null && b2.getStartUseDate() == null) return 0;
             if (b1.getStartUseDate() == null) return 1;
             if (b2.getStartUseDate() == null) return -1;
             return b2.getStartUseDate().compareTo(b1.getStartUseDate());
         });
-        
-        // Aplicar filtro de status (Ativas/Passadas)
-        if (filter != null && !filter.isEmpty()) {
-            Date today = new Date();
-            
-            if ("active".equals(filter)) {
-                // Reservas ativas: data de fim no futuro
-                bookings = bookings.stream()
-                    .filter(booking -> booking.getEndUseDate().after(today))
-                    .collect(Collectors.toList());
-            } else if ("past".equals(filter)) {
-                // Reservas passadas: data de fim no passado
-                bookings = bookings.stream()
-                    .filter(booking -> booking.getEndUseDate().before(today))
-                    .collect(Collectors.toList());
-            }
+    }
+
+    private List<Booking> applyFilter(List<Booking> bookings, String filter) {
+        if (filter == null || filter.isEmpty()) {
+            return bookings;
         }
         
-        // Aplicar pesquisa por nome do item
-        if (search != null && !search.isEmpty()) {
-            String searchLower = search.toLowerCase();
-            bookings = bookings.stream()
-                .filter(booking -> booking.getItem().getName().toLowerCase().contains(searchLower))
-                .collect(Collectors.toList());
+        Date today = new Date();
+        
+        if ("active".equals(filter)) {
+            // Reservas ativas: estado CONFIRMED ou ACTIVE
+            return bookings.stream()
+                .filter(booking -> "CONFIRMED".equals(booking.getState()) || 
+                                   "ACTIVE".equals(booking.getState()))
+                .collect(java.util.stream.Collectors.toList());
+        } else if ("past".equals(filter)) {
+            // Reservas passadas: estado COMPLETED ou OVERDUE
+            return bookings.stream()
+                .filter(booking -> "COMPLETED".equals(booking.getState()) || 
+                                   "OVERDUE".equals(booking.getState()))
+                .collect(java.util.stream.Collectors.toList());
         }
         
-        model.addAttribute("bookings", bookings);
-        model.addAttribute("filter", filter);
-        model.addAttribute("search", search);
-        model.addAttribute(ATTR_USER, user);
-        model.addAttribute("activePage", "/booking/myBookings");
+        return bookings;
+    }
+
+    private List<Booking> applySearch(List<Booking> bookings, String search) {
+        if (search == null || search.isEmpty()) {
+            return bookings;
+        }
         
-        return "booking/myBookings";
+        String searchLower = search.toLowerCase();
+        return bookings.stream()
+            .filter(booking -> booking.getItem() != null && 
+                   booking.getItem().getName() != null &&
+                   booking.getItem().getName().toLowerCase().contains(searchLower))
+            .collect(java.util.stream.Collectors.toList());
     }
 
     @GetMapping("/my-bookings/{id}")
@@ -217,20 +273,128 @@ public class BookingController {
         if (user == null) {
             return REDIRECT_LOGIN;
         }
-        
-        // Buscar a reserva pelo ID
-        Booking booking = bookingService.getBookingById(java.util.UUID.fromString(id));
-        
+        // Buscar a reserva pelo ID (deixar IllegalArgumentException propagar se id inválido)
+        UUID bookingId = UUID.fromString(id);
+
+        Booking booking = bookingService.getBookingById(bookingId);
+
         // Verificar se a reserva existe e pertence ao usuário
         if (booking == null || !booking.getUser().getUserId().equals(user.getUserId())) {
-            return "redirect:/magiclook/bookings/my-bookings";
+            return "redirect:/magiclook/my-bookings";
         }
         
+        // Atualizar estado da reserva
+        String currentState = bookingService.getCurrentBookingState(booking);
+        booking.setState(currentState);
+        // Determine if user can cancel: only owner and only when CONFIRMED and start date is in the future
+        boolean canCancel = "CONFIRMED".equals(currentState) && booking.getStartUseDate().after(new java.util.Date());
+
+        com.magiclook.dto.RefundInfoDTO refundInfo = bookingService.getRefundInfo(booking);
+
+        // Transfer any flash message from session
+        Object flashMsg = session.getAttribute("message");
+        if (flashMsg != null) {
+            model.addAttribute(ATTR_MESSAGE, flashMsg.toString());
+            session.removeAttribute("message");
+        }
+
         model.addAttribute(ATTR_BOOKING, booking);
         model.addAttribute(ATTR_USER, user);
         model.addAttribute("activePage", "myBookings");
+        model.addAttribute("canCancel", canCancel);
+        model.addAttribute("refundPercent", refundInfo.getPercent());
+        model.addAttribute("refundAmount", refundInfo.getAmount());
         
-        return "booking/booking-details";
+        return VIEW_BOOKING_DETAILS;
+    }
+
+    // Endpoint to expose refund info (AJAX) and whether cancel is allowed
+    @GetMapping("/my-bookings/{id}/cancel-info")
+    @ResponseBody
+    public Map<String, Object> cancelInfo(@PathVariable String id, HttpSession session) {
+        Map<String, Object> resp = new HashMap<>();
+
+        User user = (User) session.getAttribute(SESSION_LOGGED_IN_USER);
+        Object staff = session.getAttribute("loggedInStaff");
+
+        try {
+            java.util.UUID bookingId = java.util.UUID.fromString(id);
+            Booking booking = bookingService.getBookingById(bookingId);
+            if (booking == null) {
+                resp.put("canCancel", false);
+                resp.put("message", "Reserva não encontrada");
+                return resp;
+            }
+
+            boolean allowed = false;
+            // owner
+            if (user != null && booking.getUser().getUserId().equals(user.getUserId())) {
+                allowed = "CONFIRMED".equals(bookingService.getCurrentBookingState(booking)) && booking.getStartUseDate().after(new java.util.Date());
+            }
+            // staff may cancel
+            if (!allowed && staff != null) {
+                String state = bookingService.getCurrentBookingState(booking);
+                allowed = !("CANCELLED".equals(state) || "COMPLETED".equals(state));
+            }
+
+            if (!allowed) {
+                resp.put("canCancel", false);
+                resp.put("message", "Cancelamento não permitido");
+                return resp;
+            }
+
+            com.magiclook.dto.RefundInfoDTO info = bookingService.getRefundInfo(booking);
+            resp.put("canCancel", true);
+            resp.put("percent", info.getPercent());
+            resp.put("amount", info.getAmount());
+            return resp;
+
+        } catch (Exception e) {
+            resp.put("canCancel", false);
+            resp.put("message", e.getMessage());
+            return resp;
+        }
+    }
+
+    @PostMapping("/my-bookings/{id}/cancel")
+    public String cancelBooking(@PathVariable String id, HttpSession session) {
+        User user = (User) session.getAttribute(SESSION_LOGGED_IN_USER);
+        Object staff = session.getAttribute("loggedInStaff");
+
+        try {
+            java.util.UUID bookingId = java.util.UUID.fromString(id);
+            Booking booking = bookingService.getBookingById(bookingId);
+            if (booking == null) {
+                session.setAttribute("message", "Reserva não encontrada");
+                return "redirect:/magiclook/my-bookings";
+            }
+
+            boolean allowed = false;
+            if (user != null && booking.getUser().getUserId().equals(user.getUserId())) {
+                allowed = "CONFIRMED".equals(bookingService.getCurrentBookingState(booking)) && booking.getStartUseDate().after(new java.util.Date());
+            }
+            if (!allowed && staff != null) {
+                String state = bookingService.getCurrentBookingState(booking);
+                allowed = !("CANCELLED".equals(state) || "COMPLETED".equals(state));
+            }
+
+            if (!allowed) {
+                session.setAttribute("message", "Cancelamento não permitido");
+                if (staff != null) return "redirect:/magiclook/staff/dashboard";
+                return "redirect:/magiclook/my-bookings/" + id;
+            }
+
+            com.magiclook.dto.RefundInfoDTO info = bookingService.cancelBooking(booking);
+
+            session.setAttribute("message", "Reserva cancelada com sucesso. Reembolso: " + info.getAmount() + " (" + info.getPercent() + "%).");
+
+            if (staff != null) return "redirect:/magiclook/staff/dashboard";
+            return "redirect:/magiclook/my-bookings/" + id;
+
+        } catch (Exception e) {
+            session.setAttribute("message", "Erro ao cancelar: " + e.getMessage());
+            return "redirect:/magiclook/my-bookings";
+        }
     }
     
     // Check availability (AJAX endpoint) - para o formulário antigo
@@ -240,8 +404,9 @@ public class BookingController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            boolean available = bookingService.checkAvailability(
+            boolean available = bookingService.checkAvailabilityWithSize(
                 bookingRequest.getItemId(),
+                bookingRequest.getSize(),
                 bookingRequest.getStartUseDate(),
                 bookingRequest.getEndUseDate()
             );
@@ -272,6 +437,7 @@ public class BookingController {
     @ResponseBody
     public Map<String, Object> checkItemAvailability(
         @PathVariable Integer itemId,
+        @RequestParam(required = false) String size,
         @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date start,
         @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date end) {
         
@@ -285,11 +451,16 @@ public class BookingController {
             LocalDate endDate = end.toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate();
-            
-            // Usar o método do serviço
-            boolean available = bookingService.isItemAvailable(itemId, startDate, endDate);
+
+            boolean available;
+            if (size == null || size.isEmpty()) {
+                available = bookingService.isItemAvailable(itemId, startDate, endDate);
+            } else {
+                available = bookingService.isItemAvailableWithSize(itemId, size, startDate, endDate);
+            }
+
             response.put(ATTR_AVAILABLE, available);
-            
+
             if (!available) {
                 // Obter conflitos
                 List<Booking> conflicts = bookingService.getConflictingBookings(itemId, startDate, endDate);
@@ -298,14 +469,15 @@ public class BookingController {
                         Map<String, String> conflictMap = new HashMap<>();
                         conflictMap.put("start", b.getStartUseDate().toString());
                         conflictMap.put("end", b.getEndUseDate().toString());
+                        conflictMap.put("size", b.getItemSingle() != null ? b.getItemSingle().getSize() : "N/A");
                         return conflictMap;
                     })
-                    .collect(Collectors.toList());
+                    .collect(java.util.stream.Collectors.toList());
                 response.put("conflicts", conflictList);
             }
             
         } catch (Exception e) {
-            response.put("error", e.getMessage());
+            response.put(ATTR_ERROR, e.getMessage());
             response.put(ATTR_AVAILABLE, false);
         }
         

@@ -1,0 +1,20 @@
+name: Deploy to Self-Hosted Runner
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set permissions and deploy with Docker Compose
+        run: |
+          sudo usermod -aG docker $USER
+          sudo chmod 666 /var/run/docker.sock
+          docker-compose down || true
+          docker-compose up -d --build

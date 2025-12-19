@@ -7,7 +7,9 @@ public class ItemFilterDTO {
     private String category;
     private Double minPrice;
     private Double maxPrice;
-    private String shopLocation; // Nova propriedade
+    private String shopLocation;
+    private String subcategory;
+    private String size;
     
     public ItemFilterDTO() {}
     
@@ -22,15 +24,30 @@ public class ItemFilterDTO {
         this.shopLocation = null;
     }
 
-    public ItemFilterDTO(String color, String brand, String material, String category, 
-                        Double minPrice, Double maxPrice, String shopLocation) {
+    // Convenience constructor used by tests (includes shopLocation as last arg)
+    public ItemFilterDTO(String color, String brand, String material, String category,
+                        double minPrice, double maxPrice, String shopLocation) {
         this.color = color;
         this.brand = brand;
         this.material = material;
         this.category = category;
+        this.minPrice = Double.valueOf(minPrice);
+        this.maxPrice = Double.valueOf(maxPrice);
+        this.shopLocation = shopLocation;
+    }
+
+    public ItemFilterDTO(String color, String brand, String material, String category, 
+                        String subcategory, Double minPrice, Double maxPrice, 
+                        String shopLocation, String size) {
+        this.color = color;
+        this.brand = brand;
+        this.material = material;
+        this.category = category;
+        this.subcategory = subcategory;
         this.minPrice = minPrice;
         this.maxPrice = maxPrice;
         this.shopLocation = shopLocation;
+        this.size = size;
     }
     
     public String getColor() { return color; }
@@ -54,12 +71,20 @@ public class ItemFilterDTO {
     public String getShopLocation() { return shopLocation; }
     public void setShopLocation(String shopLocation) { this.shopLocation = shopLocation; }
     
+    public String getSubcategory() { return subcategory; }
+    public void setSubcategory(String subcategory) { this.subcategory = subcategory; }
+    
+    public String getSize() { return size; }
+    public void setSize(String size) { this.size = size; }
+    
     public boolean hasFilters() {
         return (color != null && !color.isEmpty()) ||
                (brand != null && !brand.isEmpty()) ||
                (material != null && !material.isEmpty()) ||
                (category != null && !category.isEmpty()) ||
+               (subcategory != null && !subcategory.isEmpty()) ||
                (shopLocation != null && !shopLocation.isEmpty()) ||
+               (size != null && !size.isEmpty()) ||
                minPrice != null ||
                maxPrice != null;
     }

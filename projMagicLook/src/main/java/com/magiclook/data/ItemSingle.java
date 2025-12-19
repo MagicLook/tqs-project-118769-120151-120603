@@ -9,12 +9,16 @@ import java.util.UUID;
 public class ItemSingle implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    public static final String STATE_AVAILABLE = "AVAILABLE";
+    public static final String STATE_MAINTENANCE = "MAINTENANCE";
+    // Remova os estados RESERVED e RENTED
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(columnDefinition = "VARCHAR(20) DEFAULT 'AVAILABLE'")
-    private String state; // Estado atual
+    private String state; // Apenas "AVAILABLE" ou "MAINTENANCE"
 
     private String size; // Tamanho do item
 
@@ -26,7 +30,7 @@ public class ItemSingle implements Serializable {
     private Item item;
 
     public ItemSingle() {
-
+        this.state = STATE_AVAILABLE; // Valor padrão
     }
 
     public ItemSingle(String state, Item item, String size) {

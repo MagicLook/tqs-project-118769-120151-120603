@@ -114,5 +114,18 @@
             </div>
         </div>
     </div>
+        <script>
+        // Inicializar dropdowns manualmente se necessário
+        document.addEventListener('DOMContentLoaded', function() {
+            var dropdowns = document.querySelectorAll('.dropdown-toggle');
+            dropdowns.forEach(function(dropdown) {
+                dropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var dropdownMenu = this.nextElementSibling;
+                    dropdownMenu.classList.toggle('show');
+                });
+            });
+        });
+    </script>
 </body>
 </html>
