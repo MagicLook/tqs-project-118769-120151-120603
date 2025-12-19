@@ -50,6 +50,10 @@
                             <small class="text-muted"
                                 th:text="${#dates.format(note.date, 'dd/MM/yyyy HH:mm')}">Data</small>
                         </div>
+                        <button class="btn btn-sm btn-outline-dark ms-auto" th:data-id="${note.notificationId}"
+                            onclick="markAsRead(this.getAttribute('data-id'), this)">
+                            <i class="bi bi-check-lg"></i> Marcar como lida
+                        </button>
                     </div>
                 </div>
             </div>
@@ -87,6 +91,32 @@
             </div>
         </div>
     </div>
+    <script>
+        function markAsRead(notificationId, buttonElement) {
+            fetch('/magiclook/notification/read/' + notificationId, {
+                method: 'POST'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // Remove the alert element
+                        const alertDiv = buttonElement.closest('.alert');
+                        if (alertDiv) {
+                            alertDiv.remove();
+                            // Update unread count if visible (optional, assuming reload on next visit)
+                            const countBadge = document.querySelector('.badge.bg-danger');
+                        }
+                        // If no more notifications, remove the whole row or reload
+                        const remainingAlerts = document.querySelectorAll('.alert-warning');
+                        if (remainingAlerts.length === 0) {
+                            location.reload();
+                        }
+                    } else {
+                        console.error('Error marking as read');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 
 </html>

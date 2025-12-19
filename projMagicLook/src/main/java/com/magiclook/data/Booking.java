@@ -36,6 +36,10 @@ public class Booking implements Serializable{
     private String state;
 
     @ManyToOne
+    @JoinColumn(name = "item_single_id")
+    private ItemSingle itemSingle;
+
+    @ManyToOne
     @JoinColumn(name = "item_id")
     private Item item;
 
@@ -104,22 +108,30 @@ public class Booking implements Serializable{
     }
     
     public String getCurrentState() {
-    Date now = new Date();
-    if (state.equals("CANCELLED") || state.equals("COMPLETED")) {
-        return state;
-    }
-    
-    if (now.before(startUseDate)) {
-        return "CONFIRMED";
-    } else if (now.after(endUseDate)) {
-        // Check if past return date without returning
-        if (now.after(returnDate) && !state.equals("RETURNED")) {
-            return "OVERDUE";
-        } else {
-            return "COMPLETED";
+        Date now = new Date();
+        if (state.equals("CANCELLED") || state.equals("COMPLETED")) {
+            return state;
         }
-    } else {
-        return "ACTIVE";
+        
+        if (now.before(startUseDate)) {
+            return "CONFIRMED";
+        } else if (now.after(endUseDate)) {
+            // Check if past return date without returning
+            if (now.after(returnDate) && !state.equals("RETURNED")) {
+                return "OVERDUE";
+            } else {
+                return "COMPLETED";
+            }
+        } else {
+            return "ACTIVE";
+        }
     }
-}
+    public ItemSingle getItemSingle() { return itemSingle; }
+    public void setItemSingle(ItemSingle itemSingle) { 
+        this.itemSingle = itemSingle;
+        // Atualizar item automaticamente
+        if (itemSingle != null) {
+            this.item = itemSingle.getItem();
+        }
+    }
 }

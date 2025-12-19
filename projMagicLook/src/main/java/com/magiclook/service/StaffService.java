@@ -3,7 +3,6 @@ package com.magiclook.service;
 import com.magiclook.data.*;
 import com.magiclook.dto.*;
 import com.magiclook.repository.*;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,11 +18,13 @@ import java.util.Arrays;
 import java.util.*;
 import java.util.Optional;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.io.File;
 
 @Service
 @Transactional
-public class StaffService extends ClientService {
+public class StaffService {
 
     @Autowired
     private StaffRepository staffRepository;
@@ -40,17 +41,26 @@ public class StaffService extends ClientService {
     @Autowired
     private ItemSingleRepository itemSingleRepository;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
+    @Autowired
+    private BookingRepository bookingRepository;
+
     @Value("${app.upload.dir}")
     private String uploadDir;
 
     @Autowired
     StaffService(StaffRepository staffRepository, ItemRepository itemRepository, ShopRepository shopRepository,
-            ItemTypeRepository itemTypeRepository, ItemSingleRepository itemSingleRepository) {
+            ItemTypeRepository itemTypeRepository, ItemSingleRepository itemSingleRepository,
+            BookingRepository bookingRepository, NotificationRepository notificationRepository) {
         this.staffRepository = staffRepository;
         this.itemRepository = itemRepository;
         this.shopRepository = shopRepository;
         this.itemTypeRepository = itemTypeRepository;
         this.itemSingleRepository = itemSingleRepository;
+        this.bookingRepository = bookingRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     public String saveImage(MultipartFile image, Integer itemId) throws IOException {
@@ -111,7 +121,7 @@ public class StaffService extends ClientService {
         }
     }
 
-    public void updateItemSingle(UUID id, String size, String state) {
+    public void updateItemSingle(UUID id, String size, String state, String damageReason) {
         itemSingleRepository.findById(id).ifPresent(single -> {
             boolean changed = false;
             if (size != null && !size.isBlank()) {
@@ -121,11 +131,47 @@ public class StaffService extends ClientService {
             if (state != null && !state.isBlank()) {
                 single.setState(state);
                 changed = true;
+
+                // Logic for DAMAGED state
+                if ("DAMAGED".equals(state)) {
+                    single.setDamageReason(damageReason);
+
+                    // Notify users
+                    createDamageNotifications(single, damageReason);
+                }
             }
             if (changed) {
                 itemSingleRepository.saveAndFlush(single);
             }
         });
+    }
+
+    private void createDamageNotifications(ItemSingle itemSingle, String damageReason) {
+        if (itemSingle == null)
+            return;
+
+        // 2. Notify upcoming users (next 3 days)
+        Date now = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        cal.add(Calendar.DAY_OF_YEAR, 3);
+        Date threeDaysLater = cal.getTime();
+
+        List<Booking> upcomingBookings = bookingRepository.findOverlappingBookingsForItemSingle(
+                itemSingle,
+                now, // pickup (conservative)
+                now, // start
+                threeDaysLater, // end
+                threeDaysLater // laundry (conservative)
+        );
+
+        for (Booking booking : upcomingBookings) {
+            String msg = "A sua reserva para " + itemSingle.getItem().getName()
+                    + " poderá ser afetada devido a danos no item."
+                    + (damageReason != null ? " Motivo: " + damageReason : "");
+            Notification notification = new Notification(booking.getUser(), msg);
+            notificationRepository.save(notification);
+        }
     }
 
     public int addItem(ItemDTO itemDTO, String size) {
@@ -245,106 +291,6 @@ public class StaffService extends ClientService {
         }
 
         return 0;
-    }
-
-    @PostConstruct
-    public void initializeStaff() {
-        seedDefaultItemTypes();
-
-        if (staffRepository.count() == 0) {
-            // Criar lojas se não existirem
-            List<Shop> shops = Arrays.asList(
-                    new Shop("Loja Centro", "Centro Comercial ABC"),
-                    new Shop("Loja Norte", "Shopping Norte"),
-                    new Shop("Loja Sul", "Avenida Sul, 123"));
-
-            shops = shopRepository.saveAll(shops);
-
-            List<Staff> staffList = Arrays.asList(
-                new Staff("Ana Silva", "ana.silva@magiclook.com", "admin123", "admin", shops.get(0)),
-                new Staff("Carlos Santos", "carlos.santos@magiclook.com", "admin456", "carloss", shops.get(1)),
-                new Staff("Maria Oliveira", "maria.oliveira@magiclook.com", "admin789", "mariao", shops.get(2))
-            );
-            
-            seedDefaultItems();
-
-            staffRepository.saveAll(staffList);
-        }
-    }
-
-    private void seedDefaultItemTypes() {
-        // Estrutura: gender -> categoria -> lista de subcategorias
-        Map<String, Map<String, List<String>>> defaults = new HashMap<>();
-
-        // MULHER (usar nomes no singular para corresponder ao frontend)
-        Map<String, List<String>> female = new HashMap<>();
-        female.put("Vestido", Arrays.asList("Curto", "Médio", "Longo"));
-        female.put("Macacão", Arrays.asList("Curto", "Médio", "Longo"));
-        defaults.put("F", female);
-
-        // HOMEM (usar nomes no singular para corresponder ao frontend)
-        Map<String, List<String>> male = new HashMap<>();
-        male.put("Fato", Arrays.asList("Simples", "Três peças"));
-        defaults.put("M", male);
-
-        int created = 0;
-        for (Map.Entry<String, Map<String, List<String>>> genderEntry : defaults.entrySet()) {
-            String gender = genderEntry.getKey();
-            for (Map.Entry<String, List<String>> categoryEntry : genderEntry.getValue().entrySet()) {
-                String category = categoryEntry.getKey();
-                for (String subcategory : categoryEntry.getValue()) {
-                    ItemType existing = itemTypeRepository.findByGenderAndCategoryAndSubcategory(gender, category,
-                            subcategory);
-                    if (existing == null) {
-                        itemTypeRepository.save(new ItemType(gender, category, subcategory));
-                        created++;
-                    }
-                }
-            }
-        }
-        if (created > 0) {
-            System.out.println("Seeded " + created + " ItemType(s)");
-        }
-    }
-
-    private void seedDefaultItems() {
-        if (itemRepository.count() == 0) {
-            Item item = new Item(
-                    "Vestido Azul",
-                    "Seda",
-                    "Azul",
-                    "C&A",
-                    new BigDecimal("300.00"),
-                    new BigDecimal("6000.00"),
-                    shopRepository.findById(1).orElseThrow(),
-                    itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", "Vestido", "Médio"));
-
-            item.setImagePath(uploadDir + "/default.jpg");
-
-            itemRepository.save(item);
-
-            ItemSingle itemSingle = new ItemSingle("AVAILABLE", item, "M");
-
-            itemSingleRepository.save(itemSingle);
-
-            item = new Item(
-                    "Vestido Vermelho",
-                    "Seda",
-                    "Vermelho",
-                    "Zara",
-                    new BigDecimal("300.00"),
-                    new BigDecimal("6000.00"),
-                    shopRepository.findById(1).orElseThrow(),
-                    itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", "Vestido", "Médio"));
-
-            item.setImagePath(uploadDir + "/default.jpg");
-
-            itemRepository.save(item);
-
-            itemSingle = new ItemSingle("AVAILABLE", item, "S");
-
-            itemSingleRepository.save(itemSingle);
-        }
     }
 
     public Staff login(String usernameOrEmail, String password) {

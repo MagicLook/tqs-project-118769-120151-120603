@@ -41,6 +41,12 @@ class StaffServiceTest {
     @Mock
     private ItemTypeRepository itemTypeRepository;
 
+    @Mock
+    private NotificationRepository notificationRepository;
+
+    @Mock
+    private BookingRepository bookingRepository;
+
     @InjectMocks
     private StaffService staffService;
 
@@ -91,7 +97,7 @@ class StaffServiceTest {
     void testLogin_WithValidEmail_ShouldReturnStaff() {
         String email = "staff@test.com";
         String password = "password123";
-        
+
         when(staffRepository.findByEmail(email)).thenReturn(Optional.of(testStaff));
 
         Staff result = staffService.login(email, password);
@@ -107,7 +113,7 @@ class StaffServiceTest {
     void testLogin_WithValidUsername_ShouldReturnStaff() {
         String username = "staffuser";
         String password = "password123";
-        
+
         when(staffRepository.findByEmail(username)).thenReturn(Optional.empty());
         when(staffRepository.findByUsername(username)).thenReturn(Optional.of(testStaff));
 
@@ -124,7 +130,7 @@ class StaffServiceTest {
     void testLogin_WithInvalidCredentials_ShouldReturnNull() {
         String username = "wronguser";
         String password = "wrongpass";
-        
+
         when(staffRepository.findByEmail(username)).thenReturn(Optional.empty());
         when(staffRepository.findByUsername(username)).thenReturn(Optional.empty());
 
@@ -140,7 +146,7 @@ class StaffServiceTest {
         String email = "staff@test.com";
         String correctPassword = "password123";
         String wrongPassword = "wrongpassword";
-        
+
         testStaff.setPassword(correctPassword);
         when(staffRepository.findByEmail(email)).thenReturn(Optional.of(testStaff));
         when(staffRepository.findByUsername(email)).thenReturn(Optional.empty());
@@ -197,7 +203,7 @@ class StaffServiceTest {
 
         when(itemSingleRepository.findById(id)).thenReturn(Optional.of(testItemSingle));
 
-        staffService.updateItemSingle(id, newSize, newState);
+        staffService.updateItemSingle(id, newSize, newState, null);
 
         assertEquals(newSize, testItemSingle.getSize());
         assertEquals(newState, testItemSingle.getState());
@@ -215,7 +221,7 @@ class StaffServiceTest {
 
         when(itemSingleRepository.findById(id)).thenReturn(Optional.of(testItemSingle));
 
-        staffService.updateItemSingle(id, newSize, null);
+        staffService.updateItemSingle(id, newSize, null, null);
 
         assertEquals(newSize, testItemSingle.getSize());
         assertEquals("AVAILABLE", testItemSingle.getState());
@@ -232,7 +238,7 @@ class StaffServiceTest {
 
         when(itemSingleRepository.findById(id)).thenReturn(Optional.of(testItemSingle));
 
-        staffService.updateItemSingle(id, null, newState);
+        staffService.updateItemSingle(id, null, newState, null);
 
         assertEquals("M", testItemSingle.getSize());
         assertEquals(newState, testItemSingle.getState());
@@ -248,7 +254,7 @@ class StaffServiceTest {
 
         when(itemSingleRepository.findById(id)).thenReturn(Optional.of(testItemSingle));
 
-        staffService.updateItemSingle(id, "", "");
+        staffService.updateItemSingle(id, "", "", null);
 
         assertEquals("M", testItemSingle.getSize());
         assertEquals("AVAILABLE", testItemSingle.getState());
@@ -261,7 +267,7 @@ class StaffServiceTest {
 
         when(itemSingleRepository.findById(id)).thenReturn(Optional.empty());
 
-        staffService.updateItemSingle(id, "L", "RENTED");
+        staffService.updateItemSingle(id, "L", "RENTED", null);
 
         verify(itemSingleRepository).findById(id);
         verify(itemSingleRepository, never()).saveAndFlush(any());
@@ -368,5 +374,185 @@ class StaffServiceTest {
         assertEquals("Seda", testItem.getMaterial());
         assertEquals("Azul", testItem.getColor());
         verify(itemRepository).save(testItem);
+    }
+
+    // ==================== CREATE DAMAGE NOTIFICATIONS TESTS ====================
+
+    @Test
+    void testCreateDamageNotifications_WithUpcomingBookings_ShouldCreateNotifications() {
+        UUID itemSingleId = UUID.randomUUID();
+        testItemSingle.setId(itemSingleId);
+        
+        // Create test users and bookings
+        User user1 = new User();
+        user1.setUserId(UUID.randomUUID());
+        user1.setUsername("User 1");
+        
+        User user2 = new User();
+        user2.setUserId(UUID.randomUUID());
+        user2.setUsername("User 2");
+        
+        Booking booking1 = new Booking();
+        booking1.setBookingId(UUID.randomUUID());
+        booking1.setUser(user1);
+        booking1.setStartUseDate(new java.util.Date(System.currentTimeMillis() + 86400000));
+        booking1.setEndUseDate(new java.util.Date(System.currentTimeMillis() + 172800000));
+        
+        Booking booking2 = new Booking();
+        booking2.setBookingId(UUID.randomUUID());
+        booking2.setUser(user2);
+        booking2.setStartUseDate(new java.util.Date(System.currentTimeMillis() + 259200000));
+        booking2.setEndUseDate(new java.util.Date(System.currentTimeMillis() + 345600000));
+        
+        List<Booking> upcomingBookings = List.of(booking1, booking2);
+        
+        when(itemSingleRepository.findById(itemSingleId)).thenReturn(Optional.of(testItemSingle));
+        when(bookingRepository.findOverlappingBookingsForItemSingle(
+                any(ItemSingle.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class)
+        )).thenReturn(upcomingBookings);
+        
+        staffService.updateItemSingle(itemSingleId, null, "DAMAGED", "Rasgado na costura");
+        
+        verify(notificationRepository, times(2)).save(any(Notification.class));
+        assertEquals("DAMAGED", testItemSingle.getState());
+        assertEquals("Rasgado na costura", testItemSingle.getDamageReason());
+    }
+
+    @Test
+    void testCreateDamageNotifications_WithNullItemSingle_ShouldNotCreateNotifications() {
+        UUID itemSingleId = UUID.randomUUID();
+        
+        when(itemSingleRepository.findById(itemSingleId)).thenReturn(Optional.empty());
+        
+        staffService.updateItemSingle(itemSingleId, null, "DAMAGED", "Danificado");
+        
+        verify(notificationRepository, never()).save(any(Notification.class));
+        verify(bookingRepository, never()).findOverlappingBookingsForItemSingle(
+                any(ItemSingle.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class)
+        );
+    }
+
+    @Test
+    void testCreateDamageNotifications_WithNoUpcomingBookings_ShouldNotCreateNotifications() {
+        UUID itemSingleId = UUID.randomUUID();
+        testItemSingle.setId(itemSingleId);
+        
+        when(itemSingleRepository.findById(itemSingleId)).thenReturn(Optional.of(testItemSingle));
+        when(bookingRepository.findOverlappingBookingsForItemSingle(
+                any(ItemSingle.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class)
+        )).thenReturn(new ArrayList<>());
+        
+        staffService.updateItemSingle(itemSingleId, null, "DAMAGED", "Dano menor");
+        
+        verify(notificationRepository, never()).save(any(Notification.class));
+        assertEquals("DAMAGED", testItemSingle.getState());
+    }
+
+    @Test
+    void testCreateDamageNotifications_WithMultipleBookings_ShouldNotifyAllAffectedUsers() {
+        UUID itemSingleId = UUID.randomUUID();
+        testItemSingle.setId(itemSingleId);
+        
+        List<Booking> bookings = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            User user = new User();
+            user.setUserId(UUID.randomUUID());
+            user.setUsername("User " + i);
+            
+            Booking booking = new Booking();
+            booking.setBookingId(UUID.randomUUID());
+            booking.setUser(user);
+            booking.setStartUseDate(new java.util.Date(System.currentTimeMillis() + 86400000 * (i + 1)));
+            booking.setEndUseDate(new java.util.Date(System.currentTimeMillis() + 86400000 * (i + 2)));
+            bookings.add(booking);
+        }
+        
+        when(itemSingleRepository.findById(itemSingleId)).thenReturn(Optional.of(testItemSingle));
+        when(bookingRepository.findOverlappingBookingsForItemSingle(
+                any(ItemSingle.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class)
+        )).thenReturn(bookings);
+        
+        staffService.updateItemSingle(itemSingleId, null, "DAMAGED", "Dano severo");
+        
+        verify(notificationRepository, times(5)).save(any(Notification.class));
+        assertEquals("DAMAGED", testItemSingle.getState());
+    }
+
+    @Test
+    void testCreateDamageNotifications_WithNullDamageReason_ShouldStillCreateNotifications() {
+        UUID itemSingleId = UUID.randomUUID();
+        testItemSingle.setId(itemSingleId);
+        
+        User user = new User();
+        user.setUserId(UUID.randomUUID());
+        user.setUsername("Test User");
+        
+        Booking booking = new Booking();
+        booking.setBookingId(UUID.randomUUID());
+        booking.setUser(user);
+        booking.setStartUseDate(new java.util.Date(System.currentTimeMillis() + 86400000));
+        booking.setEndUseDate(new java.util.Date(System.currentTimeMillis() + 172800000));
+        
+        when(itemSingleRepository.findById(itemSingleId)).thenReturn(Optional.of(testItemSingle));
+        when(bookingRepository.findOverlappingBookingsForItemSingle(
+                any(ItemSingle.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class)
+        )).thenReturn(List.of(booking));
+        
+        staffService.updateItemSingle(itemSingleId, null, "DAMAGED", null);
+        
+        verify(notificationRepository, times(1)).save(any(Notification.class));
+        assertEquals("DAMAGED", testItemSingle.getState());
+        assertNull(testItemSingle.getDamageReason());
+    }
+
+    @Test
+    void testUpdateItemSingle_WithOnlyDamagedState_ShouldUpdateStateAndNotify() {
+        UUID itemSingleId = UUID.randomUUID();
+        testItemSingle.setId(itemSingleId);
+        testItemSingle.setState("AVAILABLE");
+        
+        User user = new User();
+        user.setUserId(UUID.randomUUID());
+        
+        Booking booking = new Booking();
+        booking.setUser(user);
+        booking.setStartUseDate(new java.util.Date(System.currentTimeMillis() + 86400000));
+        booking.setEndUseDate(new java.util.Date(System.currentTimeMillis() + 172800000));
+        
+        when(itemSingleRepository.findById(itemSingleId)).thenReturn(Optional.of(testItemSingle));
+        when(bookingRepository.findOverlappingBookingsForItemSingle(
+                any(ItemSingle.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class),
+                any(java.util.Date.class)
+        )).thenReturn(List.of(booking));
+        
+        staffService.updateItemSingle(itemSingleId, null, "DAMAGED", "Mancha de vinho");
+        
+        assertEquals("DAMAGED", testItemSingle.getState());
+        assertEquals("Mancha de vinho", testItemSingle.getDamageReason());
+        verify(itemSingleRepository).saveAndFlush(testItemSingle);
+        verify(notificationRepository, times(1)).save(any(Notification.class));
     }
 }

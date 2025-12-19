@@ -26,11 +26,11 @@ public class Item implements Serializable{
     @Column(length = 500)
     private String imagePath;
 
-    @Column(name = "is_available")
-    private boolean available = true;
-
     @Column(name = "next_available_date")
     private Date nextAvailableDate;
+
+    @Column(name = "is_available")
+    private boolean available = true;
 
     @ManyToOne
     @JoinColumn(name = "shop_id")

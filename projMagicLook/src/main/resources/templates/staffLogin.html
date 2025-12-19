@@ -18,29 +18,49 @@
         }
         .login-card {
             max-width: 400px;
-            margin: 0 auto;
-            background: white;
+            margin: 100px auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px 30px;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
             overflow: hidden;
         }
         .login-header {
-            background: #6c757d;
-            color: white;
-            padding: 30px 20px;
+            background: #ffffff;
+            color: #1f1f1f;
+            padding: 24px 20px;
             text-align: center;
+            border-bottom: none;
+        }
+        .login-header h3 {
+            color: #b8860b;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .login-header h4 {
+            color: #b8860b;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .login-header p {
+            margin-bottom: 0;
+            color: #6c6c6c;
         }
         .login-body {
-            padding: 30px;
+            padding: 0;
         }
         .btn-staff {
-            background: #6c757d;
-            border-color: #6c757d;
-            color: white;
+            background-color: #b8860b;
+            border-color: #b8860b;
+            color: #ffffff;
+            font-weight: 600;
+            border-radius: 8px;
         }
         .btn-staff:hover {
-            background: #5a6268;
-            border-color: #545b62;
+            background-color: #8b6f3d;
+            border-color: #8b6f3d;
         }
         .staff-credentials {
             background: #f8f9fa;
@@ -51,12 +71,12 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" style="margin: 0px auto; padding: 0px auto; max-width: 400px;">
         <div class="login-card">
-            <div class="login-header">
-                <h3><i class="fas fa-user-shield"></i> Staff Access</h3>
-                <p class="mb-0">Área restrita para administradores</p>
-            </div>
+                <div class="login-header">
+                    <img src="/img/Logo1.png" alt="MagicLook" style="width:50%; height:auto; display:block; margin:0 auto 15px;">
+                    <h4 class="mb-1"><i class="fas fa-user-shield"></i> Área restrita para Staff</h4>
+                </div>
             
             <div class="login-body">
                 <div th:if="${param.logout}" class="alert alert-info" role="alert">

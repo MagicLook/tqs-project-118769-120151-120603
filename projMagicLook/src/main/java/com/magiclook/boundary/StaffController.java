@@ -2,6 +2,9 @@ package com.magiclook.boundary;
 
 import com.magiclook.data.*;
 import com.magiclook.service.*;
+
+import io.micrometer.core.annotation.Timed;
+
 import com.magiclook.dto.*;
 
 import jakarta.servlet.http.HttpSession;
@@ -72,6 +75,7 @@ public class StaffController {
     // ========== DASHBOARD STAFF ==========
 
     @GetMapping("/dashboard")
+    @Timed(value = "request.staffDashboard")
     public String showStaffDashboard(HttpSession session, Model model) {
         Staff staff = (Staff) session.getAttribute("loggedInStaff");
 
@@ -93,6 +97,7 @@ public class StaffController {
     // ========== ADD ITEM ==========
 
     @PostMapping("/item")
+    @Timed(value = "request.addItem")
     public String addItem(
             @RequestParam String name,
             @RequestParam String brand,
@@ -165,6 +170,7 @@ public class StaffController {
     // ========== VIEW ITEMS ============
 
     @GetMapping("/item")
+    @Timed(value = "request.getItems")
     public String getItems(
             HttpSession session,
             Model model,
@@ -221,6 +227,7 @@ public class StaffController {
     // ========== VIEW ITEM DETAILS =====
 
     @GetMapping("/item/{itemId}")
+    @Timed(value = "request.getItemDetails")
     public String getItemDetails(
             @PathVariable Integer itemId,
             HttpSession session,
@@ -245,6 +252,7 @@ public class StaffController {
     // ========== UPDATE ITEM ===========
 
     @PostMapping("/item/{itemId}")
+    @Timed(value = "request.updateItem")
     public String updateItem(
             @PathVariable Integer itemId,
             @RequestParam String name,
@@ -304,6 +312,7 @@ public class StaffController {
     }
 
     @DeleteMapping("/item/{itemId}/size/{size}")
+    @Timed(value = "request.deleteItemSize")
     @ResponseBody
     public org.springframework.http.ResponseEntity<?> deleteItemSize(
             @PathVariable Integer itemId,
@@ -324,10 +333,12 @@ public class StaffController {
     }
 
     @PostMapping("/itemsingle/update/{id}")
+    @Timed(value = "request.updateItemSingle")
     public String updateItemSingle(
             @PathVariable java.util.UUID id,
             @RequestParam String size,
             @RequestParam String state,
+            @RequestParam(required = false) String damageReason,
             @RequestParam Integer itemId,
             HttpSession session) {
 
@@ -336,7 +347,7 @@ public class StaffController {
             return "redirect:/magiclook/staff/login";
         }
 
-        staffService.updateItemSingle(id, size, state);
+        staffService.updateItemSingle(id, size, state, damageReason);
 
         return "redirect:/magiclook/staff/item/" + itemId;
     }

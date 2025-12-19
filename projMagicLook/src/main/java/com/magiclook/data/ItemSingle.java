@@ -9,21 +9,28 @@ import java.util.UUID;
 public class ItemSingle implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    public static final String STATE_AVAILABLE = "AVAILABLE";
+    public static final String STATE_MAINTENANCE = "MAINTENANCE";
+    // Remova os estados RESERVED e RENTED
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(columnDefinition = "VARCHAR(20) DEFAULT 'AVAILABLE'")
-    private String state; // Estado atual
+    private String state; // Apenas "AVAILABLE" ou "MAINTENANCE"
 
     private String size; // Tamanho do item
+
+    @Column(name = "damage_reason")
+    private String damageReason; // Motivo do dano (se estado for Danificado)
 
     @ManyToOne
     @JoinColumn(name = "item_id")
     private Item item;
 
     public ItemSingle() {
-
+        this.state = STATE_AVAILABLE; // Valor padrão
     }
 
     public ItemSingle(String state, Item item, String size) {
@@ -32,14 +39,43 @@ public class ItemSingle implements Serializable {
         this.size = size;
     }
 
-    public String getState() { return state; }
-    public void setState(String state) { this.state = state; }
+    public String getState() {
+        return state;
+    }
 
-    public Item getItem() { return item; }
-    public void setItem(Item item) { this.item = item; }
+    public void setState(String state) {
+        this.state = state;
+    }
 
-    public String getSize() { return size; }
-    public void setSize(String size) { this.size = size; }
+    public Item getItem() {
+        return item;
+    }
 
-    public UUID getId() { return id; }
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public String getDamageReason() {
+        return damageReason;
+    }
+
+    public void setDamageReason(String damageReason) {
+        this.damageReason = damageReason;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 }
