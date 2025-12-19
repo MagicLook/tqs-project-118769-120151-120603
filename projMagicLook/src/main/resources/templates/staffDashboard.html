@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         :root {
-            --staff-primary: #6c757d;
-            --staff-secondary: #545b62;
+            --staff-primary: #b8860b; /* dourado semelhante ao botão de login */
+            --staff-secondary: #8b6f3d; /* tom complementar mais escuro */
         }
 
         .staff-sidebar {
@@ -128,15 +128,6 @@
                                             <i class="bi bi-person-circle"></i>
                                         </button>
                                         <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="#">
-                                                    <i class="bi bi-person"></i> Perfil
-                                                </a></li>
-                                            <li><a class="dropdown-item" href="#">
-                                                    <i class="bi bi-bell"></i> Notificações
-                                                </a></li>
-                                            <li>
-                                                <hr class="dropdown-divider">
-                                            </li>
                                             <li><a class="dropdown-item text-danger"
                                                     th:href="@{/magiclook/staff/logout}">
                                                     <i class="bi bi-box-arrow-right"></i> Terminar Sessão
