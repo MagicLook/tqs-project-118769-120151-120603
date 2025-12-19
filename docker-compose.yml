@@ -1,0 +1,56 @@
+services:
+  app:
+    build: ./projMagicLook
+    container_name: magiclook-app
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/magiclook
+      - SPRING_DATASOURCE_USERNAME=magicuser
+      - SPRING_DATASOURCE_PASSWORD=magicpass
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+  db:
+    image: postgres:15-alpine
+    container_name: magiclook-db
+    environment:
+      - POSTGRES_DB=magiclook
+      - POSTGRES_USER=magicuser
+      - POSTGRES_PASSWORD=magicpass
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - monitoring
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    ports:
+      - 9090:9090
+    networks:
+      - monitoring
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    environment:
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1s
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - grafana-conf:/etc/grafana
+    networks:
+      - monitoring
+
+volumes:
+  grafana-data:
+  grafana-conf:
+  postgres-data:
+
+networks:
+  monitoring:
+    driver: bridge
