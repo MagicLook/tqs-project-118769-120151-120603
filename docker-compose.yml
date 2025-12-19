@@ -40,9 +40,11 @@ services:
     restart: unless-stopped
     environment:
       - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1s
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
     volumes:
       - grafana-data:/var/lib/grafana
-      - grafana-conf:/etc/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
     networks:
       - monitoring
 

@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 
+import io.micrometer.core.annotation.Timed;
+
 @Controller
 @RequestMapping("/magiclook")
 public class BookingController {
@@ -53,6 +55,7 @@ public class BookingController {
     
     // Show booking form for specific item
     @GetMapping("/booking/{itemId}")
+    @Timed(value = "request.booking")
     public String showBookingForm(@PathVariable Integer itemId, 
                                   HttpSession session, 
                                   Model model) {
@@ -75,6 +78,7 @@ public class BookingController {
     
     // Process booking - usando @RequestParam
     @PostMapping("/booking/create")
+    @Timed(value = "request.createBooking")
     public String createBooking(
             @RequestParam("itemId") Integer itemId,
             @RequestParam("startUseDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startUseDate,
@@ -139,6 +143,7 @@ public class BookingController {
     
     // Show confirmation page
     @GetMapping("/booking/confirmation/{bookingId}")
+    @Timed(value = "request.bookingConfirmation")
     public String showConfirmation(@PathVariable UUID bookingId, HttpSession session, Model model) {
         User user = (User) session.getAttribute(SESSION_LOGGED_IN_USER);
         
@@ -158,6 +163,7 @@ public class BookingController {
     
     // Show user's bookings
     @GetMapping("/my-bookings")
+    @Timed(value = "request.myBookings")
     public String showMyBookings(HttpSession session, Model model,
                                 @RequestParam(required = false) String filter,
                                 @RequestParam(required = false) String search) {
@@ -237,6 +243,7 @@ public class BookingController {
     }
 
     @GetMapping("/my-bookings/{id}")
+    @Timed(value = "request.bookingDetails")
     public String bookingDetails(@PathVariable String id, HttpSession session, Model model) {
         User user = (User) session.getAttribute(SESSION_LOGGED_IN_USER);
         if (user == null) {
@@ -261,6 +268,7 @@ public class BookingController {
     // Check availability (AJAX endpoint) - para o formulário antigo
     @PostMapping("/booking/check-availability")
     @ResponseBody
+    @Timed(value = "request.checkAvailability")
     public Map<String, Object> checkAvailability(@RequestBody BookingRequestDTO bookingRequest) {
         Map<String, Object> response = new HashMap<>();
         
@@ -295,6 +303,7 @@ public class BookingController {
     // Nova API para verificar disponibilidade em tempo real (AJAX)
     @GetMapping("/api/items/{itemId}/check")
     @ResponseBody
+    @Timed(value = "request.checkItemAvailability")
     public Map<String, Object> checkItemAvailability(
         @PathVariable Integer itemId,
         @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date start,

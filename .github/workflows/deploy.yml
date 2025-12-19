@@ -18,3 +18,8 @@ jobs:
           sudo chmod 666 /var/run/docker.sock
           docker-compose down || true
           docker-compose up -d --build
+
+      - name: Show status
+        run: |
+          echo "Deployment complete!"
+          docker-compose ps
