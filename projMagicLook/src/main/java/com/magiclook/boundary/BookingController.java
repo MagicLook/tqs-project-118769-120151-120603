@@ -490,4 +490,51 @@ public class BookingController {
         
         return response;
     }
+    
+    // API endpoint simples para obter datas indisponíveis (para o calendário)
+    @GetMapping("/api/availability")
+    @ResponseBody
+    public Map<String, Object> getUnavailableDates(@RequestParam Integer itemId, @RequestParam(required = false) String size) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // Obter todas as reservas do item
+            java.time.LocalDate today = java.time.LocalDate.now(ZoneId.systemDefault());
+            java.time.LocalDate endDate = today.plusMonths(3); // Ver 3 meses à frente
+            
+            List<Booking> bookings = bookingService.getConflictingBookings(itemId, today, endDate);
+            
+            List<String> unavailableDates = new java.util.ArrayList<>();
+            
+            for (Booking booking : bookings) {
+                // Se foi especificado um tamanho, filtrar apenas as reservas desse tamanho
+                if (size != null && !size.isEmpty()) {
+                    String bookingSize = booking.getItemSingle() != null ? booking.getItemSingle().getSize() : "";
+                    if (!size.equalsIgnoreCase(bookingSize)) {
+                        continue; // Saltar esta reserva se não é do tamanho solicitado
+                    }
+                }
+                
+                // Adicionar todas as datas do período de reserva como indisponíveis
+                java.time.LocalDate current = booking.getStartUseDate().toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+                java.time.LocalDate end = booking.getEndUseDate().toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+                    
+                while (!current.isAfter(end)) {
+                    unavailableDates.add(current.toString());
+                    current = current.plusDays(1);
+                }
+            }
+            
+            response.put("unavailableDates", unavailableDates);
+        } catch (Exception e) {
+            response.put("unavailableDates", new java.util.ArrayList<>());
+            response.put("error", e.getMessage());
+        }
+        
+        return response;
+    }
 }

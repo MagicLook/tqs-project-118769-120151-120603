@@ -24,6 +24,144 @@
             background-color: #8b6f3d;
             border-color: #8b6f3d;
         }
+
+        .calendar-wrapper {
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+
+        .calendar-header button {
+            background: #b8860b;
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .calendar-header button:hover {
+            background: #8b6f3d;
+        }
+
+        .calendar-header h5 {
+            margin: 0;
+            color: #b8860b;
+            flex: 1;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .calendar-grid {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            gap: 8px !important;
+            margin-bottom: 20px !important;
+            width: 100% !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+            list-style: none !important;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: bold;
+            color: #b8860b;
+            padding: 8px 4px !important;
+            background: #f0f0f0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 !important;
+            border: none !important;
+        }
+
+        .calendar-day {
+            min-height: 50px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border: 2px solid #e0e0e0 !important;
+            border-radius: 5px !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+            transition: all 0.2s ease !important;
+            background: white !important;
+            user-select: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+            font-size: 14px !important;
+        }
+
+        .calendar-day:hover:not(.disabled):not(.empty) {
+            border-color: #0066cc !important;
+            background: rgba(0, 102, 204, 0.15) !important;
+            transform: translateY(-2px);
+        }
+
+        .calendar-day.empty {
+            border: none !important;
+            background: transparent !important;
+            cursor: default !important;
+        }
+
+        .calendar-day.disabled {
+            background: #ff0000 !important;
+            color: white !important;
+            cursor: not-allowed !important;
+            border-color: #cc0000 !important;
+            font-weight: bold !important;
+        }
+
+        .calendar-day.selected {
+            background: #0066cc !important;
+            color: white !important;
+            border-color: #0052a3 !important;
+            box-shadow: 0 2px 8px rgba(0, 102, 204, 0.4) !important;
+        }
+
+        .calendar-day.in-range {
+            background: #3399ff !important;
+            color: white !important;
+            border-color: #0066cc !important;
+        }
+
+        .calendar-day.today {
+            border: 2px solid #28a745;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .selected-dates {
+            background: #fff9e6;
+            border: 2px solid #ffecb5;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 15px 0;
+            text-align: center;
+            display: none;
+        }
+
+        .selected-dates.show {
+            display: block;
+        }
+
+        .selected-dates strong {
+            color: #b8860b;
+        }
     </style>
 </head>
 <body>
@@ -34,9 +172,6 @@
             <h1 class="h3 mb-0">
                 <i class="bi bi-calendar-plus text-warning"></i> Reservar Item
             </h1>
-            <a th:href="@{/magiclook/dashboard}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left"></i> Voltar
-            </a>
         </div>
         
         <!-- Mensagem de erro se houver -->
@@ -73,40 +208,23 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <form th:action="@{/magiclook/booking/create}" method="post">
+                        <form th:action="@{/magiclook/booking/create}" method="post" id="bookingForm">
                             <input type="hidden" name="itemId" th:value="${item.itemId}" />
+                            <input type="hidden" name="startUseDate" id="startUseDateInput" />
+                            <input type="hidden" name="endUseDate" id="endUseDateInput" />
                             
-                            <div class="mb-3">
-                                <label for="startUseDate" class="form-label">
-                                    <i class="bi bi-calendar-event"></i> Data de início de uso*
-                                </label>
-                                <input type="date" name="startUseDate" class="form-control" 
-                                       id="startUseDate" required 
-                                       th:min="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
-                                <small class="text-muted">Primeiro dia em que vai usar o item</small>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="endUseDate" class="form-label">
-                                    <i class="bi bi-calendar-event-fill"></i> Data de fim de uso*
-                                </label>
-                                <input type="date" name="endUseDate" class="form-control" 
-                                       id="endUseDate" required>
-                                <small class="text-muted">Último dia em que vai usar o item</small>
-                            </div>
-
+                            <!-- Tamanho PRIMEIRO -->
                             <div class="mb-3" th:if="${not availableSizes.empty}">
                                 <label for="size" class="form-label">
-                                    <i class="bi bi-rulers"></i> Tamanho*
+                                    Selecione o Tamanho*
                                 </label>
-                                <select name="size" id="size" class="form-control" required>
-                                    <option value="">Selecione um tamanho</option>
+                                <select name="size" id="size" class="form-control" required onchange="onSizeChange()">
+                                    <option value="">-- Escolher tamanho --</option>
                                     <option th:each="sizeOpt : ${availableSizes}" 
                                             th:value="${sizeOpt}" 
-                                            th:text="${sizeOpt} + (${sizeAvailability.get(sizeOpt)} != null ? ' (' + ${sizeAvailability.get(sizeOpt)} + ' disponíveis)' : '')">
+                                            th:text="${sizeOpt}">
                                     </option>
                                 </select>
-                                <small class="text-muted">Escolha o tamanho desejado</small>
                             </div>
 
                             <div class="mb-3" th:unless="${not availableSizes.empty}">
@@ -116,8 +234,27 @@
                                 </div>
                             </div>
                             
+                            <!-- Calendário (escondido até selecionar tamanho) -->
+                            <div id="calendarSection" style="display: none;">
+                                <label class="form-label fw-bold mt-4">
+                                    <i class="bi bi-calendar-check"></i> Selecione as Datas
+                                </label>
+                                <div class="calendar-wrapper">
+                                    <div class="calendar-header">
+                                        <button type="button" onclick="previousMonth()">&larr;</button>
+                                        <h5 id="monthYear"></h5>
+                                        <button type="button" onclick="nextMonth()">&rarr;</button>
+                                    </div>
+                                    <div id="calendar" class="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; width: 100%; padding: 0; margin: 0;"></div>
+                                    <div id="selectedDatesDisplay" class="selected-dates">
+                                        <p>De <strong id="dateStart"></strong> até <strong id="dateEnd"></strong></p>
+                                        <p style="font-size: 0.9rem; color: #666;"><span id="dayCount"></span> dias</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="d-grid gap-2 mt-4">
-                                <button type="submit" class="btn btn-magic">
+                                <button type="submit" class="btn btn-magic" id="submitBtn" disabled>
                                     <i class="bi bi-calendar-check"></i> Confirmar Reserva
                                 </button>
                                 <a th:href="@{/magiclook/dashboard}" class="btn btn-outline-secondary">
@@ -139,5 +276,198 @@
             </ul>
         </div>
     </div>
+
+    <script>
+        const itemId = [[${item.itemId}]];
+        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                           'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+        
+        let currentMonth = new Date();
+        let startDate = null;
+        let endDate = null;
+        let unavailableDates = [];
+        let selectedSize = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Renderizar o calendário inicial (primeiro mês)
+            currentMonth = new Date();
+        });
+
+        function onSizeChange() {
+            selectedSize = document.getElementById('size').value;
+            
+            if (!selectedSize) {
+                // Se deselecionar, esconder o calendário e limpar seleções
+                document.getElementById('calendarSection').style.display = 'none';
+                startDate = null;
+                endDate = null;
+                unavailableDates = [];
+                updateDisplay();
+                return;
+            }
+
+            // Mostrar calendário, limpar seleções anteriores e buscar datas indisponíveis
+            document.getElementById('calendarSection').style.display = 'block';
+            startDate = null;
+            endDate = null;
+            updateDisplay();
+            fetchUnavailableDatesForSize();
+        }
+
+        async function fetchUnavailableDatesForSize() {
+            try {
+                const response = await fetch(`/magiclook/api/availability?itemId=${itemId}&size=${encodeURIComponent(selectedSize || '')}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    unavailableDates = (data.unavailableDates || []).map(d => {
+                        // Garantir formato YYYY-MM-DD
+                        return d.includes('T') ? d.split('T')[0] : d;
+                    });
+                    console.log('%c✅ Datas indisponíveis carregadas para tamanho ' + selectedSize, 'color: green; font-weight: bold; font-size: 14px;');
+                    console.log('%cArray:', 'color: green; font-weight: bold;', unavailableDates);
+                } else {
+                    console.log('%c⚠️ Sem datas indisponíveis para este tamanho', 'color: orange; font-weight: bold;');
+                    unavailableDates = [];
+                }
+            } catch (error) {
+                console.error('%c❌ Erro ao buscar disponibilidade:', 'color: red; font-weight: bold;', error);
+                unavailableDates = [];
+            }
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0).getDate();
+            const startingDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+
+            document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
+
+            let html = '';
+
+            // Cabeçalhos dos dias da semana
+            for (let day of dayNames) {
+                html += `<div class="day-header" style="text-align: center; font-weight: bold; color: #b8860b; padding: 8px 4px; background: #f0f0f0; border-radius: 5px; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; margin: 0; border: none; grid-column: span 1;">${day}</div>`;
+            }
+
+            // Espaços vazios no início
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                html += `<div class="calendar-day empty" style="border: none; background: transparent; cursor: default; grid-column: span 1;"></div>`;
+            }
+
+            // Dias do mês
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            for (let day = 1; day <= lastDay; day++) {
+                const date = new Date(year, month, day);
+                const dateStr = date.toISOString().split('T')[0];
+                let classes = 'calendar-day';
+                let styles = 'min-height: 50px; display: flex; align-items: center; justify-content: center; border: 2px solid #e0e0e0; border-radius: 5px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; background: white; user-select: none; padding: 0; margin: 0; box-sizing: border-box; font-size: 14px; grid-column: span 1;';
+
+                // Verificar se está desabilitado (passado ou sem disponibilidade)
+                const isPast = date < today;
+                const isUnavailable = unavailableDates.includes(dateStr);
+                const isDisabled = isPast || isUnavailable;
+                
+                if (isDisabled) {
+                    classes += ' disabled';
+                    styles += ' background: #ff0000 !important; color: white !important; border-color: #cc0000 !important; cursor: not-allowed !important;';
+                    if (day <= 5) console.log(`Data ${dateStr}: past=${isPast}, unavailable=${isUnavailable}, array=${JSON.stringify(unavailableDates.slice(0, 3))}`);
+                } else if (date.toDateString() === today.toDateString()) {
+                    classes += ' today';
+                }
+
+                // Verificar seleção
+                if (startDate && endDate) {
+                    if (date.getTime() === startDate.getTime() || date.getTime() === endDate.getTime()) {
+                        classes += ' selected';
+                        styles += ' background: #0066cc !important; color: white !important; border-color: #0052a3 !important;';
+                    } else if (date > startDate && date < endDate) {
+                        classes += ' in-range';
+                        styles += ' background: #3399ff !important; color: white !important; border-color: #0066cc !important;';
+                    }
+                } else if (startDate && date.getTime() === startDate.getTime()) {
+                    classes += ' selected';
+                    styles += ' background: #0066cc !important; color: white !important; border-color: #0052a3 !important;';
+                }
+
+                html += `<div class="${classes}" style="${styles}" onclick="selectDate('${dateStr}')">${day}</div>`;
+            }
+
+            const calendarElement = document.getElementById('calendar');
+            calendarElement.innerHTML = html;
+            
+            // Forçar grid layout no elemento
+            calendarElement.style.display = 'grid';
+            calendarElement.style.gridTemplateColumns = 'repeat(7, 1fr)';
+            calendarElement.style.gap = '8px';
+            calendarElement.style.width = '100%';
+            calendarElement.style.padding = '0';
+            calendarElement.style.margin = '0';
+        }
+
+        function previousMonth() {
+            currentMonth.setMonth(currentMonth.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentMonth.setMonth(currentMonth.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function selectDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+
+            if (!startDate) {
+                startDate = new Date(date);
+                endDate = null;
+            } else if (!endDate) {
+                if (date < startDate) {
+                    endDate = startDate;
+                    startDate = new Date(date);
+                } else if (date.getTime() === startDate.getTime()) {
+                    startDate = null;
+                } else {
+                    endDate = new Date(date);
+                }
+            } else {
+                startDate = new Date(date);
+                endDate = null;
+            }
+
+            renderCalendar();
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const display = document.getElementById('selectedDatesDisplay');
+            
+            if (startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+                document.getElementById('dateStart').textContent = start.toLocaleDateString('pt-PT');
+                document.getElementById('dateEnd').textContent = end.toLocaleDateString('pt-PT');
+                document.getElementById('dayCount').textContent = days;
+
+                document.getElementById('startUseDateInput').value = startDate.toISOString().split('T')[0];
+                document.getElementById('endUseDateInput').value = endDate.toISOString().split('T')[0];
+
+                display.classList.add('show');
+                document.getElementById('submitBtn').disabled = false;
+            } else {
+                display.classList.remove('show');
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('startUseDateInput').value = '';
+                document.getElementById('endUseDateInput').value = '';
+            }
+        }
+    </script>
 </body>
 </html>
