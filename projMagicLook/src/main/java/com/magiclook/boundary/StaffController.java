@@ -9,11 +9,13 @@ import com.magiclook.dto.*;
 
 import jakarta.servlet.http.HttpSession;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.math.BigDecimal;
 
@@ -21,20 +23,20 @@ import java.math.BigDecimal;
 @RequestMapping("/magiclook/staff")
 public class StaffController {
 
+    private static final Logger logger = LoggerFactory.getLogger(StaffController.class);
+    
     // Constants
     private static final String STAFF_DASHBOARD_VIEW = "staffDashboard";
     private static final String STAFF_LOGIN_VIEW = "staffLogin";
     private static final String STAFF_ITEM_VIEW = "staffItem";
     private static final String STAFF_ITEM_DETAILS_VIEW = "staffItemDetails";
     private static final String ERROR = "error";
+    private static final String LOGGED_IN_STAFF = "loggedInStaff";
+    private static final String REDIRECT_STAFF_LOGIN = "redirect:/magiclook/staff/login";
 
-    @Autowired
-    private StaffService staffService;
+    private final StaffService staffService;
+    private final ItemService itemService;
 
-    @Autowired
-    private ItemService itemService;
-
-    @Autowired
     public StaffController(StaffService staffService, ItemService itemService) {
         this.staffService = staffService;
         this.itemService = itemService;
@@ -56,8 +58,8 @@ public class StaffController {
 
         Staff staff = staffService.login(usernameOrEmail, password);
 
-        if (staff != null) {
-            session.setAttribute("loggedInStaff", staff);
+        if (staff != null && staff.getShop() != null) {
+            session.setAttribute(LOGGED_IN_STAFF, staff);
             session.setAttribute("staffId", staff.getStaffId());
             session.setAttribute("staffName", staff.getName());
             session.setAttribute("staffEmail", staff.getEmail());
@@ -65,8 +67,10 @@ public class StaffController {
             session.setAttribute("shopId", staff.getShop().getShopId());
             session.setAttribute("shopName", staff.getShop().getName());
 
+            logger.info("Staff login successful");
             return "redirect:/magiclook/staff/dashboard";
         } else {
+            logger.warn("Failed staff login attempt");
             model.addAttribute("error", "Credenciais inválidas para staff!");
             return STAFF_LOGIN_VIEW;
         }
@@ -77,10 +81,10 @@ public class StaffController {
     @GetMapping("/dashboard")
     @Timed(value = "request.staffDashboard")
     public String showStaffDashboard(HttpSession session, Model model) {
-        Staff staff = (Staff) session.getAttribute("loggedInStaff");
+        Staff staff = (Staff) session.getAttribute(LOGGED_IN_STAFF);
 
         if (staff == null) {
-            return "redirect:/magiclook/staff/login";
+            return REDIRECT_STAFF_LOGIN;
         }
 
         // Buscar itens da loja do staff
@@ -115,10 +119,10 @@ public class StaffController {
             Model model) {
 
         try {
-            Staff staff = (Staff) session.getAttribute("loggedInStaff");
+            Staff staff = (Staff) session.getAttribute(LOGGED_IN_STAFF);
 
             if (staff == null) {
-                return "redirect:/magiclook/staff/login";
+                return REDIRECT_STAFF_LOGIN;
             }
 
             // Converter em ItemDTO
@@ -177,9 +181,9 @@ public class StaffController {
             @RequestParam(name = "state", required = false) String state,
             @RequestParam(name = "q", required = false) String q) {
 
-        Staff staff = (Staff) session.getAttribute("loggedInStaff");
+        Staff staff = (Staff) session.getAttribute(LOGGED_IN_STAFF);
         if (staff == null) {
-            return "redirect:/magiclook/staff/login";
+            return REDIRECT_STAFF_LOGIN;
         }
 
         // Base list: items from this staff's shop
@@ -233,13 +237,18 @@ public class StaffController {
             HttpSession session,
             Model model) {
 
-        Staff staff = (Staff) session.getAttribute("loggedInStaff");
+        Staff staff = (Staff) session.getAttribute(LOGGED_IN_STAFF);
         if (staff == null) {
-            return "redirect:/magiclook/staff/login";
+            return REDIRECT_STAFF_LOGIN;
         }
 
-        Item item = itemService.getItemById(itemId);
+        Item item = itemService.getItemById(itemId).orElse(null);
         List<ItemSingle> itemsList = itemService.getItems(itemId);
+
+        if (item == null) {
+            model.addAttribute(ERROR, "Item não encontrado");
+            return "redirect:/magiclook/staff/item";
+        }
 
         model.addAttribute("staff", staff);
         model.addAttribute("shop", staff.getShop());
@@ -269,9 +278,9 @@ public class StaffController {
             HttpSession session,
             Model model) {
 
-        Staff staff = (Staff) session.getAttribute("loggedInStaff");
+        Staff staff = (Staff) session.getAttribute(LOGGED_IN_STAFF);
         if (staff == null) {
-            return "redirect:/magiclook/staff/login";
+            return REDIRECT_STAFF_LOGIN;
         }
 
         try {
@@ -298,12 +307,14 @@ public class StaffController {
             return "redirect:/magiclook/staff/item";
 
         } catch (Exception e) {
-            Item item = itemService.getItemById(itemId);
+            Item item = itemService.getItemById(itemId).orElse(null);
             List<ItemSingle> itemsList = itemService.getItems(itemId);
 
             model.addAttribute("staff", staff);
             model.addAttribute("shop", staff.getShop());
-            model.addAttribute("item", item);
+            if (item != null) {
+                model.addAttribute("item", item);
+            }
             model.addAttribute("itemSingles", itemsList);
             model.addAttribute(ERROR, "Erro ao atualizar item: " + e.getMessage());
 
@@ -319,7 +330,7 @@ public class StaffController {
             @PathVariable String size,
             HttpSession session) {
 
-        Staff staff = (Staff) session.getAttribute("loggedInStaff");
+        Staff staff = (Staff) session.getAttribute(LOGGED_IN_STAFF);
         if (staff == null) {
             return org.springframework.http.ResponseEntity.status(401).build();
         }
@@ -342,9 +353,9 @@ public class StaffController {
             @RequestParam Integer itemId,
             HttpSession session) {
 
-        Staff staff = (Staff) session.getAttribute("loggedInStaff");
+        Staff staff = (Staff) session.getAttribute(LOGGED_IN_STAFF);
         if (staff == null) {
-            return "redirect:/magiclook/staff/login";
+            return REDIRECT_STAFF_LOGIN;
         }
 
         staffService.updateItemSingle(id, size, state, damageReason);
@@ -357,7 +368,7 @@ public class StaffController {
     @GetMapping("/logout")
     public String staffLogout(HttpSession session) {
         if (session != null) {
-            session.removeAttribute("loggedInStaff");
+            session.removeAttribute(LOGGED_IN_STAFF);
             session.removeAttribute("staffId");
             session.removeAttribute("staffName");
             session.removeAttribute("staffEmail");

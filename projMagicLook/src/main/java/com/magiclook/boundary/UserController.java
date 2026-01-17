@@ -26,7 +26,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/magiclook")
 public class UserController {
-
+    
     private final UserService userService;
     private final ItemService itemService;
     private final NotificationRepository notificationRepository;

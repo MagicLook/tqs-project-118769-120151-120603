@@ -5,8 +5,10 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.magiclook.repository.*;
 import com.magiclook.data.*;
@@ -14,28 +16,32 @@ import com.magiclook.data.*;
 @Component
 public class DatabaseLoader {
 
-    @Autowired
-    private ShopRepository shopRepository;
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseLoader.class);
+    private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private StaffRepository staffRepository;
-
-    @Autowired
-    private ItemTypeRepository itemTypeRepository;
-
-    @Autowired
-    private ItemRepository itemRepository;
-
-    @Autowired
-    private ItemSingleRepository itemSingleRepository;
+    private final ShopRepository shopRepository;
+    private final UserRepository userRepository;
+    private final StaffRepository staffRepository;
+    private final ItemTypeRepository itemTypeRepository;
+    private final ItemRepository itemRepository;
+    private final ItemSingleRepository itemSingleRepository;
 
     @Value("${app.upload.dir}")
     private String uploadDir;
 
+    public DatabaseLoader(ShopRepository shopRepository, UserRepository userRepository,
+                         StaffRepository staffRepository, ItemTypeRepository itemTypeRepository,
+                         ItemRepository itemRepository, ItemSingleRepository itemSingleRepository) {
+        this.shopRepository = shopRepository;
+        this.userRepository = userRepository;
+        this.staffRepository = staffRepository;
+        this.itemTypeRepository = itemTypeRepository;
+        this.itemRepository = itemRepository;
+        this.itemSingleRepository = itemSingleRepository;
+    }
+
     @PostConstruct
+    @SuppressWarnings("java:S2115") // Hardcoded passwords are intentional for test data initialization
     void initDatabase() {
         // Init shops
         Shop shop1;
@@ -49,33 +55,41 @@ public class DatabaseLoader {
             shopRepository.save(shop2);
 
             shopRepository.flush();
+            logger.info("Sample shops initialized");
         } else {
             shop1 = shopRepository.findByNameAndLocation("Porto", "Porto").orElse(null);
             shop2 = shopRepository.findByNameAndLocation("Lisboa", "Lisboa").orElse(null);
+            
+            if (shop1 == null || shop2 == null) {
+                logger.error("Failed to load required shops from database");
+                throw new IllegalStateException("Required shops not found in database");
+            }
         }
 
         // Init users
         if (userRepository.count() == 0) {
-            User user1 = new User("Maria", "Silva", "maria@gmail.com", "911991911", "maria?", "maria");
-            User user2 = new User("Gonçalo", "Floros", "goncalo@gmail.com", "911991912", "goncalo?", "goncalo");
-            User user3 = new User("Pedro", "Silva", "pedro@gmail.com", "911991913", "pedro?", "pedro");
+            User user1 = new User("Maria", "Silva", "maria@gmail.com", "911991911", passwordEncoder.encode("maria?"), "maria"); //NOSONAR
+            User user2 = new User("Gonçalo", "Floros", "goncalo@gmail.com", "911991912", passwordEncoder.encode("goncalo?"), "goncalo"); //NOSONAR
+            User user3 = new User("Pedro", "Silva", "pedro@gmail.com", "911991913", passwordEncoder.encode("pedro?"), "pedro"); //NOSONAR
 
             userRepository.save(user1);
             userRepository.save(user2);
             userRepository.save(user3);
 
             userRepository.flush();
+            logger.info("Sample users initialized with hashed passwords");
         }
 
         // Init staff
-        if (staffRepository.count() == 0 && shop1 != null && shop2 != null) {
-            Staff staff1 = new Staff("Admin", "admin@gmail.com", "admin123", "admin", shop1);
-            Staff staff2 = new Staff("Admin2", "admin2@gmail.com", "admin123", "admin2", shop2);
+        if (staffRepository.count() == 0) {
+            Staff staff1 = new Staff("Admin", "admin@gmail.com", passwordEncoder.encode("admin123"), "admin", shop1); //NOSONAR
+            Staff staff2 = new Staff("Admin2", "admin2@gmail.com", passwordEncoder.encode("admin123"), "admin2", shop2); //NOSONAR
 
             staffRepository.save(staff1);
             staffRepository.save(staff2);
 
             staffRepository.flush();
+            logger.info("Sample staff initialized with hashed passwords");
         }
 
         // Init ItemTypes
@@ -114,7 +128,7 @@ public class DatabaseLoader {
         }
 
         // Init Items
-        if (itemRepository.count() == 0 && shop1 != null && shop2 != null) {
+        if (itemRepository.count() == 0) {
             // Macacões
             Item item1 = new Item("Macacão Curto", "Poliéster", "Azul", "Beauty", new BigDecimal(95),
                     new BigDecimal(950),

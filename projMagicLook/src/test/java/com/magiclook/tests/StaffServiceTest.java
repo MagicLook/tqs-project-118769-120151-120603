@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -63,7 +64,11 @@ class StaffServiceTest {
         itemType = new ItemType("M", "Vestido", "Curto");
         itemType.setId(1);
 
-        staff = new Staff("Test Staff", "staff@test.com", "password123", "teststaff", shop);
+        // Use hashed password for staff
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String hashedPassword = passwordEncoder.encode("password123");
+        
+        staff = new Staff("Test Staff", "staff@test.com", hashedPassword, "teststaff", shop);
         staff.setStaffId(UUID.randomUUID());
 
         item = new Item("Test Item", "Algodão", "Blue", "Brand",
@@ -434,6 +439,7 @@ class StaffServiceTest {
                             try {
                                 Files.delete(path);
                             } catch (IOException ignored) {
+                                // Ignore deletion errors during setup cleanup
                             }
                         });
             }
@@ -448,6 +454,7 @@ class StaffServiceTest {
                             try {
                                 Files.delete(path);
                             } catch (IOException ignored) {
+                                // Ignore deletion errors during teardown
                             }
                         });
             }
