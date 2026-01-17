@@ -516,12 +516,15 @@ public class BookingController {
                 }
                 
                 // Adicionar todas as datas do período de reserva como indisponíveis
+                // INCLUINDO um dia antes (para busca) e um dia depois (para lavagem)
                 java.time.LocalDate current = booking.getStartUseDate().toInstant()
                     .atZone(ZoneId.systemDefault())
-                    .toLocalDate();
+                    .toLocalDate()
+                    .minusDays(1);  // Um dia antes para busca
                 java.time.LocalDate end = booking.getEndUseDate().toInstant()
                     .atZone(ZoneId.systemDefault())
-                    .toLocalDate();
+                    .toLocalDate()
+                    .plusDays(1);   // Um dia depois para lavagem
                     
                 while (!current.isAfter(end)) {
                     unavailableDates.add(current.toString());

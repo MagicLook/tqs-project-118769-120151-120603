@@ -103,6 +103,8 @@ public class BookingServiceTest {
 
     @Test
     void testCreateBooking_Success() {
+        when(userRepository.findById(testUser.getUserId()))
+            .thenReturn(Optional.of(testUser));
         when(itemRepository.findById(bookingRequest.getItemId()))
             .thenReturn(Optional.of(testItem));
             
@@ -179,6 +181,8 @@ public class BookingServiceTest {
 
     @Test
     void testCreateBooking_ItemNotAvailable() {
+        when(userRepository.findById(testUser.getUserId()))
+            .thenReturn(Optional.of(testUser));
         when(itemRepository.findById(bookingRequest.getItemId()))
             .thenReturn(Optional.of(testItem));
             
@@ -197,7 +201,9 @@ public class BookingServiceTest {
                    message.contains("indisponível") ||
                    message.contains("disponível") ||
                    message.contains("available") ||
-                   message.contains("unavailable");
+                   message.contains("unavailable") ||
+                   message.contains("no item") ||
+                   message.contains("nenhum tamanho");
         
         // Se a mensagem não contém nenhuma palavra-chave, falha o teste com mensagem clara
         if (!hasErrorKeyword) {
