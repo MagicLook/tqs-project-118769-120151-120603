@@ -20,26 +20,26 @@ public class DatabaseLoader {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseLoader.class);
     private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    @Autowired
-    private ShopRepository shopRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private StaffRepository staffRepository;
-
-    @Autowired
-    private ItemTypeRepository itemTypeRepository;
-
-    @Autowired
-    private ItemRepository itemRepository;
-
-    @Autowired
-    private ItemSingleRepository itemSingleRepository;
+    private final ShopRepository shopRepository;
+    private final UserRepository userRepository;
+    private final StaffRepository staffRepository;
+    private final ItemTypeRepository itemTypeRepository;
+    private final ItemRepository itemRepository;
+    private final ItemSingleRepository itemSingleRepository;
 
     @Value("${app.upload.dir}")
     private String uploadDir;
+
+    public DatabaseLoader(ShopRepository shopRepository, UserRepository userRepository,
+                         StaffRepository staffRepository, ItemTypeRepository itemTypeRepository,
+                         ItemRepository itemRepository, ItemSingleRepository itemSingleRepository) {
+        this.shopRepository = shopRepository;
+        this.userRepository = userRepository;
+        this.staffRepository = staffRepository;
+        this.itemTypeRepository = itemTypeRepository;
+        this.itemRepository = itemRepository;
+        this.itemSingleRepository = itemSingleRepository;
+    }
 
     @PostConstruct
     @SuppressWarnings("java:S2115") // Hardcoded passwords are intentional for test data initialization

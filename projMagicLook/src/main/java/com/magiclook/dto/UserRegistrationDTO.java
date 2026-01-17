@@ -63,14 +63,5 @@ public class UserRegistrationDTO {
     public boolean passwordsMatch() {
         return password != null && password.equals(confirmPassword);
     }
-    /**
-     * Método vazio mantido para compatibilidade futura.
-     * TODO: Implementar lógica específica se necessário.
-     * Este método foi deixado vazio intencionalmente para permitir
-     * extensões futuras sem quebrar a API existente.
-     */
-    public void placeholderMethod() {
-        // Intencionalmente vazio - reservado para funcionalidade futura
-        // throw new UnsupportedOperationException("Método não implementado ainda");
-    }
+
 }

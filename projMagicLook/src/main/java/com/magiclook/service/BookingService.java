@@ -19,28 +19,23 @@ import java.util.stream.Collectors;
 @Transactional
 public class BookingService {
     
-    @Autowired
-    private BookingRepository bookingRepository;
-    
-    @Autowired
-    private ItemRepository itemRepository;
-    
-    @Autowired
-    private ItemSingleRepository itemSingleRepository;
-    
-    @Autowired
-    private UserRepository userRepository;
+    private final BookingRepository bookingRepository;
+    private final ItemRepository itemRepository;
+    private final ItemSingleRepository itemSingleRepository;
+    private final UserRepository userRepository;
     
     // Mapa de locks por item para evitar concorrência
     private static final Map<String, Object> itemLocks = new ConcurrentHashMap<>();
     
     // Lock global para todas as reservas
     private static final Object GLOBAL_BOOKING_LOCK = new Object();
-    
-    // Obter lock para um item específico
-    private Object getItemLock(Integer itemId, String size) {
-        String lockKey = itemId + (size != null ? "_" + size : "");
-        return itemLocks.computeIfAbsent(lockKey, k -> new Object());
+
+    public BookingService(BookingRepository bookingRepository, ItemRepository itemRepository,
+                         ItemSingleRepository itemSingleRepository, UserRepository userRepository) {
+        this.bookingRepository = bookingRepository;
+        this.itemRepository = itemRepository;
+        this.itemSingleRepository = itemSingleRepository;
+        this.userRepository = userRepository;
     }
     
     public Booking createBooking(BookingRequestDTO bookingRequest, User user) {
@@ -58,16 +53,16 @@ public class BookingService {
         
         // Buscar o item
         Item item = itemRepository.findById(bookingRequest.getItemId())
-            .orElseThrow(() -> new RuntimeException("Item não encontrado"));
+            .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
         
         // Verificar utilizador autenticado e obter a entidade atualizada
         if (user == null) {
-            throw new RuntimeException("Utilizador não autenticado");
+            throw new IllegalArgumentException("Utilizador não autenticado");
         }
 
         // IMPORTANTE: Validar que o user existe na BD
         User currentUser = userRepository.findById(user.getUserId())
-            .orElseThrow(() -> new RuntimeException("Utilizador não encontrado na base de dados. Por favor, faça logout e login novamente."));
+            .orElseThrow(() -> new IllegalArgumentException("Utilizador não encontrado na base de dados. Por favor, faça logout e login novamente."));
         
         // Calcular datas
         Calendar calendar = Calendar.getInstance();
@@ -100,12 +95,12 @@ public class BookingService {
             String errorMsg = bookingRequest.getSize() != null && !bookingRequest.getSize().isEmpty()
                 ? "Nenhuma unidade disponível para o tamanho " + bookingRequest.getSize() + " nas datas selecionadas"
                 : "Nenhuma unidade disponível para as datas selecionadas";
-            throw new RuntimeException(errorMsg);
+            throw new IllegalStateException(errorMsg);
         }
         
         // Verificar se o ItemSingle está disponível fisicamente (não em manutenção)
         if (!ItemSingle.STATE_AVAILABLE.equals(availableItemSingle.getState())) {
-            throw new RuntimeException("Item está em manutenção e não está disponível");
+            throw new IllegalStateException("Item está em manutenção e não está disponível");
         }
         
         // Criar reserva
@@ -143,7 +138,7 @@ public class BookingService {
             .stream()
             .filter(is -> ItemSingle.STATE_AVAILABLE.equals(is.getState())) // Apenas fisicamente disponíveis
             .filter(is -> size == null || size.isEmpty() || size.equals(is.getSize())) // Filtrar por tamanho
-            .collect(Collectors.toList());
+            .toList();
         
         if (itemSingles.isEmpty()) {
             return null;
@@ -160,13 +155,6 @@ public class BookingService {
         }
         
         return null;
-    }
-    
-    // Adicionar método findAvailableItemSingle antigo para compatibilidade
-    private ItemSingle findAvailableItemSingle(Integer itemId, String size, 
-                                             Date pickupDate, Date startUseDate, 
-                                             Date endUseDate, Date laundryDate) {
-        return findAvailableItemSingleForDates(itemId, size, pickupDate, startUseDate, endUseDate, laundryDate);
     }
     
     public boolean checkAvailability(Integer itemId, Date startUseDate, Date endUseDate) {
@@ -190,7 +178,7 @@ public class BookingService {
                 .stream()
                 .filter(is -> ItemSingle.STATE_AVAILABLE.equals(is.getState()))
                 .filter(is -> size == null || size.isEmpty() || size.equals(is.getSize()))
-                .collect(Collectors.toList());
+                .toList();
             
             if (availableItemSingles.isEmpty()) {
                 return false;
@@ -212,14 +200,14 @@ public class BookingService {
     
     public List<Booking> getUserBookings(User user) {
         if (user == null) {
-            throw new RuntimeException("Utilizador não autenticado");
+            throw new IllegalArgumentException("Utilizador não autenticado");
         }
         return bookingRepository.findByUserOrderByCreatedAtDesc(user);
     }
     
     public BigDecimal calculatePrice(Integer itemId, long useDays) {
         Item item = itemRepository.findById(itemId)
-            .orElseThrow(() -> new RuntimeException("Item não encontrado"));
+            .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
         return item.getPriceRent().multiply(BigDecimal.valueOf(useDays));
     }
 
@@ -270,8 +258,8 @@ public class BookingService {
         }
     }
     
-    public List<Booking> getConflictingBookingsBySize(Integer itemId, String size, LocalDate startUseDate, LocalDate endUseDate) {
-        // For now, return conflicts for the item (size filtering could be added later)
+    public List<Booking> getConflictingBookingsBySize(Integer itemId, LocalDate startUseDate, LocalDate endUseDate) {
+        // Return conflicts for the item
         return getConflictingBookings(itemId, startUseDate, endUseDate);
     }
     
@@ -281,10 +269,10 @@ public class BookingService {
     
     public Booking createSimpleBooking(Integer itemId, LocalDate startUseDate, LocalDate endUseDate, User user) {
         Item item = itemRepository.findById(itemId)
-            .orElseThrow(() -> new RuntimeException("Item não encontrado"));
+            .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
         
         if (!isItemAvailable(itemId, startUseDate, endUseDate)) {
-            throw new RuntimeException("Item não disponível nas datas selecionadas");
+            throw new IllegalStateException("Item não disponível nas datas selecionadas");
         }
         
         // Converter para Date
@@ -308,7 +296,7 @@ public class BookingService {
             itemId, null, pickupDate, startDate, endDate, laundryDate);
         
         if (availableItemSingle == null) {
-            throw new RuntimeException("Nenhuma unidade disponível para as datas selecionadas");
+            throw new IllegalStateException("Nenhuma unidade disponível para as datas selecionadas");
         }
         
         // Calcular dias e preço

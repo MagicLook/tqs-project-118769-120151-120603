@@ -33,32 +33,18 @@ public class StaffService {
     private static final Logger logger = LoggerFactory.getLogger(StaffService.class);
     private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    @Autowired
-    private StaffRepository staffRepository;
-
-    @Autowired
-    private ShopRepository shopRepository;
-
-    @Autowired
-    private ItemTypeRepository itemTypeRepository;
-
-    @Autowired
-    private ItemRepository itemRepository;
-
-    @Autowired
-    private ItemSingleRepository itemSingleRepository;
-
-    @Autowired
-    private NotificationRepository notificationRepository;
-
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final StaffRepository staffRepository;
+    private final ShopRepository shopRepository;
+    private final ItemTypeRepository itemTypeRepository;
+    private final ItemRepository itemRepository;
+    private final ItemSingleRepository itemSingleRepository;
+    private final NotificationRepository notificationRepository;
+    private final BookingRepository bookingRepository;
 
     @Value("${app.upload.dir}")
     private String uploadDir;
 
-    @Autowired
-    StaffService(StaffRepository staffRepository, ItemRepository itemRepository, ShopRepository shopRepository,
+    public StaffService(StaffRepository staffRepository, ItemRepository itemRepository, ShopRepository shopRepository,
             ItemTypeRepository itemTypeRepository, ItemSingleRepository itemSingleRepository,
             BookingRepository bookingRepository, NotificationRepository notificationRepository) {
         this.staffRepository = staffRepository;

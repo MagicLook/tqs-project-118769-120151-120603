@@ -439,6 +439,7 @@ class StaffServiceTest {
                             try {
                                 Files.delete(path);
                             } catch (IOException ignored) {
+                                // Ignore deletion errors during setup cleanup
                             }
                         });
             }
@@ -453,6 +454,7 @@ class StaffServiceTest {
                             try {
                                 Files.delete(path);
                             } catch (IOException ignored) {
+                                // Ignore deletion errors during teardown
                             }
                         });
             }

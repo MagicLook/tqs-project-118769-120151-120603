@@ -6,7 +6,6 @@ import com.magiclook.data.ItemSingle;
 import com.magiclook.data.Shop;
 import com.magiclook.repository.ItemRepository;
 import com.magiclook.repository.ItemSingleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +20,8 @@ public class ItemService {
     private static final Logger logger = LoggerFactory.getLogger(ItemService.class);
     
     private final ItemRepository itemRepository;
-    private ItemSingleRepository itemSingleRepository;
+    private final ItemSingleRepository itemSingleRepository;
     
-    @Autowired
     public ItemService(ItemRepository itemRepository, ItemSingleRepository itemSingleRepository) {
         this.itemRepository = itemRepository;
         this.itemSingleRepository = itemSingleRepository;
@@ -52,7 +50,7 @@ public class ItemService {
     public List<Item> getRecentItems(int limit) {
         return itemRepository.findAll().stream()
                 .limit(limit)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public List<String> getAllDistinctColors() {
@@ -126,7 +124,7 @@ public class ItemService {
             .map(ItemSingle::getSize)
             .distinct()
             .sorted()
-            .collect(Collectors.toList());
+            .toList();
     }
     
     public List<String> getAllDistinctSubcategoriesByGender(String gender) {

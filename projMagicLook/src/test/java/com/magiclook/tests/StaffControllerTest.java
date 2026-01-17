@@ -220,7 +220,7 @@ class StaffControllerTest {
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
             when(itemService.getItemsByShop(testShop)).thenReturn(items);
 
-            String viewName = staffController.showStaffDashboard(session, model);
+            staffController.showStaffDashboard(session, model);
 
             verify(model).addAttribute("itemCount", 3);
         }

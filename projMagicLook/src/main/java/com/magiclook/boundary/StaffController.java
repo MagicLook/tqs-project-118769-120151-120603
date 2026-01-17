@@ -35,13 +35,9 @@ public class StaffController {
     private static final String LOGGED_IN_STAFF = "loggedInStaff";
     private static final String REDIRECT_STAFF_LOGIN = "redirect:/magiclook/staff/login";
 
-    @Autowired
-    private StaffService staffService;
+    private final StaffService staffService;
+    private final ItemService itemService;
 
-    @Autowired
-    private ItemService itemService;
-
-    @Autowired
     public StaffController(StaffService staffService, ItemService itemService) {
         this.staffService = staffService;
         this.itemService = itemService;

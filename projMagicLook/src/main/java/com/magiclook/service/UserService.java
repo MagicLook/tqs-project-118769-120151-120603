@@ -15,26 +15,29 @@ public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
     
     public User register(UserRegistrationDTO dto) {
         // Valida se as passwords coincidem
         if (!dto.passwordsMatch()) {
             logger.warn("Password mismatch for registration attempt");
-            throw new RuntimeException("As palavras-passe não coincidem");
+            throw new IllegalArgumentException("As palavras-passe não coincidem");
         }
         
         // Verifica se username já existe
         if (userRepository.existsByUsername(dto.getUsername())) {
             logger.warn("Registration failed: username already exists");
-            throw new RuntimeException("Username já está em uso");
+            throw new IllegalArgumentException("Username já está em uso");
         }
         
         // Verifica se email já existe
         if (userRepository.existsByEmail(dto.getEmail())) {
             logger.warn("Registration failed: email already exists");
-            throw new RuntimeException("Email já está em uso");
+            throw new IllegalArgumentException("Email já está em uso");
         }
         
         User user = new User();
