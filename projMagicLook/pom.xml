@@ -33,7 +33,7 @@
 			**/data/**,
 			**/dto/**,
 			**/config/**,
-			**/repository/**
+			**/repository/**,
 			**/loader/**
 		</sonar.coverage.exclusions>
 		<java.version>21</java.version>
