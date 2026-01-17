@@ -3,7 +3,6 @@ package com.magiclook.service;
 import com.magiclook.dto.UserRegistrationDTO;
 import com.magiclook.data.User;
 import com.magiclook.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;

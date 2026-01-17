@@ -298,7 +298,7 @@ public class BookingController {
         String currentState = bookingService.getCurrentBookingState(booking);
         booking.setState(currentState);
         // Determine if user can cancel: only owner and only when CONFIRMED and start date is in the future
-        boolean canCancel = "CONFIRMED".equals(currentState) && booking.getStartUseDate().after(new java.util.Date());
+        boolean canCancel = BOOKING_STATUS_CONFIRMED.equals(currentState) && booking.getStartUseDate().after(new java.util.Date());
 
         com.magiclook.dto.RefundInfoDTO refundInfo = bookingService.getRefundInfo(booking);
 
@@ -340,7 +340,7 @@ public class BookingController {
             boolean allowed = false;
             // owner
             if (user != null && booking.getUser().getUserId().equals(user.getUserId())) {
-                allowed = "CONFIRMED".equals(bookingService.getCurrentBookingState(booking)) && booking.getStartUseDate().after(new java.util.Date());
+                allowed = BOOKING_STATUS_CONFIRMED.equals(bookingService.getCurrentBookingState(booking)) && booking.getStartUseDate().after(new java.util.Date());
             }
             // staff may cancel
             if (!allowed && staff != null) {
@@ -382,7 +382,7 @@ public class BookingController {
 
             boolean allowed = false;
             if (user != null && booking.getUser().getUserId().equals(user.getUserId())) {
-                allowed = "CONFIRMED".equals(bookingService.getCurrentBookingState(booking)) && booking.getStartUseDate().after(new java.util.Date());
+                allowed = BOOKING_STATUS_CONFIRMED.equals(bookingService.getCurrentBookingState(booking)) && booking.getStartUseDate().after(new java.util.Date());
             }
             if (!allowed && staff != null) {
                 String state = bookingService.getCurrentBookingState(booking);

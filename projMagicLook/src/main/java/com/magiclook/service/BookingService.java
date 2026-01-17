@@ -3,7 +3,6 @@ package com.magiclook.service;
 import com.magiclook.data.*;
 import com.magiclook.dto.BookingRequestDTO;
 import com.magiclook.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,9 +22,8 @@ public class BookingService {
     private final ItemRepository itemRepository;
     private final ItemSingleRepository itemSingleRepository;
     private final UserRepository userRepository;
-    
-    // Mapa de locks por item para evitar concorrência
-    private static final Map<String, Object> itemLocks = new ConcurrentHashMap<>();
+        
+    private static final String NOT_FOUND = "Item não encontrado";
     
     // Lock global para todas as reservas
     private static final Object GLOBAL_BOOKING_LOCK = new Object();
@@ -53,7 +51,7 @@ public class BookingService {
         
         // Buscar o item
         Item item = itemRepository.findById(bookingRequest.getItemId())
-            .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
+            .orElseThrow(() -> new IllegalArgumentException(NOT_FOUND));
         
         // Verificar utilizador autenticado e obter a entidade atualizada
         if (user == null) {
@@ -207,7 +205,7 @@ public class BookingService {
     
     public BigDecimal calculatePrice(Integer itemId, long useDays) {
         Item item = itemRepository.findById(itemId)
-            .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
+            .orElseThrow(() -> new IllegalArgumentException(NOT_FOUND));
         return item.getPriceRent().multiply(BigDecimal.valueOf(useDays));
     }
 
@@ -269,7 +267,7 @@ public class BookingService {
     
     public Booking createSimpleBooking(Integer itemId, LocalDate startUseDate, LocalDate endUseDate, User user) {
         Item item = itemRepository.findById(itemId)
-            .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
+            .orElseThrow(() -> new IllegalArgumentException(NOT_FOUND));
         
         if (!isItemAvailable(itemId, startUseDate, endUseDate)) {
             throw new IllegalStateException("Item não disponível nas datas selecionadas");
