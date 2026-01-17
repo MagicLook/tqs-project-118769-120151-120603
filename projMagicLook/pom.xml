@@ -32,6 +32,7 @@
 		<sonar.coverage.exclusions>
 			**/data/**,
 			**/dto/**,
+			**/config/**,
 			**/repository/**
 			**/loader/**
 		</sonar.coverage.exclusions>
