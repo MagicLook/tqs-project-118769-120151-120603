@@ -17,6 +17,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @SuppressWarnings("java:S4502") // CSRF protection disabled intentionally for development/testing
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // CSRF is disabled for development/testing purposes only
         // In production, CSRF protection should be enabled for state-changing operations
@@ -29,7 +30,7 @@ public class SecurityConfig {
                 .anyRequest().permitAll()
             )
             .csrf(csrf -> csrf.disable()) // Safe for development: this is a learning application
-            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())); // Required for H2 console
+            .headers(headers -> headers.frameOptions()::disable); // Required for H2 console
         
         return http.build();
     }

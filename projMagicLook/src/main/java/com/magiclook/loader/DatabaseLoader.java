@@ -42,6 +42,7 @@ public class DatabaseLoader {
     private String uploadDir;
 
     @PostConstruct
+    @SuppressWarnings("java:S2115") // Hardcoded passwords are intentional for test data initialization
     void initDatabase() {
         // Init shops
         Shop shop1;
