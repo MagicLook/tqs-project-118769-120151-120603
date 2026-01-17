@@ -3,10 +3,12 @@ package com.magiclook.service;
 import com.magiclook.data.*;
 import com.magiclook.dto.*;
 import com.magiclook.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.transaction.Transactional;
 
@@ -21,37 +23,27 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.io.File;
+import java.util.UUID;
 
 @Service
 @Transactional
 public class StaffService {
 
-    @Autowired
-    private StaffRepository staffRepository;
+    private static final Logger logger = LoggerFactory.getLogger(StaffService.class);
+    private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    @Autowired
-    private ShopRepository shopRepository;
-
-    @Autowired
-    private ItemTypeRepository itemTypeRepository;
-
-    @Autowired
-    private ItemRepository itemRepository;
-
-    @Autowired
-    private ItemSingleRepository itemSingleRepository;
-
-    @Autowired
-    private NotificationRepository notificationRepository;
-
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final StaffRepository staffRepository;
+    private final ShopRepository shopRepository;
+    private final ItemTypeRepository itemTypeRepository;
+    private final ItemRepository itemRepository;
+    private final ItemSingleRepository itemSingleRepository;
+    private final NotificationRepository notificationRepository;
+    private final BookingRepository bookingRepository;
 
     @Value("${app.upload.dir}")
     private String uploadDir;
 
-    @Autowired
-    StaffService(StaffRepository staffRepository, ItemRepository itemRepository, ShopRepository shopRepository,
+    public StaffService(StaffRepository staffRepository, ItemRepository itemRepository, ShopRepository shopRepository,
             ItemTypeRepository itemTypeRepository, ItemSingleRepository itemSingleRepository,
             BookingRepository bookingRepository, NotificationRepository notificationRepository) {
         this.staffRepository = staffRepository;
@@ -298,7 +290,8 @@ public class StaffService {
         Optional<Staff> staffByEmail = staffRepository.findByEmail(usernameOrEmail);
         if (staffByEmail.isPresent()) {
             Staff staff = staffByEmail.get();
-            if (staff.getPassword().equals(password)) {
+            if (passwordEncoder.matches(password, staff.getPassword())) {
+                logger.info("Staff login successful by email");
                 return staff;
             }
         }
@@ -307,11 +300,13 @@ public class StaffService {
         Optional<Staff> staffByUsername = staffRepository.findByUsername(usernameOrEmail);
         if (staffByUsername.isPresent()) {
             Staff staff = staffByUsername.get();
-            if (staff.getPassword().equals(password)) {
+            if (passwordEncoder.matches(password, staff.getPassword())) {
+                logger.info("Staff login successful by username");
                 return staff;
             }
         }
 
+        logger.warn("Failed staff login attempt");
         return null;
     }
 

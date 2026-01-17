@@ -44,24 +44,23 @@ public class ItemServiceTest {
 
     @Test
     void testGetItemById_NullId() {
-        assertNull(itemService.getItemById(null));
+        assertTrue(itemService.getItemById(null).isEmpty());
         verifyNoInteractions(itemRepository);
     }
 
     @Test
     void testGetItemById_Found() {
         when(itemRepository.findById(1)).thenReturn(Optional.of(item));
-        Item res = itemService.getItemById(1);
-        assertNotNull(res);
-        assertEquals(item, res);
+        var res = itemService.getItemById(1);
+        assertTrue(res.isPresent());
+        assertEquals(item, res.get());
         verify(itemRepository, times(1)).findById(1);
     }
 
     @Test
     void testGetItemById_ExceptionHandled() {
         when(itemRepository.findById(1)).thenThrow(new RuntimeException("DB error"));
-        Item res = itemService.getItemById(1);
-        assertNull(res);
+        assertThrows(RuntimeException.class, () -> itemService.getItemById(1));
         verify(itemRepository, times(1)).findById(1);
     }
 

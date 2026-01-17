@@ -62,7 +62,7 @@ public class BookingControllerTest {
     @Test
     void testShowBookingForm_Success() {
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
-        when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
+        when(itemService.getItemById(testItem.getItemId())).thenReturn(Optional.of(testItem));
         
         List<String> availableSizes = Arrays.asList("M", "L");
         Map<String, Integer> sizeAvailability = new HashMap<>();
@@ -94,7 +94,7 @@ public class BookingControllerTest {
     @Test
     void testShowBookingForm_ItemNotFound() {
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
-        when(itemService.getItemById(testItem.getItemId())).thenReturn(null);
+        when(itemService.getItemById(testItem.getItemId())).thenReturn(Optional.empty());
 
         String viewName = bookingController.showBookingForm(testItem.getItemId(), session, model);
 
@@ -104,7 +104,7 @@ public class BookingControllerTest {
     @Test
     void testCreateBooking_Success() {
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
-        when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
+        when(itemService.getItemById(testItem.getItemId())).thenReturn(Optional.of(testItem));
         
         List<String> availableSizes = Arrays.asList("M", "L");
         Map<String, Integer> sizeAvailability = new HashMap<>();
@@ -143,7 +143,7 @@ public class BookingControllerTest {
     @Test
     void testCreateBooking_StartDateIsToday_AllowsBooking() {
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
-        when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
+        when(itemService.getItemById(testItem.getItemId())).thenReturn(Optional.of(testItem));
         
         List<String> availableSizes = Arrays.asList("M", "L");
         Map<String, Integer> sizeAvailability = new HashMap<>();
@@ -203,7 +203,7 @@ public class BookingControllerTest {
     @Test
     void testCreateBooking_ItemNotFound() {
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
-        when(itemService.getItemById(testItem.getItemId())).thenReturn(null);
+        when(itemService.getItemById(testItem.getItemId())).thenReturn(Optional.empty());
         
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_MONTH, 7);
@@ -230,7 +230,7 @@ public class BookingControllerTest {
     @Test
     void testCreateBooking_ItemNotAvailable() {
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
-        when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
+        when(itemService.getItemById(testItem.getItemId())).thenReturn(Optional.of(testItem));
         
         List<String> availableSizes = Arrays.asList("M", "L");
         Map<String, Integer> sizeAvailability = new HashMap<>();
@@ -269,7 +269,7 @@ public class BookingControllerTest {
     @Test
     void testCreateBooking_InvalidDates_PastStartDate() {
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
-        when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
+        when(itemService.getItemById(testItem.getItemId())).thenReturn(Optional.of(testItem));
         
         List<String> availableSizes = Arrays.asList("M", "L");
         Map<String, Integer> sizeAvailability = new HashMap<>();
@@ -307,7 +307,7 @@ public class BookingControllerTest {
     @Test
     void testCreateBooking_Exception() {
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
-        when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
+        when(itemService.getItemById(testItem.getItemId())).thenReturn(Optional.of(testItem));
         
         List<String> availableSizes = Arrays.asList("M", "L");
         Map<String, Integer> sizeAvailability = new HashMap<>();
@@ -532,7 +532,7 @@ public class BookingControllerTest {
     @Test
     void testCreateBooking_InvalidDates_EndBeforeStart() {
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
-        when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
+        when(itemService.getItemById(testItem.getItemId())).thenReturn(Optional.of(testItem));
         
         List<String> availableSizes = Arrays.asList("M", "L");
         Map<String, Integer> sizeAvailability = new HashMap<>();
@@ -569,7 +569,7 @@ public class BookingControllerTest {
     @Test
     void testCreateBooking_SuccessWithValidDates() {
         when(session.getAttribute("loggedInUser")).thenReturn(testUser);
-        when(itemService.getItemById(testItem.getItemId())).thenReturn(testItem);
+        when(itemService.getItemById(testItem.getItemId())).thenReturn(Optional.of(testItem));
         
         List<String> availableSizes = Arrays.asList("M", "L");
         Map<String, Integer> sizeAvailability = new HashMap<>();

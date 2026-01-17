@@ -54,8 +54,6 @@ class StaffControllerIT {
         @Autowired
         private ItemSingleRepository itemSingleRepository; // Add this to verify DB persistence
 
-        private String jSessionId; // Store session cookie
-
         private String seededUsername;
         private String seededPassword;
         private Shop seededShop;
@@ -172,7 +170,7 @@ class StaffControllerIT {
                 MultiValueMap<String, Object> override = new LinkedMultiValueMap<>();
                 override.add("size", "XXXL");
 
-                ResponseEntity<String> response = restTemplate.exchange(
+                restTemplate.exchange(
                                 url("/magiclook/staff/item"),
                                 HttpMethod.POST,
                                 multipartBody(false, override, sessionCookie),

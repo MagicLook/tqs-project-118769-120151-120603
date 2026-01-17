@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.UUID;
 
@@ -43,7 +44,11 @@ class UserServiceTest {
         existingUser.setUserId(UUID.randomUUID());
         existingUser.setUsername("existinguser");
         existingUser.setEmail("existing@example.com");
-        existingUser.setPassword("password123");
+        
+        // Use hashed password
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        existingUser.setPassword(passwordEncoder.encode("password123"));
+        
         existingUser.setFirstName("Existing");
         existingUser.setLastName("User");
         existingUser.setTelephone("912345678");
@@ -119,20 +124,22 @@ class UserServiceTest {
     @Test
     void testLogin_WithValidUsernameAndPassword_ShouldReturnUser() {
         String username = "testuser";
-        String password = "password123";
+        String plainPassword = "password123";
         
         User user = new User();
         user.setUserId(UUID.randomUUID());
         user.setUsername(username);
-        user.setPassword(password);
+        
+        // Use hashed password
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        user.setPassword(passwordEncoder.encode(plainPassword));
         
         when(userRepository.findByUsername(username)).thenReturn(user);
 
-        User result = userService.login(username, password);
+        User result = userService.login(username, plainPassword);
 
         assertNotNull(result);
         assertEquals(username, result.getUsername());
-        assertEquals(password, result.getPassword());
         verify(userRepository).findByUsername(username);
         verify(userRepository, never()).findByEmail(anyString());
     }
@@ -140,21 +147,23 @@ class UserServiceTest {
     @Test
     void testLogin_WithValidEmailAndPassword_ShouldReturnUser() {
         String email = "test@example.com";
-        String password = "password123";
+        String plainPassword = "password123";
         
         User user = new User();
         user.setUserId(UUID.randomUUID());
         user.setEmail(email);
-        user.setPassword(password);
+        
+        // Use hashed password
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        user.setPassword(passwordEncoder.encode(plainPassword));
         
         when(userRepository.findByUsername(email)).thenReturn(null);
         when(userRepository.findByEmail(email)).thenReturn(user);
 
-        User result = userService.login(email, password);
+        User result = userService.login(email, plainPassword);
 
         assertNotNull(result);
         assertEquals(email, result.getEmail());
-        assertEquals(password, result.getPassword());
         verify(userRepository).findByUsername(email);
         verify(userRepository).findByEmail(email);
     }
