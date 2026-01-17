@@ -82,8 +82,8 @@ public class DatabaseLoader {
 
         // Init staff
         if (staffRepository.count() == 0) {
-            Staff staff1 = new Staff("Admin", "admin@gmail.com", passwordEncoder.encode("staffPass123"), "staff1", shop1);
-            Staff staff2 = new Staff("Admin2", "admin2@gmail.com", passwordEncoder.encode("staffPass123"), "staff2", shop2);
+            Staff staff1 = new Staff("Admin", "admin@gmail.com", passwordEncoder.encode("admin123"), "admin", shop1);
+            Staff staff2 = new Staff("Admin2", "admin2@gmail.com", passwordEncoder.encode("admin123"), "admin2", shop2);
 
             staffRepository.save(staff1);
             staffRepository.save(staff2);
