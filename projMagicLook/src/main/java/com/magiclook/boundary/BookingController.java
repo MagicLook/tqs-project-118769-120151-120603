@@ -41,6 +41,10 @@ public class BookingController {
     private static final String ATTR_BOOKINGS = "bookings";
     private static final String ATTR_FILTER = "filter";
     private static final String ATTR_SEARCH = "search";
+    private static final String REDIRECT_MY_BOOKINGS = "redirect:/magiclook/my-bookings";
+    private static final String BOOKING_STATUS_CONFIRMED = "CONFIRMED";
+    private static final String BOOKING_STATUS_COMPLETED = "COMPLETED";
+    private static final String ATTR_CAN_CANCEL = "canCancel";
     
     private final BookingService bookingService;
     private final ItemService itemService;
@@ -246,13 +250,13 @@ public class BookingController {
         if ("active".equals(filter)) {
             // Reservas ativas: estado CONFIRMED ou ACTIVE
             return bookings.stream()
-                .filter(booking -> "CONFIRMED".equals(booking.getState()) || 
+                .filter(booking -> BOOKING_STATUS_CONFIRMED.equals(booking.getState()) || 
                                    "ACTIVE".equals(booking.getState()))
                 .collect(java.util.stream.Collectors.toList());
         } else if ("past".equals(filter)) {
             // Reservas passadas: estado COMPLETED ou OVERDUE
             return bookings.stream()
-                .filter(booking -> "COMPLETED".equals(booking.getState()) || 
+                .filter(booking -> BOOKING_STATUS_COMPLETED.equals(booking.getState()) || 
                                    "OVERDUE".equals(booking.getState()))
                 .collect(java.util.stream.Collectors.toList());
         }
@@ -287,7 +291,7 @@ public class BookingController {
 
         // Verificar se a reserva existe e pertence ao usuário
         if (booking == null || !booking.getUser().getUserId().equals(user.getUserId())) {
-            return "redirect:/magiclook/my-bookings";
+            return REDIRECT_MY_BOOKINGS;
         }
         
         // Atualizar estado da reserva
@@ -308,7 +312,7 @@ public class BookingController {
         model.addAttribute(ATTR_BOOKING, booking);
         model.addAttribute(ATTR_USER, user);
         model.addAttribute("activePage", "myBookings");
-        model.addAttribute("canCancel", canCancel);
+        model.addAttribute(ATTR_CAN_CANCEL, canCancel);
         model.addAttribute("refundPercent", refundInfo.getPercent());
         model.addAttribute("refundAmount", refundInfo.getAmount());
         
@@ -328,7 +332,7 @@ public class BookingController {
             java.util.UUID bookingId = java.util.UUID.fromString(id);
             Booking booking = bookingService.getBookingById(bookingId);
             if (booking == null) {
-                resp.put("canCancel", false);
+                resp.put(ATTR_CAN_CANCEL, false);
                 resp.put("message", "Reserva não encontrada");
                 return resp;
             }
@@ -341,23 +345,23 @@ public class BookingController {
             // staff may cancel
             if (!allowed && staff != null) {
                 String state = bookingService.getCurrentBookingState(booking);
-                allowed = !("CANCELLED".equals(state) || "COMPLETED".equals(state));
+                allowed = !("CANCELLED".equals(state) || BOOKING_STATUS_COMPLETED.equals(state));
             }
 
             if (!allowed) {
-                resp.put("canCancel", false);
+                resp.put(ATTR_CAN_CANCEL, false);
                 resp.put("message", "Cancelamento não permitido");
                 return resp;
             }
 
             com.magiclook.dto.RefundInfoDTO info = bookingService.getRefundInfo(booking);
-            resp.put("canCancel", true);
+            resp.put(ATTR_CAN_CANCEL, true);
             resp.put("percent", info.getPercent());
             resp.put("amount", info.getAmount());
             return resp;
 
         } catch (Exception e) {
-            resp.put("canCancel", false);
+            resp.put(ATTR_CAN_CANCEL, false);
             resp.put("message", e.getMessage());
             return resp;
         }
@@ -373,7 +377,7 @@ public class BookingController {
             Booking booking = bookingService.getBookingById(bookingId);
             if (booking == null) {
                 session.setAttribute("message", "Reserva não encontrada");
-                return "redirect:/magiclook/my-bookings";
+                return REDIRECT_MY_BOOKINGS;
             }
 
             boolean allowed = false;
@@ -382,7 +386,7 @@ public class BookingController {
             }
             if (!allowed && staff != null) {
                 String state = bookingService.getCurrentBookingState(booking);
-                allowed = !("CANCELLED".equals(state) || "COMPLETED".equals(state));
+                allowed = !("CANCELLED".equals(state) || BOOKING_STATUS_COMPLETED.equals(state));
             }
 
             if (!allowed) {
@@ -398,7 +402,7 @@ public class BookingController {
 
         } catch (Exception e) {
             session.setAttribute("message", "Erro ao cancelar: " + e.getMessage());
-            return "redirect:/magiclook/my-bookings";
+            return REDIRECT_MY_BOOKINGS;
         }
     }
     
