@@ -16,6 +16,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.micrometer.core.annotation.Timed;
 
@@ -27,6 +29,8 @@ import java.util.List;
 @RequestMapping("/magiclook")
 public class UserController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+    
     private final UserService userService;
     private final ItemService itemService;
     private final NotificationRepository notificationRepository;

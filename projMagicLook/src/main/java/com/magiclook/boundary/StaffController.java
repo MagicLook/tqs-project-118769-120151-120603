@@ -14,6 +14,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.math.BigDecimal;
 
@@ -21,6 +24,8 @@ import java.math.BigDecimal;
 @RequestMapping("/magiclook/staff")
 public class StaffController {
 
+    private static final Logger logger = LoggerFactory.getLogger(StaffController.class);
+    
     // Constants
     private static final String STAFF_DASHBOARD_VIEW = "staffDashboard";
     private static final String STAFF_LOGIN_VIEW = "staffLogin";
@@ -56,7 +61,7 @@ public class StaffController {
 
         Staff staff = staffService.login(usernameOrEmail, password);
 
-        if (staff != null) {
+        if (staff != null && staff.getShop() != null) {
             session.setAttribute("loggedInStaff", staff);
             session.setAttribute("staffId", staff.getStaffId());
             session.setAttribute("staffName", staff.getName());
@@ -65,8 +70,10 @@ public class StaffController {
             session.setAttribute("shopId", staff.getShop().getShopId());
             session.setAttribute("shopName", staff.getShop().getName());
 
+            logger.info("Staff login successful: {}", staff.getUsername());
             return "redirect:/magiclook/staff/dashboard";
         } else {
+            logger.warn("Failed staff login attempt for: {}", usernameOrEmail);
             model.addAttribute("error", "Credenciais inválidas para staff!");
             return STAFF_LOGIN_VIEW;
         }
@@ -238,8 +245,13 @@ public class StaffController {
             return "redirect:/magiclook/staff/login";
         }
 
-        Item item = itemService.getItemById(itemId);
+        Item item = itemService.getItemById(itemId).orElse(null);
         List<ItemSingle> itemsList = itemService.getItems(itemId);
+
+        if (item == null) {
+            model.addAttribute(ERROR, "Item não encontrado");
+            return "redirect:/magiclook/staff/item";
+        }
 
         model.addAttribute("staff", staff);
         model.addAttribute("shop", staff.getShop());
@@ -298,12 +310,14 @@ public class StaffController {
             return "redirect:/magiclook/staff/item";
 
         } catch (Exception e) {
-            Item item = itemService.getItemById(itemId);
+            Item item = itemService.getItemById(itemId).orElse(null);
             List<ItemSingle> itemsList = itemService.getItems(itemId);
 
             model.addAttribute("staff", staff);
             model.addAttribute("shop", staff.getShop());
-            model.addAttribute("item", item);
+            if (item != null) {
+                model.addAttribute("item", item);
+            }
             model.addAttribute("itemSingles", itemsList);
             model.addAttribute(ERROR, "Erro ao atualizar item: " + e.getMessage());
 

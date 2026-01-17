@@ -7,12 +7,18 @@ import java.math.BigDecimal;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.magiclook.repository.*;
 import com.magiclook.data.*;
 
 @Component
 public class DatabaseLoader {
+
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseLoader.class);
+    private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
     private ShopRepository shopRepository;
@@ -49,33 +55,41 @@ public class DatabaseLoader {
             shopRepository.save(shop2);
 
             shopRepository.flush();
+            logger.info("Sample shops initialized");
         } else {
             shop1 = shopRepository.findByNameAndLocation("Porto", "Porto").orElse(null);
             shop2 = shopRepository.findByNameAndLocation("Lisboa", "Lisboa").orElse(null);
+            
+            if (shop1 == null || shop2 == null) {
+                logger.error("Failed to load required shops from database");
+                throw new IllegalStateException("Required shops not found in database");
+            }
         }
 
         // Init users
         if (userRepository.count() == 0) {
-            User user1 = new User("Maria", "Silva", "maria@gmail.com", "911991911", "maria?", "maria");
-            User user2 = new User("Gonçalo", "Floros", "goncalo@gmail.com", "911991912", "goncalo?", "goncalo");
-            User user3 = new User("Pedro", "Silva", "pedro@gmail.com", "911991913", "pedro?", "pedro");
+            User user1 = new User("Maria", "Silva", "maria@gmail.com", "911991911", passwordEncoder.encode("maria?"), "maria");
+            User user2 = new User("Gonçalo", "Floros", "goncalo@gmail.com", "911991912", passwordEncoder.encode("goncalo?"), "goncalo");
+            User user3 = new User("Pedro", "Silva", "pedro@gmail.com", "911991913", passwordEncoder.encode("pedro?"), "pedro");
 
             userRepository.save(user1);
             userRepository.save(user2);
             userRepository.save(user3);
 
             userRepository.flush();
+            logger.info("Sample users initialized with hashed passwords");
         }
 
         // Init staff
         if (staffRepository.count() == 0 && shop1 != null && shop2 != null) {
-            Staff staff1 = new Staff("Admin", "admin@gmail.com", "admin123", "admin", shop1);
-            Staff staff2 = new Staff("Admin2", "admin2@gmail.com", "admin123", "admin2", shop2);
+            Staff staff1 = new Staff("Admin", "admin@gmail.com", passwordEncoder.encode("admin123"), "admin", shop1);
+            Staff staff2 = new Staff("Admin2", "admin2@gmail.com", passwordEncoder.encode("admin123"), "admin2", shop2);
 
             staffRepository.save(staff1);
             staffRepository.save(staff2);
 
             staffRepository.flush();
+            logger.info("Sample staff initialized with hashed passwords");
         }
 
         // Init ItemTypes

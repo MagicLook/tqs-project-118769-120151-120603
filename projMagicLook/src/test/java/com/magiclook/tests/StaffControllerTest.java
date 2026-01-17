@@ -724,7 +724,7 @@ class StaffControllerTest {
                 new ItemSingle("AVAILABLE", testItem, "L")
             );
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-            when(itemService.getItemById(1)).thenReturn(testItem);
+            when(itemService.getItemById(1)).thenReturn(Optional.of(testItem));
             when(itemService.getItems(1)).thenReturn(singles);
 
             String viewName = staffController.getItemDetails(1, session, model);
@@ -740,7 +740,7 @@ class StaffControllerTest {
         @DisplayName("GET /item/{id} should fetch correct item by ID")
         void getItemDetails_shouldFetchItemById() {
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-            when(itemService.getItemById(42)).thenReturn(testItem);
+            when(itemService.getItemById(42)).thenReturn(Optional.of(testItem));
             when(itemService.getItems(42)).thenReturn(Collections.emptyList());
 
             String viewName = staffController.getItemDetails(42, session, model);
@@ -753,7 +753,7 @@ class StaffControllerTest {
         @DisplayName("GET /item/{id} with no item singles should show empty list")
         void getItemDetails_withNoItemSingles_shouldShowEmptyList() {
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-            when(itemService.getItemById(1)).thenReturn(testItem);
+            when(itemService.getItemById(1)).thenReturn(Optional.of(testItem));
             when(itemService.getItems(1)).thenReturn(Collections.emptyList());
 
             String viewName = staffController.getItemDetails(1, session, model);
@@ -773,7 +773,7 @@ class StaffControllerTest {
                 new ItemSingle("LAUNDRY", testItem, "XL")
             );
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-            when(itemService.getItemById(1)).thenReturn(testItem);
+            when(itemService.getItemById(1)).thenReturn(Optional.of(testItem));
             when(itemService.getItems(1)).thenReturn(singles);
 
             String viewName = staffController.getItemDetails(1, session, model);
@@ -787,7 +787,7 @@ class StaffControllerTest {
         @DisplayName("GET /item/{id} should pass staff and shop to model")
         void getItemDetails_shouldPassStaffAndShopToModel() {
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-            when(itemService.getItemById(1)).thenReturn(testItem);
+            when(itemService.getItemById(1)).thenReturn(Optional.of(testItem));
             when(itemService.getItems(1)).thenReturn(new ArrayList<>());
 
             staffController.getItemDetails(1, session, model);
@@ -808,7 +808,7 @@ class StaffControllerTest {
             item2.setItemId(2);
             
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-            when(itemService.getItemById(2)).thenReturn(item2);
+            when(itemService.getItemById(2)).thenReturn(Optional.of(item2));
             when(itemService.getItems(2)).thenReturn(Collections.emptyList());
 
             String viewName = staffController.getItemDetails(2, session, model);
@@ -822,7 +822,7 @@ class StaffControllerTest {
         @DisplayName("GET /item/{id} should call itemService.getItems with correct item ID")
         void getItemDetails_shouldCallGetItemsWithCorrectId() {
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-            when(itemService.getItemById(99)).thenReturn(testItem);
+            when(itemService.getItemById(99)).thenReturn(Optional.of(testItem));
             when(itemService.getItems(99)).thenReturn(Collections.emptyList());
 
             staffController.getItemDetails(99, session, model);
@@ -839,7 +839,7 @@ class StaffControllerTest {
                 new ItemSingle("LAUNDRY", testItem, "XL")
             );
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-            when(itemService.getItemById(1)).thenReturn(testItem);
+            when(itemService.getItemById(1)).thenReturn(Optional.of(testItem));
             when(itemService.getItems(1)).thenReturn(singles);
 
             String viewName = staffController.getItemDetails(1, session, model);
@@ -855,7 +855,7 @@ class StaffControllerTest {
         void getItemDetails_shouldPopulateAllModelAttributes() {
             List<ItemSingle> singles = Arrays.asList(new ItemSingle("AVAILABLE", testItem, "M"));
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-            when(itemService.getItemById(1)).thenReturn(testItem);
+            when(itemService.getItemById(1)).thenReturn(Optional.of(testItem));
             when(itemService.getItems(1)).thenReturn(singles);
 
             staffController.getItemDetails(1, session, model);

@@ -8,11 +8,17 @@ import com.magiclook.repository.ItemRepository;
 import com.magiclook.repository.ItemSingleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class ItemService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(ItemService.class);
     
     private final ItemRepository itemRepository;
     private ItemSingleRepository itemSingleRepository;
@@ -24,6 +30,10 @@ public class ItemService {
     }
 
     public List<Item> getItemsByShop(Shop shop) {
+        if (shop == null) {
+            logger.warn("getItemsByShop called with null shop");
+            return List.of();
+        }
         return itemRepository.findByShop(shop);
     }
     
@@ -32,6 +42,10 @@ public class ItemService {
     }
 
     public List<Item> getItemsByGender(String gender) {
+        if (gender == null || gender.isEmpty()) {
+            logger.warn("getItemsByGender called with null or empty gender");
+            return List.of();
+        }
         return itemRepository.findByItemTypeGender(gender);
     }
 
@@ -85,23 +99,27 @@ public class ItemService {
     }
 
     public List<ItemSingle> getItems(Integer itemId) {
+        if (itemId == null) {
+            logger.warn("getItems called with null itemId");
+            return List.of();
+        }
         return itemSingleRepository.findByItem_ItemId(itemId);
     }
     
-    public Item getItemById(Integer itemId) {
+    public Optional<Item> getItemById(Integer itemId) {
         if (itemId == null) {
-            return null;
+            logger.warn("getItemById called with null itemId");
+            return Optional.empty();
         }
-        try {
-            return itemRepository.findById(itemId).orElse(null);
-        } catch (Exception e) {
-            System.err.println("Erro ao buscar item com ID " + itemId + ": " + e.getMessage());
-            return null;
-        }
+        return itemRepository.findById(itemId);
     }
     
     // Método simplificado para obter tamanhos disponíveis
     public List<String> getAvailableSizesForItem(Integer itemId) {
+        if (itemId == null) {
+            logger.warn("getAvailableSizesForItem called with null itemId");
+            return List.of();
+        }
         return itemSingleRepository.findByItem_ItemId(itemId)
             .stream()
             .filter(is -> "AVAILABLE".equals(is.getState()))
@@ -110,15 +128,28 @@ public class ItemService {
             .sorted()
             .collect(Collectors.toList());
     }
+    
     public List<String> getAllDistinctSubcategoriesByGender(String gender) {
+        if (gender == null || gender.isEmpty()) {
+            logger.warn("getAllDistinctSubcategoriesByGender called with null or empty gender");
+            return List.of();
+        }
         return itemRepository.findAllDistinctSubcategoriesByGender(gender);
     }
     
     public List<String> getAllDistinctSizesByGender(String gender) {
+        if (gender == null || gender.isEmpty()) {
+            logger.warn("getAllDistinctSizesByGender called with null or empty gender");
+            return List.of();
+        }
         return itemRepository.findAllDistinctSizesByGender(gender);
     }
     
     public List<Item> findByGenderAndFilters(String gender, ItemFilterDTO filter) {
+        if (gender == null || gender.isEmpty() || filter == null) {
+            logger.warn("findByGenderAndFilters called with invalid parameters");
+            return List.of();
+        }
         return itemRepository.findByGenderAndFilters(
             gender,
             filter.getColor(),

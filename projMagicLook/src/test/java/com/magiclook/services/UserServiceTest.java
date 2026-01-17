@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.UUID;
 
@@ -43,7 +44,11 @@ class UserServiceTest {
         existingUser.setUserId(UUID.randomUUID());
         existingUser.setUsername("existinguser");
         existingUser.setEmail("existing@example.com");
-        existingUser.setPassword("password123");
+        
+        // Use hashed password
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        existingUser.setPassword(passwordEncoder.encode("password123"));
+        
         existingUser.setFirstName("Existing");
         existingUser.setLastName("User");
         existingUser.setTelephone("912345678");

@@ -66,7 +66,7 @@ public class BookingController {
             return REDIRECT_LOGIN;
         }
         
-        Item item = itemService.getItemById(itemId);
+        Item item = itemService.getItemById(itemId).orElse(null);
         if (item == null) {
             return REDIRECT_DASHBOARD;
         }
@@ -102,7 +102,7 @@ public class BookingController {
         }
         
         // Buscar item
-        Item item = itemService.getItemById(itemId);
+        Item item = itemService.getItemById(itemId).orElse(null);
         if (item == null) {
             model.addAttribute(ATTR_ERROR, "Item não encontrado.");
             return REDIRECT_DASHBOARD;

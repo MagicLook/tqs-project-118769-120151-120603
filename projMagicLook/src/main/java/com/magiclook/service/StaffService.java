@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.transaction.Transactional;
 
@@ -21,10 +24,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.io.File;
+import java.util.UUID;
 
 @Service
 @Transactional
 public class StaffService {
+
+    private static final Logger logger = LoggerFactory.getLogger(StaffService.class);
+    private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
     private StaffRepository staffRepository;
@@ -298,7 +305,8 @@ public class StaffService {
         Optional<Staff> staffByEmail = staffRepository.findByEmail(usernameOrEmail);
         if (staffByEmail.isPresent()) {
             Staff staff = staffByEmail.get();
-            if (staff.getPassword().equals(password)) {
+            if (passwordEncoder.matches(password, staff.getPassword())) {
+                logger.info("Staff login successful by email: {}", usernameOrEmail);
                 return staff;
             }
         }
@@ -307,11 +315,13 @@ public class StaffService {
         Optional<Staff> staffByUsername = staffRepository.findByUsername(usernameOrEmail);
         if (staffByUsername.isPresent()) {
             Staff staff = staffByUsername.get();
-            if (staff.getPassword().equals(password)) {
+            if (passwordEncoder.matches(password, staff.getPassword())) {
+                logger.info("Staff login successful by username: {}", usernameOrEmail);
                 return staff;
             }
         }
 
+        logger.warn("Failed staff login attempt for: {}", usernameOrEmail);
         return null;
     }
 
