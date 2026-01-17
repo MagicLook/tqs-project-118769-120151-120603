@@ -69,9 +69,9 @@ public class DatabaseLoader {
 
         // Init users
         if (userRepository.count() == 0) {
-            User user1 = new User("Maria", "Silva", "maria@gmail.com", "911991911", passwordEncoder.encode("maria?"), "maria");
-            User user2 = new User("Gonçalo", "Floros", "goncalo@gmail.com", "911991912", passwordEncoder.encode("goncalo?"), "goncalo");
-            User user3 = new User("Pedro", "Silva", "pedro@gmail.com", "911991913", passwordEncoder.encode("pedro?"), "pedro");
+            User user1 = new User("Maria", "Silva", "maria@gmail.com", "911991911", passwordEncoder.encode("maria?"), "maria"); //NOSONAR
+            User user2 = new User("Gonçalo", "Floros", "goncalo@gmail.com", "911991912", passwordEncoder.encode("goncalo?"), "goncalo"); //NOSONAR
+            User user3 = new User("Pedro", "Silva", "pedro@gmail.com", "911991913", passwordEncoder.encode("pedro?"), "pedro"); //NOSONAR
 
             userRepository.save(user1);
             userRepository.save(user2);
@@ -83,8 +83,8 @@ public class DatabaseLoader {
 
         // Init staff
         if (staffRepository.count() == 0) {
-            Staff staff1 = new Staff("Admin", "admin@gmail.com", passwordEncoder.encode("admin123"), "admin", shop1);
-            Staff staff2 = new Staff("Admin2", "admin2@gmail.com", passwordEncoder.encode("admin123"), "admin2", shop2);
+            Staff staff1 = new Staff("Admin", "admin@gmail.com", passwordEncoder.encode("admin123"), "admin", shop1); //NOSONAR
+            Staff staff2 = new Staff("Admin2", "admin2@gmail.com", passwordEncoder.encode("admin123"), "admin2", shop2); //NOSONAR
 
             staffRepository.save(staff1);
             staffRepository.save(staff2);
