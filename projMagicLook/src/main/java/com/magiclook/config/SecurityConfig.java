@@ -30,7 +30,7 @@ public class SecurityConfig {
                 .anyRequest().permitAll()
             )
             .csrf(csrf -> csrf.disable()) // Safe for development: this is a learning application
-            .headers(headers -> headers.frameOptions()::disable); // Required for H2 console
+            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())); // Required for H2 console
         
         return http.build();
     }
