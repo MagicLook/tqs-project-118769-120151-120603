@@ -60,12 +60,14 @@ public class BookingService {
         Item item = itemRepository.findById(bookingRequest.getItemId())
             .orElseThrow(() -> new RuntimeException("Item não encontrado"));
         
-        // Verificar utilizador autenticado e obter a entidade atualizada se possível
+        // Verificar utilizador autenticado e obter a entidade atualizada
         if (user == null) {
             throw new RuntimeException("Utilizador não autenticado");
         }
 
-        User currentUser = userRepository.findById(user.getUserId()).orElse(user);
+        // IMPORTANTE: Validar que o user existe na BD
+        User currentUser = userRepository.findById(user.getUserId())
+            .orElseThrow(() -> new RuntimeException("Utilizador não encontrado na base de dados. Por favor, faça logout e login novamente."));
         
         // Calcular datas
         Calendar calendar = Calendar.getInstance();
