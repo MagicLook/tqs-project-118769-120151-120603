@@ -306,7 +306,7 @@ public class StaffService {
         if (staffByEmail.isPresent()) {
             Staff staff = staffByEmail.get();
             if (passwordEncoder.matches(password, staff.getPassword())) {
-                logger.info("Staff login successful by email: {}", usernameOrEmail);
+                logger.info("Staff login successful by email");
                 return staff;
             }
         }
@@ -316,12 +316,12 @@ public class StaffService {
         if (staffByUsername.isPresent()) {
             Staff staff = staffByUsername.get();
             if (passwordEncoder.matches(password, staff.getPassword())) {
-                logger.info("Staff login successful by username: {}", usernameOrEmail);
+                logger.info("Staff login successful by username");
                 return staff;
             }
         }
 
-        logger.warn("Failed staff login attempt for: {}", usernameOrEmail);
+        logger.warn("Failed staff login attempt");
         return null;
     }
 

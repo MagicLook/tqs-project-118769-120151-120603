@@ -18,6 +18,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        // CSRF is disabled for development/testing purposes only
+        // In production, CSRF protection should be enabled for state-changing operations
         http
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/", "/index", "/css/**", "/js/**", "/images/**").permitAll()
@@ -26,8 +28,8 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().permitAll()
             )
-            .csrf().disable()
-            .headers().frameOptions().disable();
+            .csrf(csrf -> csrf.disable()) // Safe for development: this is a learning application
+            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())); // Required for H2 console
         
         return http.build();
     }

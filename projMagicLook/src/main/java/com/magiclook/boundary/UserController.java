@@ -28,8 +28,6 @@ import java.util.List;
 @Controller
 @RequestMapping("/magiclook")
 public class UserController {
-
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     
     private final UserService userService;
     private final ItemService itemService;

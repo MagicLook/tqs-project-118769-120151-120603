@@ -81,9 +81,9 @@ public class DatabaseLoader {
         }
 
         // Init staff
-        if (staffRepository.count() == 0 && shop1 != null && shop2 != null) {
-            Staff staff1 = new Staff("Admin", "admin@gmail.com", passwordEncoder.encode("admin123"), "admin", shop1);
-            Staff staff2 = new Staff("Admin2", "admin2@gmail.com", passwordEncoder.encode("admin123"), "admin2", shop2);
+        if (staffRepository.count() == 0) {
+            Staff staff1 = new Staff("Admin", "admin@gmail.com", passwordEncoder.encode("staffPass123"), "staff1", shop1);
+            Staff staff2 = new Staff("Admin2", "admin2@gmail.com", passwordEncoder.encode("staffPass123"), "staff2", shop2);
 
             staffRepository.save(staff1);
             staffRepository.save(staff2);
@@ -128,7 +128,7 @@ public class DatabaseLoader {
         }
 
         // Init Items
-        if (itemRepository.count() == 0 && shop1 != null && shop2 != null) {
+        if (itemRepository.count() == 0) {
             // Macacões
             Item item1 = new Item("Macacão Curto", "Poliéster", "Azul", "Beauty", new BigDecimal(95),
                     new BigDecimal(950),

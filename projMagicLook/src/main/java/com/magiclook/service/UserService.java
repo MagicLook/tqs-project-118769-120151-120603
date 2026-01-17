@@ -21,19 +21,19 @@ public class UserService {
     public User register(UserRegistrationDTO dto) {
         // Valida se as passwords coincidem
         if (!dto.passwordsMatch()) {
-            logger.warn("Password mismatch for registration attempt with username: {}", dto.getUsername());
+            logger.warn("Password mismatch for registration attempt");
             throw new RuntimeException("As palavras-passe não coincidem");
         }
         
         // Verifica se username já existe
         if (userRepository.existsByUsername(dto.getUsername())) {
-            logger.warn("Username already exists: {}", dto.getUsername());
+            logger.warn("Registration failed: username already exists");
             throw new RuntimeException("Username já está em uso");
         }
         
         // Verifica se email já existe
         if (userRepository.existsByEmail(dto.getEmail())) {
-            logger.warn("Email already exists: {}", dto.getEmail());
+            logger.warn("Registration failed: email already exists");
             throw new RuntimeException("Email já está em uso");
         }
         
@@ -58,11 +58,11 @@ public class UserService {
         }
         
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            logger.info("User login successful: {}", username);
+            logger.info("User login successful");
             return user;
         }
         
-        logger.warn("Failed login attempt for username/email: {}", username);
+        logger.warn("Failed login attempt");
         return null; // Login falhou
     }
 }

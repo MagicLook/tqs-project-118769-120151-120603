@@ -21,8 +21,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class BookingService {
     
-    private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
-    
     @Autowired
     private BookingRepository bookingRepository;
     

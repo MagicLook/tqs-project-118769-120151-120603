@@ -535,7 +535,7 @@ public class BookingController {
             response.put("unavailableDates", unavailableDates);
         } catch (Exception e) {
             response.put("unavailableDates", new java.util.ArrayList<>());
-            response.put("error", e.getMessage());
+            response.put(ATTR_ERROR, e.getMessage());
         }
         
         return response;

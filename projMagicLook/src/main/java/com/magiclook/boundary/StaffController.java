@@ -70,10 +70,10 @@ public class StaffController {
             session.setAttribute("shopId", staff.getShop().getShopId());
             session.setAttribute("shopName", staff.getShop().getName());
 
-            logger.info("Staff login successful: {}", staff.getUsername());
+            logger.info("Staff login successful");
             return "redirect:/magiclook/staff/dashboard";
         } else {
-            logger.warn("Failed staff login attempt for: {}", usernameOrEmail);
+            logger.warn("Failed staff login attempt");
             model.addAttribute("error", "Credenciais inválidas para staff!");
             return STAFF_LOGIN_VIEW;
         }
