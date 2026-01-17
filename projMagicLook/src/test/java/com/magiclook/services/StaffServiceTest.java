@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -68,7 +69,11 @@ class StaffServiceTest {
         testStaff.setName("Staff Teste");
         testStaff.setEmail("staff@test.com");
         testStaff.setUsername("staffuser");
-        testStaff.setPassword("password123");
+        
+        // Use hashed password
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        testStaff.setPassword(passwordEncoder.encode("password123"));
+        
         testStaff.setShop(testShop);
 
         testItemType = new ItemType();
@@ -104,7 +109,7 @@ class StaffServiceTest {
 
         assertNotNull(result);
         assertEquals(email, result.getEmail());
-        assertEquals(password, result.getPassword());
+        assertEquals("staffuser", result.getUsername());
         verify(staffRepository).findByEmail(email);
         verify(staffRepository, never()).findByUsername(anyString());
     }
@@ -121,7 +126,7 @@ class StaffServiceTest {
 
         assertNotNull(result);
         assertEquals(username, result.getUsername());
-        assertEquals(password, result.getPassword());
+        assertEquals("staff@test.com", result.getEmail());
         verify(staffRepository).findByEmail(username);
         verify(staffRepository).findByUsername(username);
     }
