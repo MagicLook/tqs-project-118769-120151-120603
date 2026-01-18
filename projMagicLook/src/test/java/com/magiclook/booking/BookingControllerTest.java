@@ -4,7 +4,6 @@ import com.magiclook.boundary.BookingController;
 import com.magiclook.data.*;
 import com.magiclook.service.BookingService;
 import com.magiclook.service.ItemService;
-import com.magiclook.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,9 +31,6 @@ class BookingControllerTest {
     private ItemService itemService;
 
     @Mock
-    private UserService userService;
-
-    @Mock
     private HttpSession session;
 
     @Mock
@@ -56,7 +52,7 @@ class BookingControllerTest {
         testItem = createTestItem();
         testBooking = createTestBooking();
         
-        bookingController = new BookingController(bookingService, itemService, userService);
+        bookingController = new BookingController(bookingService, itemService);
     }
 
     @Test
