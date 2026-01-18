@@ -34,10 +34,12 @@ public class UserRegistrationDTO {
     private String lastName;
 
     @NotBlank(message = "Telefone é obrigatório")
-    @Pattern(regexp = "^[0-9]{9}$", message = "Telefone deve conter exatamente 9 dígitos numéricos")
+    @Pattern(regexp = "^\\d{9}$", message = "Telefone deve conter exatamente 9 dígitos numéricos")
     private String telephone;
     
-    public UserRegistrationDTO() {}
+    public UserRegistrationDTO() {
+        // Construtor vazio necessário
+    }
     
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }

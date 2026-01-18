@@ -33,6 +33,7 @@ public class StaffController {
     private static final String ERROR = "error";
     private static final String LOGGED_IN_STAFF = "loggedInStaff";
     private static final String REDIRECT_STAFF_LOGIN = "redirect:/magiclook/staff/login";
+    private static final String STAFF = "staff";
 
     private final StaffService staffService;
     private final ItemService itemService;
@@ -71,7 +72,7 @@ public class StaffController {
             return "redirect:/magiclook/staff/dashboard";
         } else {
             logger.warn("Failed staff login attempt");
-            model.addAttribute("error", "Credenciais inválidas para staff!");
+            model.addAttribute(ERROR, "Credenciais inválidas para staff!");
             return STAFF_LOGIN_VIEW;
         }
     }
@@ -90,7 +91,7 @@ public class StaffController {
         // Buscar itens da loja do staff
         List<Item> items = itemService.getItemsByShop(staff.getShop());
 
-        model.addAttribute("staff", staff);
+        model.addAttribute(STAFF, staff);
         model.addAttribute("shop", staff.getShop());
         model.addAttribute("items", items);
         model.addAttribute("itemCount", items.size());
@@ -215,7 +216,7 @@ public class StaffController {
             itemSizes.put(item.getItemId(), sizes);
         }
 
-        model.addAttribute("staff", staff);
+        model.addAttribute(STAFF, staff);
         model.addAttribute("shop", staff.getShop());
         model.addAttribute("items", items);
         model.addAttribute("itemCount", items.size());
@@ -250,7 +251,7 @@ public class StaffController {
             return "redirect:/magiclook/staff/item";
         }
 
-        model.addAttribute("staff", staff);
+        model.addAttribute(STAFF, staff);
         model.addAttribute("shop", staff.getShop());
         model.addAttribute("item", item);
         model.addAttribute("itemSingles", itemsList);
@@ -310,7 +311,7 @@ public class StaffController {
             Item item = itemService.getItemById(itemId).orElse(null);
             List<ItemSingle> itemsList = itemService.getItems(itemId);
 
-            model.addAttribute("staff", staff);
+            model.addAttribute(STAFF, staff);
             model.addAttribute("shop", staff.getShop());
             if (item != null) {
                 model.addAttribute("item", item);

@@ -18,6 +18,45 @@ public class DatabaseLoader {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseLoader.class);
     private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    
+    // Constants for shops
+    private static final String LOCATION1 = "Porto";
+    private static final String LOCATION2 = "Lisboa";
+    
+    // Constants for item types
+    private static final String DRESS = "Vestido";
+    private static final String SHORT = "Curto";
+    private static final String MEDIUM = "Médio";
+    private static final String LONG = "Comprido";
+    private static final String JUMPSUIT = "Macacão";
+    private static final String SUIT = "Fato";
+    private static final String SIMPLE = "Simples";
+    private static final String THREE_PIECE = "Três peças";
+    
+    // Constants for item attributes
+    private static final String BEAUTY_BRAND = "Beauty";
+    private static final String POLYESTER = "Poliéster";
+    private static final String AVAILABLE = "AVAILABLE";
+    private static final String BLACK = "Preto";
+    private static final String OKSANA_MUKHA = "Oksana Mukha";
+    
+    // Constants for colors
+    private static final String BLUE = "Azul";
+    private static final String BEIGE = "Bege";
+    private static final String RED = "Vermelho";
+    private static final String PINK = "Rosa";
+    
+    // Constants for other brands
+    private static final String NICOLA = "NICOLA";
+    private static final String PAULINE = "PAULINE";
+    private static final String PIZHON = "PIZHON";
+    
+    // Constants for sizes
+    private static final String XS = "XS";
+    private static final String S = "S";
+    private static final String M = "M";
+    private static final String L = "L";
+    private static final String XL = "XL";
 
     private final ShopRepository shopRepository;
     private final UserRepository userRepository;
@@ -48,8 +87,8 @@ public class DatabaseLoader {
         Shop shop2;
 
         if (shopRepository.count() == 0) {
-            shop1 = new Shop("Porto", "Porto");
-            shop2 = new Shop("Lisboa", "Lisboa");
+            shop1 = new Shop(LOCATION1, LOCATION1);
+            shop2 = new Shop(LOCATION2, LOCATION2);
 
             shopRepository.save(shop1);
             shopRepository.save(shop2);
@@ -57,8 +96,8 @@ public class DatabaseLoader {
             shopRepository.flush();
             logger.info("Sample shops initialized");
         } else {
-            shop1 = shopRepository.findByNameAndLocation("Porto", "Porto").orElse(null);
-            shop2 = shopRepository.findByNameAndLocation("Lisboa", "Lisboa").orElse(null);
+            shop1 = shopRepository.findByNameAndLocation(LOCATION1, LOCATION1).orElse(null);
+            shop2 = shopRepository.findByNameAndLocation(LOCATION2, LOCATION2).orElse(null);
             
             if (shop1 == null || shop2 == null) {
                 logger.error("Failed to load required shops from database");
@@ -93,18 +132,24 @@ public class DatabaseLoader {
         }
 
         // Init ItemTypes
-        ItemType itemType1, itemType2, itemType3, itemType4, itemType5, itemType6, itemType7, itemType8;
-
+        ItemType itemType1;
+        ItemType itemType2;
+        ItemType itemType3;
+        ItemType itemType4;
+        ItemType itemType5;
+        ItemType itemType6;
+        ItemType itemType7;
+        ItemType itemType8;
+        
         if (itemTypeRepository.count() == 0) {
-            itemType1 = new ItemType("F", "Vestido", "Curto");
-            itemType2 = new ItemType("F", "Vestido", "Médio");
-            itemType3 = new ItemType("F", "Vestido", "Comprido");
-            itemType4 = new ItemType("F", "Macacão", "Curto");
-            itemType5 = new ItemType("F", "Macacão", "Médio");
-            itemType6 = new ItemType("F", "Macacão", "Comprido");
-
-            itemType7 = new ItemType("M", "Fato", "Simples");
-            itemType8 = new ItemType("M", "Fato", "Três peças");
+            itemType1 = new ItemType("F", DRESS, SHORT);
+            itemType2 = new ItemType("F", DRESS, MEDIUM);
+            itemType3 = new ItemType("F", DRESS, LONG);
+            itemType4 = new ItemType("F", JUMPSUIT, SHORT);
+            itemType5 = new ItemType("F", JUMPSUIT, MEDIUM);
+            itemType6 = new ItemType("F", JUMPSUIT, LONG);
+            itemType7 = new ItemType("M", SUIT, SIMPLE);
+            itemType8 = new ItemType("M", SUIT, THREE_PIECE);
 
             itemTypeRepository.save(itemType1);
             itemTypeRepository.save(itemType2);
@@ -117,169 +162,142 @@ public class DatabaseLoader {
 
             itemTypeRepository.flush();
         } else {
-            itemType1 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", "Vestido", "Curto");
-            itemType2 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", "Vestido", "Médio");
-            itemType3 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", "Vestido", "Comprido");
-            itemType4 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", "Macacão", "Curto");
-            itemType5 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", "Macacão", "Médio");
-            itemType6 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", "Macacão", "Comprido");
-            itemType7 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("M", "Fato", "Simples");
-            itemType8 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("M", "Fato", "Três peças");
+            itemType1 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", DRESS, SHORT);
+            itemType2 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", DRESS, MEDIUM);
+            itemType3 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", DRESS, LONG);
+            itemType4 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", JUMPSUIT, SHORT);
+            itemType5 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", JUMPSUIT, MEDIUM);
+            itemType6 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("F", JUMPSUIT, LONG);
+            itemType7 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("M", SUIT, SIMPLE);
+            itemType8 = itemTypeRepository.findByGenderAndCategoryAndSubcategory("M", SUIT, THREE_PIECE);
         }
 
         // Init Items
         if (itemRepository.count() == 0) {
             // Macacões
-            Item item1 = new Item("Macacão Curto", "Poliéster", "Azul", "Beauty", new BigDecimal(95),
-                    new BigDecimal(950),
-                    shop1, itemType4);
-
+            Item item1 = new Item(JUMPSUIT + " " + SHORT, POLYESTER, BLUE, BEAUTY_BRAND, 
+                    new BigDecimal(95), new BigDecimal(950), shop1, itemType4);
             item1.setImagePath(uploadDir + "/Macacao1.jpeg");
-
             itemRepository.save(item1);
 
             // Adicionar instâncias
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item1, "S"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item1, "M"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item1, "L"));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item1, S));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item1, M));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item1, L));
 
-            Item item2 = new Item("Macacão Médio", "Poliéster", "Preto", "Beauty", new BigDecimal(90),
-                    new BigDecimal(900),
-                    shop1, itemType5);
-
+            Item item2 = new Item(JUMPSUIT + " " + MEDIUM, POLYESTER, BLACK, BEAUTY_BRAND, 
+                    new BigDecimal(90), new BigDecimal(900), shop1, itemType5);
             item2.setImagePath(uploadDir + "/Macacao2.webp");
-
             itemRepository.save(item2);
 
             // Adicionar instâncias
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item2, "XS"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item2, "S"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item2, "M"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item2, "L"));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item2, XS));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item2, S));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item2, M));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item2, L));
 
-            Item item3 = new Item("Macacão Comprido", "Poliéster", "Bege", "Beauty", new BigDecimal(120),
-                    new BigDecimal(1200), shop1, itemType6);
-
+            Item item3 = new Item(JUMPSUIT + " " + LONG, POLYESTER, BEIGE, BEAUTY_BRAND, 
+                    new BigDecimal(120), new BigDecimal(1200), shop1, itemType6);
             item3.setImagePath(uploadDir + "/Macacao3.jpg");
-
             itemRepository.save(item3);
 
             // Adicionar instâncias
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item3, "XS"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item3, "S"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item3, "M"));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item3, XS));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item3, S));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item3, M));
 
             // Fatos
-            Item item5 = new Item("Fato Simples", "Poliéster", "Preto", "NICOLA", new BigDecimal(90),
-                    new BigDecimal(900),
-                    shop1, itemType7);
-
+            Item item5 = new Item(SUIT + " " + SIMPLE, POLYESTER, BLACK, NICOLA, 
+                    new BigDecimal(90), new BigDecimal(900), shop1, itemType7);
             item5.setImagePath(uploadDir + "/Fato1.jpg");
-
             itemRepository.save(item5);
 
             // Adicionar instâncias
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item5, "XS"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item5, "S"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item5, "M"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item5, "L"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item5, "XL"));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item5, XS));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item5, S));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item5, M));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item5, L));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item5, XL));
 
-            Item item6 = new Item("Fato Três peças", "Poliéster", "Preto", "PAULINE", new BigDecimal(110),
-                    new BigDecimal(1100), shop2, itemType8);
-
+            Item item6 = new Item(SUIT + " " + THREE_PIECE, POLYESTER, BLACK, PAULINE, 
+                    new BigDecimal(110), new BigDecimal(1100), shop2, itemType8);
             item6.setImagePath(uploadDir + "/Fato2.jpg");
-
             itemRepository.save(item6);
 
             // Adicionar instâncias
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item6, "S"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item6, "M"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item6, "L"));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item6, S));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item6, M));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item6, L));
 
-            Item item7 = new Item("Fato Três peças", "Poliéster", "Azul", "PIZHON", new BigDecimal(100),
-                    new BigDecimal(1000), shop1, itemType8);
-
+            Item item7 = new Item(SUIT + " " + THREE_PIECE, POLYESTER, BLUE, PIZHON, 
+                    new BigDecimal(100), new BigDecimal(1000), shop1, itemType8);
             item7.setImagePath(uploadDir + "/Fato3.webp");
-
             itemRepository.save(item7);
 
             // Adicionar instâncias
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item7, "S"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item7, "M"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item7, "L"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item7, "XL"));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item7, S));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item7, M));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item7, L));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item7, XL));
 
             // Vestidos
-            Item item8 = new Item("Vestido Curto", "Poliéster", "Azul", "Oksana Mukha", new BigDecimal(100),
-                    new BigDecimal(1000), shop1, itemType1);
-
+            Item item8 = new Item(DRESS + " " + SHORT, POLYESTER, BLUE, OKSANA_MUKHA, 
+                    new BigDecimal(100), new BigDecimal(1000), shop1, itemType1);
             item8.setImagePath(uploadDir + "/Vestido1.jpg");
-
             itemRepository.save(item8);
 
             // Adicionar instâncias
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item8, "S"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item8, "M"));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item8, S));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item8, M));
 
-            Item item9 = new Item("Vestido Curto", "Poliéster", "Vermelho", "Oksana Mukha", new BigDecimal(150),
-                    new BigDecimal(1500), shop1, itemType1);
-
+            Item item9 = new Item(DRESS + " " + SHORT, POLYESTER, RED, OKSANA_MUKHA, 
+                    new BigDecimal(150), new BigDecimal(1500), shop1, itemType1);
             item9.setImagePath(uploadDir + "/Vestido2.jpg");
-
             itemRepository.save(item9);
 
             // Adicinar instâncias
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item9, "XS"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item9, "S"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item9, "M"));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item9, XS));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item9, S));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item9, M));
 
-            Item item10 = new Item("Vestido Médio", "Poliéster", "Rosa", "Oksana Mukha", new BigDecimal(180),
-                    new BigDecimal(1800), shop1, itemType2);
-
+            Item item10 = new Item(DRESS + " " + MEDIUM, POLYESTER, PINK, OKSANA_MUKHA, 
+                    new BigDecimal(180), new BigDecimal(1800), shop1, itemType2);
             item10.setImagePath(uploadDir + "/Vestido3.jpg");
-
             itemRepository.save(item10);
 
             // Adicionar instâncias
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item10, "S"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item10, "M"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item10, "L"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item10, "XL"));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item10, S));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item10, M));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item10, L));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item10, XL));
 
-            Item item11 = new Item("Vestido Médio", "Poliéster", "Preto", "Oksana Mukha", new BigDecimal(200),
-                    new BigDecimal(2000), shop2, itemType2);
-
+            Item item11 = new Item(DRESS + " " + MEDIUM, POLYESTER, BLACK, OKSANA_MUKHA, 
+                    new BigDecimal(200), new BigDecimal(2000), shop2, itemType2);
             item11.setImagePath(uploadDir + "/Vestido4.jpg");
-
             itemRepository.save(item11);
 
             // Adicionar instâncias
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item11, "XS"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item11, "S"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item11, "M"));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item11, XS));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item11, S));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item11, M));
 
-            Item item12 = new Item("Vestido Comprido", "Poliéster", "Preto", "Oksana Mukha", new BigDecimal(230),
-                    new BigDecimal(2300), shop2, itemType3);
-
+            Item item12 = new Item(DRESS + " " + LONG, POLYESTER, BLACK, OKSANA_MUKHA, 
+                    new BigDecimal(230), new BigDecimal(2300), shop2, itemType3);
             item12.setImagePath(uploadDir + "/Vestido5.jpg");
-
             itemRepository.save(item12);
 
             // Adicionar instâncias
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item12, "M"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item12, "L"));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item12, M));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item12, L));
 
-            Item item13 = new Item("Vestido Comprido", "Poliéster", "Azul", "Oksana Mukha", new BigDecimal(250),
-                    new BigDecimal(2500), shop1, itemType3);
-
+            Item item13 = new Item(DRESS + " " + LONG, POLYESTER, BLUE, OKSANA_MUKHA, 
+                    new BigDecimal(250), new BigDecimal(2500), shop1, itemType3);
             item13.setImagePath(uploadDir + "/Vestido6.jpg");
-
             itemRepository.save(item13);
 
             // Adicionar instâncias
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item13, "S"));
-            itemSingleRepository.save(new ItemSingle("AVAILABLE", item13, "M"));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item13, S));
+            itemSingleRepository.save(new ItemSingle(AVAILABLE, item13, M));
         }
     }
 }

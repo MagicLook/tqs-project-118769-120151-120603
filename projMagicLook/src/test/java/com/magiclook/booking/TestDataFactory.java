@@ -3,9 +3,6 @@ package com.magiclook.booking;
 import com.magiclook.data.*;
 import com.magiclook.dto.BookingRequestDTO;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;

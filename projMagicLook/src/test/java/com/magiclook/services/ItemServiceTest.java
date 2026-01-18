@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ItemServiceTest {
+class ItemServiceTest {
 
     @Mock
     private ItemRepository itemRepository;
@@ -167,13 +167,13 @@ public class ItemServiceTest {
         filter.setMinPrice(10.0);
         filter.setMaxPrice(100.0);
 
-        when(itemRepository.findByGenderAndFilters(eq("M"), eq("Red"), eq("Acme"), eq("Cotton"), eq("Shirt"), eq("Casual"), eq("M"), eq("Lisboa"), eq(10.0), eq(100.0)))
+        when(itemRepository.findByGenderAndFilters("M", "Red", "Acme", "Cotton", "Shirt", "Casual", "M", "Lisboa", 10.0, 100.0))
             .thenReturn(List.of(item));
 
         List<Item> res = itemService.findByGenderAndFilters("M", filter);
         assertNotNull(res);
         assertEquals(1, res.size());
-        verify(itemRepository, times(1)).findByGenderAndFilters(eq("M"), eq("Red"), eq("Acme"), eq("Cotton"), eq("Shirt"), eq("Casual"), eq("M"), eq("Lisboa"), eq(10.0), eq(100.0));
+        verify(itemRepository, times(1)).findByGenderAndFilters("M", "Red", "Acme", "Cotton", "Shirt", "Casual", "M", "Lisboa", 10.0, 100.0);
     }
 
     @Test

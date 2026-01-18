@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DataEntitiesTest {
+class DataEntitiesTest {
     
     private Item item;
     private Shop shop;
@@ -16,7 +16,7 @@ public class DataEntitiesTest {
     private Booking booking;
     
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         // Create shop
         shop = new Shop("Test Shop", "Test Location");
         shop.setShopId(1);
@@ -70,7 +70,7 @@ public class DataEntitiesTest {
     }
     
     @Test
-    public void testBookingCreation() {
+    void testBookingCreation() {
         assertNotNull(booking);
         assertNotNull(booking.getBookingId());
         assertEquals("CONFIRMED", booking.getState());
@@ -81,7 +81,7 @@ public class DataEntitiesTest {
     }
     
     @Test
-    public void testBookingDates() {
+    void testBookingDates() {
         assertNotNull(booking.getPickupDate());
         assertNotNull(booking.getStartUseDate());
         assertNotNull(booking.getEndUseDate());
@@ -94,7 +94,7 @@ public class DataEntitiesTest {
     }
     
     @Test
-    public void testCalculateUseDays() {
+    void testCalculateUseDays() {
         // Create dates with known difference
         Date start = new Date();
         Date end = new Date(start.getTime() + (3 * 86400000)); // 3 days later
@@ -110,7 +110,7 @@ public class DataEntitiesTest {
     }
     
     @Test
-    public void testItemCreation() {
+    void testItemCreation() {
         assertNotNull(item);
         assertEquals("Test Shirt", item.getName());
         assertEquals("Cotton", item.getMaterial());
@@ -123,7 +123,7 @@ public class DataEntitiesTest {
     }
     
     @Test
-    public void testItemAvailability() {
+    void testItemAvailability() {
         // Initially available
         assertTrue(item.isAvailable());
         
@@ -138,7 +138,7 @@ public class DataEntitiesTest {
     }
     
     @Test
-    public void testUserCreation() {
+    void testUserCreation() {
         assertNotNull(user);
         assertEquals("John", user.getFirstName());
         assertEquals("Doe", user.getLastName());
@@ -150,7 +150,7 @@ public class DataEntitiesTest {
     }
     
     @Test
-    public void testShopCreation() {
+    void testShopCreation() {
         assertNotNull(shop);
         assertEquals("Test Shop", shop.getName());
         assertEquals("Test Location", shop.getLocation());
@@ -158,7 +158,7 @@ public class DataEntitiesTest {
     }
     
     @Test
-    public void testItemTypeCreation() {
+    void testItemTypeCreation() {
         assertNotNull(itemType);
         assertEquals("M", itemType.getGender());
         assertEquals("Clothing", itemType.getCategory());
@@ -167,7 +167,7 @@ public class DataEntitiesTest {
     }
     
     @Test
-    public void testBookingConstructor() {
+    void testBookingConstructor() {
         Date pickupDate = new Date();
         Date startUseDate = new Date(pickupDate.getTime() + 86400000);
         Date endUseDate = new Date(startUseDate.getTime() + 86400000);
