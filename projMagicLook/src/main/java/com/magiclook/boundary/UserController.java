@@ -22,6 +22,10 @@ import io.micrometer.core.annotation.Timed;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.AbstractMap; 
 
 @Controller
 @RequestMapping("/magiclook")
@@ -41,6 +45,8 @@ public class UserController {
     private static final String ATTR_ACTIVE_PAGE = "activePage";
     private static final String ATTR_CART_COUNT = "cartCount";
     private static final String VIEW_DASHBOARD = "dashboard";
+    private static final String ITEMS = "items";
+    private static final String ITEM_COUNT = "itemCount";
 
     @Autowired
     public UserController(UserService userService, ItemService itemService,
@@ -142,8 +148,8 @@ public class UserController {
 
         List<Item> items = itemService.getItemsByGender("M");
         model.addAttribute("user", user);
-        model.addAttribute("items", items);
-        model.addAttribute("itemCount", items.size());
+        model.addAttribute(ITEMS, items);
+        model.addAttribute(ITEM_COUNT, items.size());
         model.addAttribute(ATTR_ACTIVE_PAGE, "men");
         return "items/men";
     }
@@ -177,8 +183,8 @@ public class UserController {
 
         List<Item> items = itemService.getItemsByGender("F");
         model.addAttribute("user", user);
-        model.addAttribute("items", items);
-        model.addAttribute("itemCount", items.size());
+        model.addAttribute(ITEMS, items);
+        model.addAttribute(ITEM_COUNT, items.size());
         model.addAttribute(ATTR_ACTIVE_PAGE, "women");
         return "items/women";
     }
@@ -219,8 +225,8 @@ public class UserController {
         model.addAttribute("shopLocations", itemService.getAllDistinctShopLocations());
 
         model.addAttribute("user", user);
-        model.addAttribute("items", items);
-        model.addAttribute("itemCount", items.size());
+        model.addAttribute(ITEMS, items);
+        model.addAttribute(ITEM_COUNT, items.size());
         model.addAttribute(ATTR_ACTIVE_PAGE, pageName);
         model.addAttribute("gender", pageName);
         model.addAttribute("hasFilters", filter.hasFilters());
@@ -232,7 +238,8 @@ public class UserController {
 
     @PostMapping("/items/{gender}/filter")
     @Timed(value = "request.filterItems")
-    public String filterItems(@PathVariable String gender,
+    public String filterItems(
+            @PathVariable String gender,
             @RequestParam(required = false) String color,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String material,
@@ -243,55 +250,49 @@ public class UserController {
             @RequestParam(required = false) String shopLocation,
             @RequestParam(required = false) String size) {
 
-        // Construir URL com parâmetros
         StringBuilder redirectUrl = new StringBuilder("redirect:/magiclook/items/").append(gender);
         boolean firstParam = true;
 
-        if (color != null && !color.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("color=")
-                    .append(URLEncoder.encode(color, StandardCharsets.UTF_8));
-            firstParam = false;
-        }
-        if (brand != null && !brand.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("brand=")
-                    .append(URLEncoder.encode(brand, StandardCharsets.UTF_8));
-            firstParam = false;
-        }
-        if (material != null && !material.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("material=")
-                    .append(URLEncoder.encode(material, StandardCharsets.UTF_8));
-            firstParam = false;
-        }
-        if (category != null && !category.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("category=")
-                    .append(URLEncoder.encode(category, StandardCharsets.UTF_8));
-            firstParam = false;
-        }
-        if (subcategory != null && !subcategory.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("subcategory=")
-                    .append(URLEncoder.encode(subcategory, StandardCharsets.UTF_8));
-            firstParam = false;
-        }
-        if (size != null && !size.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("size=")
-                    .append(URLEncoder.encode(size, StandardCharsets.UTF_8));
-            firstParam = false;
-        }
-        if (minPrice != null) {
-            redirectUrl.append(firstParam ? "?" : "&").append("minPrice=").append(minPrice);
-            firstParam = false;
-        }
-        if (maxPrice != null) {
-            redirectUrl.append(firstParam ? "?" : "&").append("maxPrice=").append(maxPrice);
-            firstParam = false;
-        }
-        if (shopLocation != null && !shopLocation.isEmpty()) {
-            redirectUrl.append(firstParam ? "?" : "&").append("shopLocation=")
-                    .append(URLEncoder.encode(shopLocation, StandardCharsets.UTF_8));
-            firstParam = false;
+        // Create a list of parameter entries
+        List<Map.Entry<String, Object>> params = new ArrayList<>();
+        params.add(new AbstractMap.SimpleEntry<>("color", color));
+        params.add(new AbstractMap.SimpleEntry<>("brand", brand));
+        params.add(new AbstractMap.SimpleEntry<>("material", material));
+        params.add(new AbstractMap.SimpleEntry<>("category", category));
+        params.add(new AbstractMap.SimpleEntry<>("subcategory", subcategory));
+        params.add(new AbstractMap.SimpleEntry<>("size", size));
+        params.add(new AbstractMap.SimpleEntry<>("minPrice", minPrice));
+        params.add(new AbstractMap.SimpleEntry<>("maxPrice", maxPrice));
+        params.add(new AbstractMap.SimpleEntry<>("shopLocation", shopLocation));
+
+        for (Map.Entry<String, Object> param : params) {
+            if (shouldIncludeParameter(param.getValue())) {
+                redirectUrl.append(firstParam ? "?" : "&")
+                        .append(param.getKey())
+                        .append("=")
+                        .append(encodeParameter(param.getValue()));
+                firstParam = false;
+            }
         }
 
         return redirectUrl.toString();
+    }
+
+    private boolean shouldIncludeParameter(Object value) {
+        if (value == null) {
+            return false;
+        }
+        if (value instanceof String && ((String) value).isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
+    private String encodeParameter(Object value) {
+        if (value instanceof String) {
+            return URLEncoder.encode((String) value, StandardCharsets.UTF_8);
+        }
+        return value.toString();
     }
 
     // Convenience overload for unit tests that takes an ItemFilterDTO
@@ -314,9 +315,9 @@ public class UserController {
                 filter.getMaxPrice());
 
         model.addAttribute("filter", filter);
-        model.addAttribute("items", items);
+        model.addAttribute(ITEMS, items);
         model.addAttribute("hasFilters", filter.hasFilters());
-        model.addAttribute("itemCount", items.size());
+        model.addAttribute(ITEM_COUNT, items.size());
         model.addAttribute("user", user);
         model.addAttribute(ATTR_ACTIVE_PAGE, gender);
 

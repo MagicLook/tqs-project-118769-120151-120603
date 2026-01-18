@@ -48,13 +48,12 @@ public class BookingController {
     
     private final BookingService bookingService;
     private final ItemService itemService;
-    private final UserService userService;
+
     
     // Injeção por construtor
     public BookingController(BookingService bookingService, ItemService itemService, UserService userService) {
         this.bookingService = bookingService;
         this.itemService = itemService;
-        this.userService = userService;
     }
     
     // Show booking form for specific item
@@ -244,9 +243,7 @@ public class BookingController {
         if (filter == null || filter.isEmpty()) {
             return bookings;
         }
-        
-        Date today = new Date();
-        
+
         if ("active".equals(filter)) {
             // Reservas ativas: estado CONFIRMED ou ACTIVE
             return bookings.stream()
@@ -303,10 +300,10 @@ public class BookingController {
         com.magiclook.dto.RefundInfoDTO refundInfo = bookingService.getRefundInfo(booking);
 
         // Transfer any flash message from session
-        Object flashMsg = session.getAttribute("message");
+        Object flashMsg = session.getAttribute(ATTR_MESSAGE);
         if (flashMsg != null) {
             model.addAttribute(ATTR_MESSAGE, flashMsg.toString());
-            session.removeAttribute("message");
+            session.removeAttribute(ATTR_MESSAGE);
         }
 
         model.addAttribute(ATTR_BOOKING, booking);
@@ -333,7 +330,7 @@ public class BookingController {
             Booking booking = bookingService.getBookingById(bookingId);
             if (booking == null) {
                 resp.put(ATTR_CAN_CANCEL, false);
-                resp.put("message", "Reserva não encontrada");
+                resp.put(ATTR_MESSAGE, "Reserva não encontrada");
                 return resp;
             }
 
@@ -350,7 +347,7 @@ public class BookingController {
 
             if (!allowed) {
                 resp.put(ATTR_CAN_CANCEL, false);
-                resp.put("message", "Cancelamento não permitido");
+                resp.put(ATTR_MESSAGE, "Cancelamento não permitido");
                 return resp;
             }
 
@@ -362,7 +359,7 @@ public class BookingController {
 
         } catch (Exception e) {
             resp.put(ATTR_CAN_CANCEL, false);
-            resp.put("message", e.getMessage());
+            resp.put(ATTR_MESSAGE, e.getMessage());
             return resp;
         }
     }
@@ -376,7 +373,7 @@ public class BookingController {
             java.util.UUID bookingId = java.util.UUID.fromString(id);
             Booking booking = bookingService.getBookingById(bookingId);
             if (booking == null) {
-                session.setAttribute("message", "Reserva não encontrada");
+                session.setAttribute(ATTR_MESSAGE, "Reserva não encontrada");
                 return REDIRECT_MY_BOOKINGS;
             }
 
@@ -390,18 +387,18 @@ public class BookingController {
             }
 
             if (!allowed) {
-                session.setAttribute("message", "Cancelamento não permitido");
+                session.setAttribute(ATTR_MESSAGE, "Cancelamento não permitido");
                 return "redirect:/magiclook/my-bookings/" + id;
             }
 
             com.magiclook.dto.RefundInfoDTO info = bookingService.cancelBooking(booking);
 
-            session.setAttribute("message", "Reserva cancelada com sucesso. Reembolso: " + info.getAmount() + " (" + info.getPercent() + "%).");
+            session.setAttribute(ATTR_MESSAGE, "Reserva cancelada com sucesso. Reembolso: " + info.getAmount() + " (" + info.getPercent() + "%).");
 
             return "redirect:/magiclook/my-bookings/" + id;
 
         } catch (Exception e) {
-            session.setAttribute("message", "Erro ao cancelar: " + e.getMessage());
+            session.setAttribute(ATTR_MESSAGE, "Erro ao cancelar: " + e.getMessage());
             return REDIRECT_MY_BOOKINGS;
         }
     }

@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)  // Make mocks lenient to avoid strict stubbing issues
-public class BookingServiceTest {
+class BookingServiceTest {
 
     @Mock
     private BookingRepository bookingRepository;

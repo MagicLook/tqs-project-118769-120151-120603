@@ -67,13 +67,13 @@ class StaffControllerTest {
         String viewName = staffController.staffLogin(email, password, session, model);
 
         assertEquals("redirect:/magiclook/staff/dashboard", viewName);
-        verify(session).setAttribute(eq("loggedInStaff"), eq(testStaff));
-        verify(session).setAttribute(eq("staffId"), eq(testStaff.getStaffId()));
-        verify(session).setAttribute(eq("staffName"), eq(testStaff.getName()));
-        verify(session).setAttribute(eq("staffEmail"), eq(testStaff.getEmail()));
-        verify(session).setAttribute(eq("staffUsername"), eq(testStaff.getUsername()));
-        verify(session).setAttribute(eq("shopId"), eq(testShop.getShopId()));
-        verify(session).setAttribute(eq("shopName"), eq(testShop.getName()));
+        verify(session).setAttribute("loggedInStaff", testStaff);
+        verify(session).setAttribute("staffId", testStaff.getStaffId());
+        verify(session).setAttribute("staffName", testStaff.getName());
+        verify(session).setAttribute("staffEmail", testStaff.getEmail());
+        verify(session).setAttribute("staffUsername", testStaff.getUsername());
+        verify(session).setAttribute("shopId", testShop.getShopId());
+        verify(session).setAttribute("shopName", testShop.getName());
         verify(staffService).login(email, password);
         verifyNoInteractions(model);
     }
@@ -88,7 +88,7 @@ class StaffControllerTest {
         String viewName = staffController.staffLogin(username, password, session, model);
 
         assertEquals("redirect:/magiclook/staff/dashboard", viewName);
-        verify(session).setAttribute(eq("loggedInStaff"), eq(testStaff));
+        verify(session).setAttribute("loggedInStaff", testStaff);
         verify(staffService).login(username, password);
     }
 
@@ -102,7 +102,7 @@ class StaffControllerTest {
         String viewName = staffController.staffLogin(username, password, session, model);
 
         assertEquals("staffLogin", viewName);
-        verify(model).addAttribute(eq("error"), eq("Credenciais inválidas para staff!"));
+        verify(model).addAttribute("error", "Credenciais inválidas para staff!");
         verify(session, never()).setAttribute(anyString(), any());
         verify(staffService).login(username, password);
     }
@@ -117,7 +117,7 @@ class StaffControllerTest {
         String viewName = staffController.staffLogin(username, password, session, model);
 
         assertEquals("staffLogin", viewName);
-        verify(model).addAttribute(eq("error"), eq("Credenciais inválidas para staff!"));
+        verify(model).addAttribute("error", "Credenciais inválidas para staff!");
         verify(staffService).login(username, password);
     }
 

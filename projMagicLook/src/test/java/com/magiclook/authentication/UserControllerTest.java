@@ -90,7 +90,7 @@ class UserControllerUnitTest {
 
         String viewName = userController.register(registrationDTO, bindingResult, model);
         assertEquals("register", viewName);
-        verify(model).addAttribute(eq("error"), eq("Username já está em uso"));
+        verify(model).addAttribute("error", "Username já está em uso");
     }
 
     @Test

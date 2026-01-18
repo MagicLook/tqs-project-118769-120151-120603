@@ -23,7 +23,10 @@ public class BookingService {
     private final UserRepository userRepository;
         
     private static final String NOT_FOUND = "Item não encontrado";
-    
+    private static final String CONFIRMED = "CONFIRMED";
+    private static final String CANCELLED = "CANCELLED";
+    private static final String COMPLETED = "COMPLETED";
+
     // Lock global para todas as reservas
     private static final Object GLOBAL_BOOKING_LOCK = new Object();
 
@@ -108,7 +111,7 @@ public class BookingService {
         booking.setReturnDate(returnDate);
         booking.setTotalDays((int) useDays);
         booking.setTotalPrice(totalPrice);
-        booking.setState("CONFIRMED");
+        booking.setState(CONFIRMED);
         booking.setItem(item);
         booking.setItemSingle(availableItemSingle);
         booking.setUser(currentUser);
@@ -308,7 +311,7 @@ public class BookingService {
         booking.setReturnDate(returnDate);
         booking.setTotalDays((int) useDays);
         booking.setTotalPrice(totalPrice);
-        booking.setState("CONFIRMED");
+        booking.setState(CONFIRMED);
         booking.setItem(item);
         booking.setItemSingle(availableItemSingle);
         booking.setUser(user);
@@ -325,19 +328,19 @@ public class BookingService {
         Date now = new Date();
         
         if (booking.getState() != null && 
-            (booking.getState().equals("CANCELLED") || booking.getState().equals("COMPLETED"))) {
+            (booking.getState().equals(CANCELLED) || booking.getState().equals(COMPLETED))) {
             return booking.getState();
         }
         
         // Determinar estado baseado nas datas
         if (now.before(booking.getStartUseDate())) {
-            return "CONFIRMED";
+            return CONFIRMED;
         } else if (now.after(booking.getEndUseDate())) {
             // Verificar se já passou a data de devolução sem devolver
             if (now.after(booking.getReturnDate()) && !"RETURNED".equals(booking.getState())) {
                 return "OVERDUE";
             } else {
-                return "COMPLETED";
+                return COMPLETED;
             }
         } else {
             return "ACTIVE";
@@ -388,13 +391,13 @@ public class BookingService {
         if (booking == null) throw new IllegalArgumentException("Reserva inexistente");
 
         // If already cancelled or completed, no-op
-        if ("CANCELLED".equals(booking.getState()) || "COMPLETED".equals(booking.getState())) {
+        if (CANCELLED.equals(booking.getState()) || COMPLETED.equals(booking.getState())) {
             return getRefundInfo(booking);
         }
 
         com.magiclook.dto.RefundInfoDTO info = getRefundInfo(booking);
 
-        booking.setState("CANCELLED");
+        booking.setState(CANCELLED);
         bookingRepository.save(booking);
 
         return info;

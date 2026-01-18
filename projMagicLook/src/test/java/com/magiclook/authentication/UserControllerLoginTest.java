@@ -104,7 +104,7 @@ class UserControllerLoginTest {
         String viewName = userController.login(username, password, session, model);
 
         assertEquals("login", viewName);
-        verify(model).addAttribute(eq("error"), eq("Username ou palavra-passe inválidos!"));
+        verify(model).addAttribute("error","Username ou palavra-passe inválidos!");
         verify(model).addAttribute(eq("loginRequest"), any(LoginDTO.class));
         verify(session, never()).setAttribute(anyString(), any());
         verify(userService).login(username, password);

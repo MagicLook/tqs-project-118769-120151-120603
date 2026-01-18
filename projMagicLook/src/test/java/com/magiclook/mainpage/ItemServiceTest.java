@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -69,8 +68,10 @@ class ItemServiceTest {
         when(itemRepository.findAll()).thenReturn(allItems);
         
         List<Item> recent = itemService.getRecentItems(3);
-        assertThat(recent).hasSize(3);
-        assertThat(recent).containsExactly(shirt, pants, dress);
+        
+        assertThat(recent)
+            .hasSize(3)
+            .containsExactly(shirt, pants, dress);
     }
 
     @Test
