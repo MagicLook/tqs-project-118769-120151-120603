@@ -23,7 +23,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.AbstractMap; 
 
@@ -279,20 +278,13 @@ public class UserController {
     }
 
     private boolean shouldIncludeParameter(Object value) {
-        if (value == null) {
-            return false;
-        }
-        if (value instanceof String && ((String) value).isEmpty()) {
-            return false;
-        }
-        return true;
+        return value != null && (!(value instanceof String string) || !string.isEmpty());
     }
 
     private String encodeParameter(Object value) {
-        if (value instanceof String) {
-            return URLEncoder.encode((String) value, StandardCharsets.UTF_8);
-        }
-        return value.toString();
+        return value instanceof String string ? 
+               URLEncoder.encode(string, StandardCharsets.UTF_8) : 
+               value.toString();
     }
 
     // Convenience overload for unit tests that takes an ItemFilterDTO

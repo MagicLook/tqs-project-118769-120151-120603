@@ -51,7 +51,7 @@ public class BookingController {
 
     
     // Injeção por construtor
-    public BookingController(BookingService bookingService, ItemService itemService, UserService userService) {
+    public BookingController(BookingService bookingService, ItemService itemService) {
         this.bookingService = bookingService;
         this.itemService = itemService;
     }
