@@ -81,7 +81,6 @@ public class AddItemSteps {
 
         // Select dropdowns if necessary (Category/Subcategory)
         // new
-        // Select(modal.findElement(By.id("itemCategory"))).selectByVisibleText("Mulher");
     }
 
     @And("submits")
@@ -97,7 +96,6 @@ public class AddItemSteps {
         // Checking for a success alert or the item appearing in the list
 
         // Option A: Check URL or Alert
-        // wait.until(ExpectedConditions.urlContains("success"));
 
         // Option B: Check if item is in the table
         // Reload page to be sure

@@ -249,13 +249,13 @@ public class BookingController {
             return bookings.stream()
                 .filter(booking -> BOOKING_STATUS_CONFIRMED.equals(booking.getState()) || 
                                    "ACTIVE".equals(booking.getState()))
-                .collect(java.util.stream.Collectors.toList());
+                .toList();
         } else if ("past".equals(filter)) {
             // Reservas passadas: estado COMPLETED ou OVERDUE
             return bookings.stream()
                 .filter(booking -> BOOKING_STATUS_COMPLETED.equals(booking.getState()) || 
                                    "OVERDUE".equals(booking.getState()))
-                .collect(java.util.stream.Collectors.toList());
+                .toList();
         }
         
         return bookings;
@@ -271,7 +271,7 @@ public class BookingController {
             .filter(booking -> booking.getItem() != null && 
                    booking.getItem().getName() != null &&
                    booking.getItem().getName().toLowerCase().contains(searchLower))
-            .collect(java.util.stream.Collectors.toList());
+            .toList();
     }
 
     @GetMapping("/my-bookings/{id}")
@@ -480,7 +480,7 @@ public class BookingController {
                         conflictMap.put("size", b.getItemSingle() != null ? b.getItemSingle().getSize() : "N/A");
                         return conflictMap;
                     })
-                    .collect(java.util.stream.Collectors.toList());
+                    .toList();
                 response.put("conflicts", conflictList);
             }
             
