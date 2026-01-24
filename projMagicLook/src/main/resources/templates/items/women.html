@@ -218,12 +218,6 @@
                                 <h1 class="display-6 mb-2">Para Mulher</h1>
                                 <p class="lead mb-0">Vestidos e macacões de cerimónia</p>
                             </div>
-                            <div class="col-md-4 text-end">
-                                <div class="bg-white rounded p-3 d-inline-block" style="color:rgb(67, 79, 143)">
-                                    <h4 class="mb-0" th:text="${itemCount != null ? itemCount : 0}">0</h4>
-                                    <small>Número de Itens</small>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -233,7 +227,7 @@
         <!-- Seção de Filtros -->
         <div class="filter-section">
             <h4 class="mb-3">
-                <i class="bi bi-funnel"></i> Filtrar Roupas
+                Filtrar Roupas
                 <span th:if="${hasFilters}" class="active-filters ms-2">
                     <i class="bi bi-check-circle"></i> Filtros Ativos
                 </span>
@@ -328,18 +322,11 @@
                     <div class="col-md-6 d-flex align-items-end">
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-funnel"></i> Aplicar Filtros
+                                Aplicar Filtros
                             </button>
                             <a th:href="@{/magiclook/items/women/clear}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle"></i> Limpar Filtros
+                                Limpar Filtros
                             </a>
-                        </div>
-
-                        <div class="ms-auto">
-                            <span class="badge bg-info" th:if="${hasFilters}">
-                                <i class="bi bi-funnel"></i>
-                                <span th:text="${itemCount} + ' itens encontrados'"></span>
-                            </span>
                         </div>
                     </div>
                 </div>
