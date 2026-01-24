@@ -150,8 +150,8 @@ class StaffControllerTest {
         String viewName = staffController.showStaffDashboard(session, model);
 
         assertEquals("staffDashboard", viewName);
-        verify(model).addAttribute(eq("staff"), eq(testStaff));
-        verify(model).addAttribute(eq("shop"), eq(testShop));
+        verify(model).addAttribute("staff", testStaff);
+        verify(model).addAttribute("shop", testShop);
         verify(model).addAttribute(eq("items"), any());
         verify(model).addAttribute(eq("itemCount"), any());
         verify(session).getAttribute("loggedInStaff");

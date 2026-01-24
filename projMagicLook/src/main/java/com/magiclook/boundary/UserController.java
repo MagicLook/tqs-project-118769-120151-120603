@@ -365,7 +365,7 @@ public class UserController {
 
     @PostMapping("/notification/read/{id}")
     @ResponseBody
-    public org.springframework.http.ResponseEntity<?> markNotificationAsRead(
+    public org.springframework.http.ResponseEntity<Void> markNotificationAsRead(
             @PathVariable java.util.UUID id,
             HttpSession session) {
 
@@ -374,15 +374,19 @@ public class UserController {
             return org.springframework.http.ResponseEntity.status(401).build();
         }
 
-        return notificationRepository.findById(id)
-                .map(notification -> {
-                    if (!notification.getUser().getUserId().equals(user.getUserId())) {
-                        return org.springframework.http.ResponseEntity.status(403).build();
-                    }
-                    notification.setRead(true);
-                    notificationRepository.save(notification);
-                    return org.springframework.http.ResponseEntity.ok().build();
-                })
-                .orElse(org.springframework.http.ResponseEntity.notFound().build());
+        // Abordagem imperativa para evitar problemas de inferência de tipos
+        com.magiclook.data.Notification notification = notificationRepository.findById(id).orElse(null);
+        
+        if (notification == null) {
+            return org.springframework.http.ResponseEntity.notFound().build();
+        }
+        
+        if (!notification.getUser().getUserId().equals(user.getUserId())) {
+            return org.springframework.http.ResponseEntity.status(403).build();
+        }
+        
+        notification.setRead(true);
+        notificationRepository.save(notification);
+        return org.springframework.http.ResponseEntity.ok().build();
     }
 }

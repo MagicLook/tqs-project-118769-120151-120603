@@ -11,7 +11,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -447,7 +446,7 @@ public class BookingService {
         List<ItemSingle> allItemSingles = itemSingleRepository.findByItem_ItemId(itemId)
             .stream()
             .filter(is -> ItemSingle.STATE_AVAILABLE.equals(is.getState()))
-            .collect(Collectors.toList());
+            .toList();
         
         // Para cada tamanho, contar quantos não têm conflitos
         for (ItemSingle itemSingle : allItemSingles) {

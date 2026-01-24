@@ -326,7 +326,7 @@ public class StaffController {
     @DeleteMapping("/item/{itemId}/size/{size}")
     @Timed(value = "request.deleteItemSize")
     @ResponseBody
-    public org.springframework.http.ResponseEntity<?> deleteItemSize(
+    public org.springframework.http.ResponseEntity<Void> deleteItemSize(
             @PathVariable Integer itemId,
             @PathVariable String size,
             HttpSession session) {
@@ -340,7 +340,7 @@ public class StaffController {
             staffService.deleteItemSize(itemId, size);
             return org.springframework.http.ResponseEntity.ok().build();
         } catch (Exception e) {
-            return org.springframework.http.ResponseEntity.badRequest().body(e.getMessage());
+            return org.springframework.http.ResponseEntity.badRequest().build();
         }
     }
 

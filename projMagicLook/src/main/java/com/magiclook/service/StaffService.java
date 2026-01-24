@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.*;
 import java.util.Optional;
@@ -209,76 +210,87 @@ public class StaffService {
     }
 
     public int updateItem(ItemDTO itemDTO) {
-        Optional<Item> item = itemRepository.findById(itemDTO.getItemId());
-
-        if (item.isEmpty()) {
+        Optional<Item> optionalItem = itemRepository.findById(itemDTO.getItemId());
+        
+        if (optionalItem.isEmpty()) {
             return -1;
         }
 
-        Item itemToUpdate = item.get();
-        boolean changed = false;
-
-        if (itemDTO.getName() != null && !itemDTO.getName().isBlank()
-                && !itemDTO.getName().equals(itemToUpdate.getName())) {
-            itemToUpdate.setName(itemDTO.getName());
-            changed = true;
-        }
-
-        if (itemDTO.getBrand() != null && !itemDTO.getBrand().isBlank()
-                && !itemDTO.getBrand().equals(itemToUpdate.getBrand())) {
-            itemToUpdate.setBrand(itemDTO.getBrand());
-            changed = true;
-        }
-
-        if (itemDTO.getMaterial() != null && !itemDTO.getMaterial().isBlank()
-                && !itemDTO.getMaterial().equals(itemToUpdate.getMaterial())) {
-            itemToUpdate.setMaterial(itemDTO.getMaterial());
-            changed = true;
-        }
-
-        if (itemDTO.getColor() != null && !itemDTO.getColor().isBlank()
-                && !itemDTO.getColor().equals(itemToUpdate.getColor())) {
-            itemToUpdate.setColor(itemDTO.getColor());
-            changed = true;
-        }
-
-        if (itemDTO.getPriceRent() != null && !itemDTO.getPriceRent().equals(itemToUpdate.getPriceRent())) {
-            itemToUpdate.setPriceRent(itemDTO.getPriceRent());
-            changed = true;
-        }
-
-        if (itemDTO.getPriceSale() != null && !itemDTO.getPriceSale().equals(itemToUpdate.getPriceSale())) {
-            itemToUpdate.setPriceSale(itemDTO.getPriceSale());
-            changed = true;
-        }
-
-        // Update ItemType if necessary (Gender, Category, Subcategory)
-        if (itemDTO.getGender() != null || itemDTO.getCategory() != null || itemDTO.getSubcategory() != null) {
-            String gender = itemDTO.getGender() != null ? itemDTO.getGender() : itemToUpdate.getItemType().getGender();
-            String category = itemDTO.getCategory() != null ? itemDTO.getCategory()
-                    : itemToUpdate.getItemType().getCategory();
-            String subcategory = itemDTO.getSubcategory() != null ? itemDTO.getSubcategory()
-                    : itemToUpdate.getItemType().getSubcategory();
-
-            // Check if this specific combination implies a change
-            if (!gender.equals(itemToUpdate.getItemType().getGender()) ||
-                    !category.equals(itemToUpdate.getItemType().getCategory()) ||
-                    !subcategory.equals(itemToUpdate.getItemType().getSubcategory())) {
-
-                ItemType newItemType = itemTypeRepository.findByGenderAndCategoryAndSubcategory(gender, category,
-                        subcategory);
-                if (newItemType != null) {
-                    itemToUpdate.setItemType(newItemType);
-                    changed = true;
-                }
-            }
-        }
-
-        if (changed) {
+        Item itemToUpdate = optionalItem.get();
+        boolean hasChanges = false;
+        
+        // Update basic fields
+        hasChanges = updateBasicField(itemDTO.getName(), itemToUpdate::getName, itemToUpdate::setName) || hasChanges;
+        hasChanges = updateBasicField(itemDTO.getBrand(), itemToUpdate::getBrand, itemToUpdate::setBrand) || hasChanges;
+        hasChanges = updateBasicField(itemDTO.getMaterial(), itemToUpdate::getMaterial, itemToUpdate::setMaterial) || hasChanges;
+        hasChanges = updateBasicField(itemDTO.getColor(), itemToUpdate::getColor, itemToUpdate::setColor) || hasChanges;
+        
+        // Update price fields
+        hasChanges = updatePriceField(itemDTO.getPriceRent(), itemToUpdate::getPriceRent, itemToUpdate::setPriceRent) || hasChanges;
+        hasChanges = updatePriceField(itemDTO.getPriceSale(), itemToUpdate::getPriceSale, itemToUpdate::setPriceSale) || hasChanges;
+        
+        // Update item type if needed
+        hasChanges = updateItemType(itemDTO, itemToUpdate) || hasChanges;
+        
+        // Save if there were changes
+        if (hasChanges) {
             itemRepository.save(itemToUpdate);
         }
-
+        
         return 0;
+    }
+    
+    private boolean updateBasicField(String newValue, java.util.function.Supplier<String> getter, java.util.function.Consumer<String> setter) {
+        if (newValue == null || newValue.isBlank() || newValue.equals(getter.get())) {
+            return false;
+        }
+        setter.accept(newValue);
+        return true;
+    }
+    
+    private boolean updatePriceField(BigDecimal newValue, java.util.function.Supplier<BigDecimal> getter, java.util.function.Consumer<BigDecimal> setter) {
+        if (newValue == null || newValue.equals(getter.get())) {
+            return false;
+        }
+        setter.accept(newValue);
+        return true;
+    }
+    
+    private boolean updateItemType(ItemDTO itemDTO, Item item) {
+        if (!hasItemTypeUpdate(itemDTO)) {
+            return false;
+        }
+        
+        ItemType currentType = item.getItemType();
+        String gender = getOrDefault(itemDTO.getGender(), currentType::getGender);
+        String category = getOrDefault(itemDTO.getCategory(), currentType::getCategory);
+        String subcategory = getOrDefault(itemDTO.getSubcategory(), currentType::getSubcategory);
+        
+        if (isItemTypeChanged(gender, category, subcategory, currentType)) {
+            ItemType newItemType = itemTypeRepository.findByGenderAndCategoryAndSubcategory(
+                gender, category, subcategory);
+            
+            if (newItemType != null) {
+                item.setItemType(newItemType);
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    private boolean hasItemTypeUpdate(ItemDTO itemDTO) {
+        return itemDTO.getGender() != null || itemDTO.getCategory() != null || itemDTO.getSubcategory() != null;
+    }
+    
+    private String getOrDefault(String value, java.util.function.Supplier<String> defaultValueSupplier) {
+        return value != null ? value : defaultValueSupplier.get();
+    }
+    
+    private boolean isItemTypeChanged(String gender, String category, String subcategory, ItemType currentType) {
+        return !gender.equals(currentType.getGender()) ||
+               !category.equals(currentType.getCategory()) ||
+               !subcategory.equals(currentType.getSubcategory());
     }
 
     public Staff login(String usernameOrEmail, String password) {

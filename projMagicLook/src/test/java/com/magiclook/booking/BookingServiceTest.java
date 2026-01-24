@@ -685,9 +685,11 @@ class BookingServiceTest {
         when(itemRepository.findById(anyInt()))
             .thenReturn(Optional.empty());
         
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        // Extrair a chamada para uma variável antes de usar no assertThrows
+        org.junit.jupiter.api.function.Executable call = () -> 
             bookingService.createSimpleBooking(1, startDate, endDate, testUser);
-        });
+        
+        RuntimeException exception = assertThrows(RuntimeException.class, call);
         
         assertEquals("Item não encontrado", exception.getMessage());
         verify(itemRepository, times(1)).findById(1);
@@ -710,9 +712,11 @@ class BookingServiceTest {
             any(UUID.class), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
             .thenReturn(1L); // Indica que há sobreposição, não disponível
         
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        // Extrair a chamada para uma variável antes de usar no assertThrows
+        org.junit.jupiter.api.function.Executable call = () -> 
             bookingService.createSimpleBooking(testItem.getItemId(), startDate, endDate, testUser);
-        });
+        
+        RuntimeException exception = assertThrows(RuntimeException.class, call);
         
         assertEquals("Item não disponível nas datas selecionadas", exception.getMessage());
         verify(itemRepository, times(1)).findById(testItem.getItemId());
@@ -733,25 +737,14 @@ class BookingServiceTest {
         
         when(bookingRepository.countOverlappingBookingsForItemSingle(
             any(UUID.class), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
-            .thenReturn(0L); // Para isItemAvailable
-        
-        // Mas para findAvailableItemSingleForDates, vamos retornar null
-        // Precisamos mockar o método findAvailableItemSingleForDates indiretamente
-        // Como é um método privado, vamos simular a situação onde não há ItemSingle disponível
-        // Vamos garantir que a consulta para encontrar ItemSingle disponível falhe
-        when(itemSingleRepository.findByItem_ItemId(testItem.getItemId()))
-            .thenReturn(List.of(testItemSingle)) // Para isItemAvailable
-            .thenReturn(List.of()); // Para a segunda chamada em findAvailableItemSingleForDates
-        
-        // Ou podemos mockar para que countOverlappingBookingsForItemSingle retorne 1 na segunda chamada
-        when(bookingRepository.countOverlappingBookingsForItemSingle(
-            any(UUID.class), any(Date.class), any(Date.class), any(Date.class), any(Date.class)))
             .thenReturn(0L) // Para isItemAvailable
             .thenReturn(1L); // Para findAvailableItemSingleForDates
         
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        // Extrair a chamada para uma variável antes de usar no assertThrows
+        org.junit.jupiter.api.function.Executable call = () -> 
             bookingService.createSimpleBooking(testItem.getItemId(), startDate, endDate, testUser);
-        });
+        
+        RuntimeException exception = assertThrows(RuntimeException.class, call);
         
         assertEquals("Nenhuma unidade disponível para as datas selecionadas", exception.getMessage());
         verify(itemRepository, times(1)).findById(testItem.getItemId());
