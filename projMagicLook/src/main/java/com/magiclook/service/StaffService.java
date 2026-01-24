@@ -77,17 +77,16 @@ public class StaffService {
         String idPart = (itemId != null) ? String.valueOf(itemId) : UUID.randomUUID().toString().substring(0, 8);
         String fileName = String.format("item_%s_%s", idPart, safeOriginal);
 
+        // Read bytes once to avoid stream exhaustion issues with large files
+        byte[] imageBytes = image.getBytes();
+
         // Save to source
         Path srcFilePath = srcUploadPath.resolve(fileName);
-        try (java.io.InputStream inputStream = image.getInputStream()) {
-            Files.copy(inputStream, srcFilePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-        }
+        Files.write(srcFilePath, imageBytes);
 
         // Save to target
         Path targetFilePath = targetUploadPath.resolve(fileName);
-        try (java.io.InputStream inputStream = image.getInputStream()) {
-            Files.copy(inputStream, targetFilePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-        }
+        Files.write(targetFilePath, imageBytes);
 
         return "/" + normalizedDir.replace("\\", "/") + "/" + fileName;
     }

@@ -13,7 +13,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -463,7 +462,7 @@ class StaffServiceTest {
         void saveImage_withValidFileAndItemId_shouldSaveSuccessfully() throws IOException {
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("test-image.jpg");
-            when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
+            when(mockFile.getBytes()).thenReturn("test".getBytes());
 
             String result = staffService.saveImage(mockFile, 123);
 
@@ -471,7 +470,7 @@ class StaffServiceTest {
             assertTrue(result.startsWith("/"));
             assertTrue(result.contains(testUploadDir.replace("\\", "/")));
             assertTrue(result.endsWith("item_123_test-image.jpg"));
-            verify(mockFile, atLeastOnce()).getInputStream();
+            verify(mockFile).getBytes();
         }
 
         @Test
@@ -479,7 +478,7 @@ class StaffServiceTest {
         void saveImage_withNullItemId_shouldUseUUID() throws IOException {
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("photo.png");
-            when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
+            when(mockFile.getBytes()).thenReturn("test".getBytes());
 
             String result = staffService.saveImage(mockFile, null);
 
@@ -487,7 +486,7 @@ class StaffServiceTest {
             assertTrue(result.contains("photo.png"));
             assertTrue(result.contains("item_"));
             assertTrue(result.matches(".*/item_[a-f0-9]{8}_photo\\.png"));
-            verify(mockFile, atLeastOnce()).getInputStream();
+            verify(mockFile).getBytes();
         }
 
         @Test
@@ -495,7 +494,7 @@ class StaffServiceTest {
         void saveImage_withSpecialCharacters_shouldSanitizeFilename() throws IOException {
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("my image!@#$%^&*()+file.jpg");
-            when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
+            when(mockFile.getBytes()).thenReturn("test".getBytes());
 
             String result = staffService.saveImage(mockFile, 42);
 
@@ -503,7 +502,7 @@ class StaffServiceTest {
             String sanitized = "my image!@#$%^&*()+file.jpg".replaceAll("[^a-zA-Z0-9._-]", "_");
             assertTrue(result.contains("item_42_" + sanitized));
             assertFalse(result.contains("!"));
-            verify(mockFile, atLeastOnce()).getInputStream();
+            verify(mockFile).getBytes();
         }
 
         @Test
@@ -522,7 +521,7 @@ class StaffServiceTest {
             String result = staffService.saveImage(mockFile, 123);
 
             assertNull(result);
-            verify(mockFile, never()).getInputStream();
+            verify(mockFile, never()).getBytes();
         }
 
         @Test
@@ -530,13 +529,13 @@ class StaffServiceTest {
         void saveImage_withNullOriginalFilename_shouldUseDefaultName() throws IOException {
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn(null);
-            when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
+            when(mockFile.getBytes()).thenReturn("test".getBytes());
 
             String result = staffService.saveImage(mockFile, 99);
 
             assertNotNull(result);
             assertTrue(result.contains("item_99_file"));
-            verify(mockFile, atLeastOnce()).getInputStream();
+            verify(mockFile).getBytes();
         }
 
         @Test
@@ -547,7 +546,7 @@ class StaffServiceTest {
 
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("test.jpg");
-            when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
+            when(mockFile.getBytes()).thenReturn("test".getBytes());
 
             String result = staffService.saveImage(mockFile, 1);
 
@@ -572,7 +571,7 @@ class StaffServiceTest {
         void saveImage_whenTransferFails_shouldThrowIOException() throws IOException {
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("test.jpg");
-            when(mockFile.getInputStream()).thenThrow(new IOException("Transfer failed"));
+            when(mockFile.getBytes()).thenThrow(new IOException("Transfer failed"));
 
             assertThrows(IOException.class, () -> {
                 staffService.saveImage(mockFile, 123);
@@ -584,7 +583,7 @@ class StaffServiceTest {
         void saveImage_shouldReturnPathWithForwardSlash() throws IOException {
             when(mockFile.isEmpty()).thenReturn(false);
             when(mockFile.getOriginalFilename()).thenReturn("image.jpg");
-            when(mockFile.getInputStream()).thenReturn(new ByteArrayInputStream("test".getBytes()));
+            when(mockFile.getBytes()).thenReturn("test".getBytes());
 
             String result = staffService.saveImage(mockFile, 1);
 
