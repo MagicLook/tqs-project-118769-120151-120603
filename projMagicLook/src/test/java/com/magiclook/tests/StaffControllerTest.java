@@ -262,7 +262,7 @@ class StaffControllerTest {
                 session, model
             );
 
-            assertEquals("staffDashboard", viewName);
+            assertEquals("staffItem", viewName);
             verify(model).addAttribute("error", "Tamanho inválido!");
         }
 
@@ -279,7 +279,7 @@ class StaffControllerTest {
                 session, model
             );
 
-            assertEquals("staffDashboard", viewName);
+            assertEquals("staffItem", viewName);
             verify(model).addAttribute("error", "Material inválido!");
         }
 
@@ -296,7 +296,7 @@ class StaffControllerTest {
                 session, model
             );
 
-            assertEquals("staffDashboard", viewName);
+            assertEquals("staffItem", viewName);
             verify(model).addAttribute("error", "Shop ou ItemType inválido!");
         }
 
@@ -368,7 +368,7 @@ class StaffControllerTest {
                 session, model
             );
 
-            assertEquals("staffDashboard", viewName);
+            assertEquals("staffItem", viewName);
             verify(model).addAttribute(eq("error"), contains("Erro ao adicionar item"));
         }
 
