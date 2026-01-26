@@ -2,10 +2,14 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="fragments/navbar :: head(~{::title})">
     <title>Reservar Item - MagicLook</title>
+</head>
+<body>
+    <div th:replace="fragments/navbar :: navbar"></div>
+    
     <style>
         .content-wrapper {
-            padding-top: 80px;
-            min-height: calc(100vh - 80px);
+            padding-top: 100px;
+            min-height: calc(100vh - 100px);
         }
         
         .magic-card {
@@ -119,10 +123,10 @@
         }
 
         .calendar-day.disabled {
-            background: #ff0000 !important;
+            background: #b4b4b4 !important;
             color: white !important;
             cursor: not-allowed !important;
-            border-color: #cc0000 !important;
+            border-color: #b4b4b4 !important;
             font-weight: bold !important;
         }
 
@@ -162,11 +166,42 @@
         .selected-dates strong {
             color: #b8860b;
         }
+
+        .item-image-container {
+            width: 100%;
+            max-height: 500px;
+            overflow: hidden;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .item-image-container img {
+            width: 75%;
+            height: auto;
+            max-height: 500px;
+            object-fit: cover;
+        }
+
+        .no-image-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .no-image-placeholder i {
+            font-size: 4rem;
+            color: #ccc;
+        }
     </style>
-</head>
-<body>
-    <div th:replace="fragments/navbar :: navbar"></div>
-    
+
     <div class="container content-wrapper">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 mb-0">
@@ -184,6 +219,11 @@
                 <!-- Informações do Item -->
                 <div class="card magic-card mb-4">
                     <div class="card-body">
+                        <!-- Item Image -->
+                        <div class="item-image-container" th:if="${item.imagePath != null and not item.imagePath.isEmpty()}">
+                            <img th:src="@{${item.imagePath}}" th:alt="${item.name}" class="img-fluid">
+                        </div>
+                        
                         <h4 th:text="${item.name}"></h4>
                         <div class="row mt-3">
                             <div class="col-6">
@@ -257,7 +297,7 @@
                                 <button type="submit" class="btn btn-magic" id="submitBtn" disabled>
                                     <i class="bi bi-calendar-check"></i> Confirmar Reserva
                                 </button>
-                                <a th:href="@{/magiclook/dashboard}" class="btn btn-outline-secondary">
+                                <a href="javascript:history.back()" class="btn btn-outline-secondary">
                                     <i class="bi bi-x-circle"></i> Cancelar
                                 </a>
                             </div>
@@ -375,7 +415,7 @@
                 
                 if (isDisabled) {
                     classes += ' disabled';
-                    styles += ' background: #ff0000 !important; color: white !important; border-color: #cc0000 !important; cursor: not-allowed !important;';
+                    // styles += ' background: #ff0000 !important; color: white !important; border-color: #cc0000 !important; cursor: not-allowed !important;';
                     if (day <= 5) console.log(`Data ${dateStr}: past=${isPast}, unavailable=${isUnavailable}, array=${JSON.stringify(unavailableDates.slice(0, 3))}`);
                 } else if (date.toDateString() === today.toDateString()) {
                     classes += ' today';

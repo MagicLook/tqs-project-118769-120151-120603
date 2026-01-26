@@ -26,12 +26,12 @@ public class StaffController {
     private static final Logger logger = LoggerFactory.getLogger(StaffController.class);
     
     // Constants
-    private static final String STAFF_DASHBOARD_VIEW = "staffDashboard";
     private static final String STAFF_LOGIN_VIEW = "staffLogin";
     private static final String STAFF_ITEM_VIEW = "staffItem";
     private static final String STAFF_ITEM_DETAILS_VIEW = "staffItemDetails";
     private static final String ERROR = "error";
     private static final String LOGGED_IN_STAFF = "loggedInStaff";
+    private static final String REDIRECT_STAFF_ITEM_VIEW = "redirect:/magiclook/staff/item";
     private static final String REDIRECT_STAFF_LOGIN = "redirect:/magiclook/staff/login";
     private static final String STAFF = "staff";
 
@@ -69,7 +69,7 @@ public class StaffController {
             session.setAttribute("shopName", staff.getShop().getName());
 
             logger.info("Staff login successful");
-            return "redirect:/magiclook/staff/dashboard";
+            return REDIRECT_STAFF_ITEM_VIEW;
         } else {
             logger.warn("Failed staff login attempt");
             model.addAttribute(ERROR, "Credenciais inválidas para staff!");
@@ -88,15 +88,7 @@ public class StaffController {
             return REDIRECT_STAFF_LOGIN;
         }
 
-        // Buscar itens da loja do staff
-        List<Item> items = itemService.getItemsByShop(staff.getShop());
-
-        model.addAttribute(STAFF, staff);
-        model.addAttribute("shop", staff.getShop());
-        model.addAttribute("items", items);
-        model.addAttribute("itemCount", items.size());
-
-        return STAFF_DASHBOARD_VIEW;
+        return REDIRECT_STAFF_ITEM_VIEW;
     }
 
     // ========== ADD ITEM ==========
@@ -144,15 +136,15 @@ public class StaffController {
             // Resto de validações
             if (result == -1) {
                 model.addAttribute(ERROR, "Tamanho inválido!");
-                return STAFF_DASHBOARD_VIEW;
+                return STAFF_ITEM_VIEW;
 
             } else if (result == -2) {
                 model.addAttribute(ERROR, "Material inválido!");
-                return STAFF_DASHBOARD_VIEW;
+                return STAFF_ITEM_VIEW;
 
             } else if (result == -3) {
                 model.addAttribute(ERROR, "Shop ou ItemType inválido!");
-                return STAFF_DASHBOARD_VIEW;
+                return STAFF_ITEM_VIEW;
             }
 
             // Guardar imagem se fornecida e persistir no item
@@ -164,11 +156,11 @@ public class StaffController {
 
             itemDTO.setImagePath(imagePath);
 
-            return "redirect:/magiclook/staff/dashboard";
+            return REDIRECT_STAFF_ITEM_VIEW;
 
         } catch (Exception e) {
             model.addAttribute(ERROR, "Erro ao adicionar item: " + e.getMessage());
-            return STAFF_DASHBOARD_VIEW;
+            return STAFF_ITEM_VIEW;
         }
     }
 
@@ -198,11 +190,17 @@ public class StaffController {
                     .toList();
         }
 
-        // Optional state filter: keep items that have at least one ItemSingle in that
-        // state
+        // Optional state filter: keep items that have at least one ItemSingle in that state
         if (state != null && !state.isBlank()) {
             state = state.trim().toUpperCase();
-            items = itemService.getAllItemsByState(state);
+            List<Item> itemsByState = itemService.getAllItemsByState(state);
+            // Intersection: keep only items that are in both lists
+            java.util.Set<Integer> stateItemIds = itemsByState.stream()
+                    .map(Item::getItemId)
+                    .collect(java.util.stream.Collectors.toSet());
+            items = items.stream()
+                    .filter(i -> stateItemIds.contains(i.getItemId()))
+                    .toList();
         }
 
         // Build map of itemId -> list of sizes
@@ -248,7 +246,7 @@ public class StaffController {
 
         if (item == null) {
             model.addAttribute(ERROR, "Item não encontrado");
-            return "redirect:/magiclook/staff/item";
+            return REDIRECT_STAFF_ITEM_VIEW;
         }
 
         model.addAttribute(STAFF, staff);
@@ -305,7 +303,7 @@ public class StaffController {
                 staffService.updateItemImage(itemId, imagePath);
             }
 
-            return "redirect:/magiclook/staff/item";
+            return REDIRECT_STAFF_ITEM_VIEW;
 
         } catch (Exception e) {
             Item item = itemService.getItemById(itemId).orElse(null);
@@ -361,7 +359,7 @@ public class StaffController {
 
         staffService.updateItemSingle(id, size, state, damageReason);
 
-        return "redirect:/magiclook/staff/item/" + itemId;
+        return REDIRECT_STAFF_ITEM_VIEW + "/" + itemId;
     }
 
     // ========== LOGOUT STAFF ==========
@@ -377,6 +375,6 @@ public class StaffController {
             session.removeAttribute("shopId");
             session.removeAttribute("shopName");
         }
-        return "redirect:/magiclook/staff/login?logout";
+        return REDIRECT_STAFF_LOGIN + "?logout";
     }
 }

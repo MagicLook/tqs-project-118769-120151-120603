@@ -34,6 +34,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.IOException;
+import org.junit.jupiter.api.AfterEach;
+import org.springframework.beans.factory.annotation.Value;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class StaffControllerIT {
@@ -53,6 +59,9 @@ class StaffControllerIT {
         @Autowired
         private ItemSingleRepository itemSingleRepository; // Add this to verify DB persistence
 
+        @Value("${app.upload.dir}")
+        private String uploadDir;
+
         private String seededUsername;
         private String seededPassword;
         private Shop seededShop;
@@ -68,6 +77,37 @@ class StaffControllerIT {
 
                 seededShop = staff.getShop();
                 seededShopId = seededShop.getShopId();
+        }
+
+        @AfterEach
+        void cleanupUploadedImages() {
+                // Clean up uploaded images from both source and target directories
+                String normalizedDir = uploadDir.startsWith("/") ? uploadDir.substring(1) : uploadDir;
+                
+                Path srcUploadPath = Paths.get("src/main/resources/static").toAbsolutePath().resolve(normalizedDir);
+                Path targetUploadPath = Paths.get("target/classes/static").toAbsolutePath().resolve(normalizedDir);
+                
+                cleanupDirectory(srcUploadPath);
+                cleanupDirectory(targetUploadPath);
+        }
+
+        private void cleanupDirectory(Path directory) {
+                if (Files.exists(directory)) {
+                        try {
+                                Files.walk(directory)
+                                        .filter(path -> !path.equals(directory))
+                                        .filter(path -> path.getFileName().toString().startsWith("item_"))
+                                        .forEach(path -> {
+                                                try {
+                                                        Files.deleteIfExists(path);
+                                                } catch (IOException ignored) {
+                                                        // Ignore deletion errors
+                                                }
+                                        });
+                        } catch (IOException ignored) {
+                                // Ignore walk errors
+                        }
+                }
         }
 
         @Test

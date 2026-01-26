@@ -66,7 +66,7 @@ class StaffControllerTest {
 
         String viewName = staffController.staffLogin(email, password, session, model);
 
-        assertEquals("redirect:/magiclook/staff/dashboard", viewName);
+        assertEquals("redirect:/magiclook/staff/item", viewName);
         verify(session).setAttribute("loggedInStaff", testStaff);
         verify(session).setAttribute("staffId", testStaff.getStaffId());
         verify(session).setAttribute("staffName", testStaff.getName());
@@ -87,7 +87,7 @@ class StaffControllerTest {
 
         String viewName = staffController.staffLogin(username, password, session, model);
 
-        assertEquals("redirect:/magiclook/staff/dashboard", viewName);
+        assertEquals("redirect:/magiclook/staff/item", viewName);
         verify(session).setAttribute("loggedInStaff", testStaff);
         verify(staffService).login(username, password);
     }
@@ -145,17 +145,13 @@ class StaffControllerTest {
     @Test
     void testShowStaffDashboard_WithLoggedInStaff_ShouldReturnDashboard() {
         when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-        when(itemService.getItemsByShop(testShop)).thenReturn(java.util.List.of());
 
         String viewName = staffController.showStaffDashboard(session, model);
 
-        assertEquals("staffDashboard", viewName);
-        verify(model).addAttribute("staff", testStaff);
-        verify(model).addAttribute("shop", testShop);
-        verify(model).addAttribute(eq("items"), any());
-        verify(model).addAttribute(eq("itemCount"), any());
+        assertEquals("redirect:/magiclook/staff/item", viewName);
         verify(session).getAttribute("loggedInStaff");
-        verify(itemService).getItemsByShop(testShop);
+        verifyNoInteractions(model);
+        verifyNoInteractions(itemService);
     }
 
     @Test

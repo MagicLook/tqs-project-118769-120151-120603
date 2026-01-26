@@ -2,7 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="fragments/navbar :: head(~{::title})">
     <title>Minhas Reservas - MagicLook</title>
+</head>
+<body>
+    <!-- Navbar -->
+    <div th:replace="fragments/navbar :: navbar"></div>
+   
     <style>
+        
         :root {
             --primary-color: #b8860b;
             --secondary-color: #8b6f3d;
@@ -58,7 +64,7 @@
         }
         
         .item-image-container {
-            height: 180px;
+            height: 300px;
             overflow: hidden;
             border-radius: 10px;
             position: relative;
@@ -162,6 +168,7 @@
         .stats-card {
             background: white;
             border-radius: 15px;
+            width: 45%;
             padding: 20px;
             text-align: center;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
@@ -213,11 +220,7 @@
             gap: 4px;
         }
     </style>
-</head>
-<body>
-    <!-- Navbar -->
-    <div th:replace="fragments/navbar :: navbar"></div>
-    
+ 
     <div class="container-fluid content-wrapper">
         <div class="container">
             <!-- Page Header -->
@@ -225,11 +228,11 @@
                 <div class="row align-items-center">
                     <div class="col-md-8">
                         <h1 class="mb-2">
-                            <i class="bi bi-calendar-check me-2"></i> Minhas Reservas
+                            Minhas Reservas
                         </h1>
                         <p class="lead mb-0">Gerencie todas as suas reservas num só lugar</p>
                     </div>
-                    <div class="col-md-4 text-end">
+                    <div class="col-md-4 d-flex justify-content-end">
                         <div class="stats-card">
                             <div class="stats-number" th:text="${bookings != null ? bookings.size() : 0}">0</div>
                             <small class="text-muted">Reservas encontradas</small>
@@ -265,7 +268,7 @@
                         </div>
                         <div class="col-md-2 d-flex">
                             <a th:href="@{/magiclook/my-bookings}" class="btn btn-clear w-100">
-                                <i class="bi bi-x-circle me-1"></i> Limpar
+                                Limpar
                             </a>
                         </div>
                     </div>
@@ -277,22 +280,6 @@
                 <div class="empty-state">
                     <i class="bi bi-calendar-x empty-state-icon"></i>
                     <h3 th:text="${filter != null or search != null} ? 'Nenhuma reserva encontrada' : 'Você ainda não tem reservas'"></h3>
-                    <p class="text-muted mb-4" th:if="${filter != null or search != null}">
-                        Não encontramos reservas com os filtros aplicados. Tente ajustar sua pesquisa.
-                    </p>
-                    <p class="text-muted mb-4" th:unless="${filter != null or search != null}">
-                        Explore nossa coleção e faça sua primeira reserva!
-                    </p>
-                    <div class="mt-3">
-                        <a th:href="@{/magiclook/items/men}" class="btn btn-primary me-2" 
-                           style="background: var(--primary-color); border-color: var(--primary-color);">
-                            <i class="bi bi-gender-male me-1"></i> Ver Coleção Masculina
-                        </a>
-                        <a th:href="@{/magiclook/items/women}" class="btn btn-primary" 
-                           style="background: var(--secondary-color); border-color: var(--secondary-color);">
-                            <i class="bi bi-gender-female me-1"></i> Ver Coleção Feminina
-                        </a>
-                    </div>
                 </div>
             </div>
             
@@ -442,16 +429,6 @@
                 <a th:href="@{/magiclook/dashboard}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-2"></i> Voltar ao Dashboard
                 </a>
-                <div>
-                    <a th:href="@{/magiclook/items/men}" class="btn btn-primary me-2"
-                       style="background: var(--primary-color); border-color: var(--primary-color);">
-                        <i class="bi bi-plus-circle me-2"></i> Nova Reserva Masculina
-                    </a>
-                    <a th:href="@{/magiclook/items/women}" class="btn btn-primary"
-                       style="background: var(--secondary-color); border-color: var(--secondary-color);">
-                        <i class="bi bi-plus-circle me-2"></i> Nova Reserva Feminina
-                    </a>
-                </div>
             </div>
         </div>
     </div>
