@@ -229,7 +229,7 @@ public class DatabaseLoader {
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item6, M));
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item6, L));
 
-            Item item7 = new Item(SUIT + " PIZHON", POLYESTER, BLUE, PIZHON, 
+            Item item7 = new Item(SUIT + " Monaco", POLYESTER, BLUE, PIZHON, 
                     new BigDecimal(100), new BigDecimal(1000), shop1, itemType8);
             item7.setImagePath(uploadDir + "/Fato3.webp");
             itemRepository.save(item7);
