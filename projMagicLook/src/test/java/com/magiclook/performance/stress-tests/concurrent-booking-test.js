@@ -61,13 +61,13 @@ export default function () {
   // Análise dos resultados
   if (bookingRes.status === 200) {
     successfulBookings.add(1);
-    console.log(`✅ VU ${__VU} conseguiu reservar!`);
+    console.log(`VU ${__VU} conseguiu reservar!`);
   } else if (bookingRes.status === 409 || bookingRes.status === 400) {
     conflictBookings.add(1);
-    console.log(`⚠️ VU ${__VU} - Conflito (já reservado)`);
+    console.log(`VU ${__VU} - Conflito (já reservado)`);
   } else {
     failedBookings.add(1);
-    console.log(`❌ VU ${__VU} - Erro: ${bookingRes.status}`);
+    console.log(`VU ${__VU} - Erro: ${bookingRes.status}`);
   }
   
   sleep(0.5);
