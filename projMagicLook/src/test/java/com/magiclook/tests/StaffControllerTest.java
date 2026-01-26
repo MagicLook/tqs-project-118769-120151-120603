@@ -195,28 +195,6 @@ class StaffControllerTest {
         }
 
         @Test
-        @DisplayName("GET /dashboard with empty items should redirect to items page")
-        void showStaffDashboard_withNoItems_shouldShowZeroCount() {
-            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-
-            String viewName = staffController.showStaffDashboard(session, model);
-
-            assertEquals("redirect:/magiclook/staff/item", viewName);
-            verifyNoInteractions(model);
-        }
-
-        @Test
-        @DisplayName("GET /dashboard with multiple items should redirect to items page")
-        void showStaffDashboard_withMultipleItems_shouldShowCorrectCount() {
-            when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-
-            String viewName = staffController.showStaffDashboard(session, model);
-
-            assertEquals("redirect:/magiclook/staff/item", viewName);
-            verifyNoInteractions(model);
-        }
-
-        @Test
         @DisplayName("Dashboard with staff having null shop should redirect to items page")
         void showStaffDashboard_withNullShop_shouldCallItemServiceWithNull() {
             Staff staffWithoutShop = new Staff();
