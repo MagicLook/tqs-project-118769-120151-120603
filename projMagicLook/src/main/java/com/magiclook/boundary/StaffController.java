@@ -69,7 +69,7 @@ public class StaffController {
             session.setAttribute("shopName", staff.getShop().getName());
 
             logger.info("Staff login successful");
-            return "redirect:/magiclook/staff/dashboard";
+            return "redirect:/magiclook/staff/item";
         } else {
             logger.warn("Failed staff login attempt");
             model.addAttribute(ERROR, "Credenciais inválidas para staff!");
@@ -88,15 +88,7 @@ public class StaffController {
             return REDIRECT_STAFF_LOGIN;
         }
 
-        // Buscar itens da loja do staff
-        List<Item> items = itemService.getItemsByShop(staff.getShop());
-
-        model.addAttribute(STAFF, staff);
-        model.addAttribute("shop", staff.getShop());
-        model.addAttribute("items", items);
-        model.addAttribute("itemCount", items.size());
-
-        return STAFF_DASHBOARD_VIEW;
+        return "redirect:/magiclook/staff/item";
     }
 
     // ========== ADD ITEM ==========
@@ -198,11 +190,17 @@ public class StaffController {
                     .toList();
         }
 
-        // Optional state filter: keep items that have at least one ItemSingle in that
-        // state
+        // Optional state filter: keep items that have at least one ItemSingle in that state
         if (state != null && !state.isBlank()) {
             state = state.trim().toUpperCase();
-            items = itemService.getAllItemsByState(state);
+            List<Item> itemsByState = itemService.getAllItemsByState(state);
+            // Intersection: keep only items that are in both lists
+            java.util.Set<Integer> stateItemIds = itemsByState.stream()
+                    .map(Item::getItemId)
+                    .collect(java.util.stream.Collectors.toSet());
+            items = items.stream()
+                    .filter(i -> stateItemIds.contains(i.getItemId()))
+                    .toList();
         }
 
         // Build map of itemId -> list of sizes

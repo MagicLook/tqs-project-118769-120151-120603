@@ -175,7 +175,7 @@ public class DatabaseLoader {
         // Init Items
         if (itemRepository.count() == 0) {
             // Macacões
-            Item item1 = new Item(JUMPSUIT + " " + SHORT, POLYESTER, BLUE, BEAUTY_BRAND, 
+            Item item1 = new Item(JUMPSUIT + " Valentina", POLYESTER, BLUE, BEAUTY_BRAND, 
                     new BigDecimal(95), new BigDecimal(950), shop1, itemType4);
             item1.setImagePath(uploadDir + "/Macacao1.jpeg");
             itemRepository.save(item1);
@@ -185,7 +185,7 @@ public class DatabaseLoader {
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item1, M));
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item1, L));
 
-            Item item2 = new Item(JUMPSUIT + " " + MEDIUM, POLYESTER, BLACK, BEAUTY_BRAND, 
+            Item item2 = new Item(JUMPSUIT + " Riveira", POLYESTER, BLACK, BEAUTY_BRAND, 
                     new BigDecimal(90), new BigDecimal(900), shop1, itemType5);
             item2.setImagePath(uploadDir + "/Macacao2.webp");
             itemRepository.save(item2);
@@ -196,7 +196,7 @@ public class DatabaseLoader {
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item2, M));
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item2, L));
 
-            Item item3 = new Item(JUMPSUIT + " " + LONG, POLYESTER, BEIGE, BEAUTY_BRAND, 
+            Item item3 = new Item(JUMPSUIT + " Madeline", POLYESTER, BEIGE, BEAUTY_BRAND, 
                     new BigDecimal(120), new BigDecimal(1200), shop1, itemType6);
             item3.setImagePath(uploadDir + "/Macacao3.jpg");
             itemRepository.save(item3);
@@ -207,7 +207,7 @@ public class DatabaseLoader {
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item3, M));
 
             // Fatos
-            Item item5 = new Item(SUIT + " " + SIMPLE, POLYESTER, BLACK, NICOLA, 
+            Item item5 = new Item(SUIT + " Oxford", POLYESTER, BLACK, NICOLA, 
                     new BigDecimal(90), new BigDecimal(900), shop1, itemType7);
             item5.setImagePath(uploadDir + "/Fato1.jpg");
             itemRepository.save(item5);
@@ -219,7 +219,7 @@ public class DatabaseLoader {
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item5, L));
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item5, XL));
 
-            Item item6 = new Item(SUIT + " " + THREE_PIECE, POLYESTER, BLACK, PAULINE, 
+            Item item6 = new Item(SUIT + " Cartier", POLYESTER, BLACK, PAULINE, 
                     new BigDecimal(110), new BigDecimal(1100), shop2, itemType8);
             item6.setImagePath(uploadDir + "/Fato2.jpg");
             itemRepository.save(item6);
@@ -229,7 +229,7 @@ public class DatabaseLoader {
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item6, M));
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item6, L));
 
-            Item item7 = new Item(SUIT + " " + THREE_PIECE, POLYESTER, BLUE, PIZHON, 
+            Item item7 = new Item(SUIT + " PIZHON", POLYESTER, BLUE, PIZHON, 
                     new BigDecimal(100), new BigDecimal(1000), shop1, itemType8);
             item7.setImagePath(uploadDir + "/Fato3.webp");
             itemRepository.save(item7);
@@ -241,7 +241,7 @@ public class DatabaseLoader {
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item7, XL));
 
             // Vestidos
-            Item item8 = new Item(DRESS + " " + SHORT, POLYESTER, BLUE, OKSANA_MUKHA, 
+            Item item8 = new Item(DRESS + " Lola", POLYESTER, BLUE, OKSANA_MUKHA, 
                     new BigDecimal(100), new BigDecimal(1000), shop1, itemType1);
             item8.setImagePath(uploadDir + "/Vestido1.jpg");
             itemRepository.save(item8);
@@ -250,7 +250,7 @@ public class DatabaseLoader {
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item8, S));
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item8, M));
 
-            Item item9 = new Item(DRESS + " " + SHORT, POLYESTER, RED, OKSANA_MUKHA, 
+            Item item9 = new Item(DRESS + " Carmen", POLYESTER, RED, OKSANA_MUKHA, 
                     new BigDecimal(150), new BigDecimal(1500), shop1, itemType1);
             item9.setImagePath(uploadDir + "/Vestido2.jpg");
             itemRepository.save(item9);
@@ -260,7 +260,7 @@ public class DatabaseLoader {
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item9, S));
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item9, M));
 
-            Item item10 = new Item(DRESS + " " + MEDIUM, POLYESTER, PINK, OKSANA_MUKHA, 
+            Item item10 = new Item(DRESS + " Peach", POLYESTER, PINK, OKSANA_MUKHA, 
                     new BigDecimal(180), new BigDecimal(1800), shop1, itemType2);
             item10.setImagePath(uploadDir + "/Vestido3.jpg");
             itemRepository.save(item10);
@@ -271,7 +271,7 @@ public class DatabaseLoader {
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item10, L));
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item10, XL));
 
-            Item item11 = new Item(DRESS + " " + MEDIUM, POLYESTER, BLACK, OKSANA_MUKHA, 
+            Item item11 = new Item(DRESS + " Gaia", POLYESTER, BLACK, OKSANA_MUKHA, 
                     new BigDecimal(200), new BigDecimal(2000), shop2, itemType2);
             item11.setImagePath(uploadDir + "/Vestido4.jpg");
             itemRepository.save(item11);
@@ -281,7 +281,7 @@ public class DatabaseLoader {
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item11, S));
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item11, M));
 
-            Item item12 = new Item(DRESS + " " + LONG, POLYESTER, BLACK, OKSANA_MUKHA, 
+            Item item12 = new Item(DRESS + " Monet", POLYESTER, BLACK, OKSANA_MUKHA, 
                     new BigDecimal(230), new BigDecimal(2300), shop2, itemType3);
             item12.setImagePath(uploadDir + "/Vestido5.jpg");
             itemRepository.save(item12);
@@ -290,7 +290,7 @@ public class DatabaseLoader {
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item12, M));
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item12, L));
 
-            Item item13 = new Item(DRESS + " " + LONG, POLYESTER, BLUE, OKSANA_MUKHA, 
+            Item item13 = new Item(DRESS + " Sky", POLYESTER, BLUE, OKSANA_MUKHA, 
                     new BigDecimal(250), new BigDecimal(2500), shop1, itemType3);
             item13.setImagePath(uploadDir + "/Vestido6.jpg");
             itemRepository.save(item13);
