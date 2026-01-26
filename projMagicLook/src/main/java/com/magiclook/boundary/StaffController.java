@@ -156,7 +156,7 @@ public class StaffController {
 
             itemDTO.setImagePath(imagePath);
 
-            return "redirect:/magiclook/staff/dashboard";
+            return "redirect:/magiclook/staff/item";
 
         } catch (Exception e) {
             model.addAttribute(ERROR, "Erro ao adicionar item: " + e.getMessage());

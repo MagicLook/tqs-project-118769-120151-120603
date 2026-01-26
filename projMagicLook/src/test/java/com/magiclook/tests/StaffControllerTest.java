@@ -96,7 +96,7 @@ class StaffControllerTest {
 
             String viewName = staffController.staffLogin("staff@test.com", "password123", session, model);
 
-            assertEquals("redirect:/magiclook/staff/dashboard", viewName);
+            assertEquals("redirect:/magiclook/staff/item", viewName);
             verify(session).setAttribute("loggedInStaff", testStaff);
             verify(session).setAttribute("staffId", testStaff.getStaffId());
             verify(session).setAttribute("staffName", testStaff.getName());
@@ -114,7 +114,7 @@ class StaffControllerTest {
 
             String viewName = staffController.staffLogin("staffuser", "password123", session, model);
 
-            assertEquals("redirect:/magiclook/staff/dashboard", viewName);
+            assertEquals("redirect:/magiclook/staff/item", viewName);
             verify(session, times(7)).setAttribute(anyString(), any());
         }
 
@@ -171,20 +171,15 @@ class StaffControllerTest {
     class DashboardTests {
 
         @Test
-        @DisplayName("GET /dashboard with logged staff should show dashboard with items")
+        @DisplayName("GET /dashboard with logged staff should redirect to items page")
         void showStaffDashboard_withLoggedInStaff_shouldReturnDashboard() {
-            List<Item> items = Arrays.asList(testItem);
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-            when(itemService.getItemsByShop(testShop)).thenReturn(items);
 
             String viewName = staffController.showStaffDashboard(session, model);
 
-            assertEquals("staffDashboard", viewName);
-            verify(model).addAttribute("staff", testStaff);
-            verify(model).addAttribute("shop", testShop);
-            verify(model).addAttribute("items", items);
-            verify(model).addAttribute("itemCount", 1);
-            verify(itemService).getItemsByShop(testShop);
+            assertEquals("redirect:/magiclook/staff/item", viewName);
+            verifyNoInteractions(model);
+            verifyNoInteractions(itemService);
         }
 
         @Test
@@ -200,45 +195,39 @@ class StaffControllerTest {
         }
 
         @Test
-        @DisplayName("GET /dashboard with empty items should show zero count")
+        @DisplayName("GET /dashboard with empty items should redirect to items page")
         void showStaffDashboard_withNoItems_shouldShowZeroCount() {
-            List<Item> emptyList = Collections.emptyList();
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-            when(itemService.getItemsByShop(testShop)).thenReturn(emptyList);
 
             String viewName = staffController.showStaffDashboard(session, model);
 
-            assertEquals("staffDashboard", viewName);
-            verify(model).addAttribute("items", emptyList);
-            verify(model).addAttribute("itemCount", 0);
+            assertEquals("redirect:/magiclook/staff/item", viewName);
+            verifyNoInteractions(model);
         }
 
         @Test
-        @DisplayName("GET /dashboard with multiple items should show correct count")
+        @DisplayName("GET /dashboard with multiple items should redirect to items page")
         void showStaffDashboard_withMultipleItems_shouldShowCorrectCount() {
-            List<Item> items = Arrays.asList(testItem, testItem, testItem);
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
-            when(itemService.getItemsByShop(testShop)).thenReturn(items);
 
-            staffController.showStaffDashboard(session, model);
+            String viewName = staffController.showStaffDashboard(session, model);
 
-            verify(model).addAttribute("itemCount", 3);
+            assertEquals("redirect:/magiclook/staff/item", viewName);
+            verifyNoInteractions(model);
         }
 
         @Test
-        @DisplayName("Dashboard with staff having null shop should call itemService with null")
+        @DisplayName("Dashboard with staff having null shop should redirect to items page")
         void showStaffDashboard_withNullShop_shouldCallItemServiceWithNull() {
             Staff staffWithoutShop = new Staff();
             staffWithoutShop.setStaffId(UUID.randomUUID());
             when(session.getAttribute("loggedInStaff")).thenReturn(staffWithoutShop);
-            when(itemService.getItemsByShop(null)).thenReturn(Collections.emptyList());
 
             String viewName = staffController.showStaffDashboard(session, model);
 
-            assertEquals("staffDashboard", viewName);
-            verify(itemService).getItemsByShop(null);
-            verify(model).addAttribute("staff", staffWithoutShop);
-            verify(model).addAttribute("shop", null);
+            assertEquals("redirect:/magiclook/staff/item", viewName);
+            verifyNoInteractions(model);
+            verifyNoInteractions(itemService);
         }
     }
 
@@ -277,7 +266,7 @@ class StaffControllerTest {
                 session, model
             );
 
-            assertEquals("redirect:/magiclook/staff/dashboard", viewName);
+            assertEquals("redirect:/magiclook/staff/item", viewName);
             verify(staffService).addItem(any(ItemDTO.class), eq("M"));
             verify(model, never()).addAttribute(eq("error"), anyString());
         }
@@ -348,7 +337,7 @@ class StaffControllerTest {
                 session, model
             );
 
-            assertEquals("redirect:/magiclook/staff/dashboard", viewName);
+            assertEquals("redirect:/magiclook/staff/item", viewName);
             verify(staffService).saveImage(eq(multipartFile), any());
         }
 
@@ -365,7 +354,7 @@ class StaffControllerTest {
                 session, model
             );
 
-            assertEquals("redirect:/magiclook/staff/dashboard", viewName);
+            assertEquals("redirect:/magiclook/staff/item", viewName);
             verify(staffService, never()).saveImage(any(), any());
         }
 
@@ -383,7 +372,7 @@ class StaffControllerTest {
                 session, model
             );
 
-            assertEquals("redirect:/magiclook/staff/dashboard", viewName);
+            assertEquals("redirect:/magiclook/staff/item", viewName);
             verify(staffService, never()).saveImage(any(), any());
         }
 
@@ -585,8 +574,10 @@ class StaffControllerTest {
         @Test
         @DisplayName("GET /item with state filter should filter by item state")
         void getItems_withStateFilter_shouldFilterByState() {
+            List<Item> allItems = Arrays.asList(testItem);
             List<Item> filteredItems = Arrays.asList(testItem);
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemsByShop(testShop)).thenReturn(allItems);
             when(itemService.getAllItemsByState("AVAILABLE")).thenReturn(filteredItems);
             when(itemService.getItems(testItem.getItemId())).thenReturn(new ArrayList<>());
 
@@ -600,8 +591,11 @@ class StaffControllerTest {
         @Test
         @DisplayName("GET /item with both search and state filter should apply both")
         void getItems_withSearchAndStateFilter_shouldApplyBoth() {
+            testItem.setName("Test Item");
+            List<Item> allItems = Arrays.asList(testItem);
             List<Item> filteredItems = Arrays.asList(testItem);
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
+            when(itemService.getItemsByShop(testShop)).thenReturn(allItems);
             when(itemService.getAllItemsByState("RENTED")).thenReturn(filteredItems);
             when(itemService.getItems(testItem.getItemId())).thenReturn(new ArrayList<>());
 

@@ -180,7 +180,7 @@
                         <div class="col-xxl-3 col-xl-4 col-md-6 d-flex align-items-stretch" th:each="item : ${items}">
                             <div class="item-card h-100 d-flex flex-column">
                                 <div class="position-relative">
-                                    <img th:src="${item.imagePath != null ? item.imagePath : '/items/default.jpg'}'"
+                                    <img th:src="${item.imagePath != null ? item.imagePath : '/items/default.jpg'}"
                                         class="item-image" th:alt="${item.name}">
                                 </div>
                                 <div class="p-3 d-flex flex-column flex-grow-1">
