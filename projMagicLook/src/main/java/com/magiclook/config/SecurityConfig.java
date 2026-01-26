@@ -23,7 +23,7 @@ public class SecurityConfig {
         // In production, CSRF protection should be enabled for state-changing operations
         http
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/index", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/", "/index", "/css/**", "/js/**", "/images/**", "/items/**").permitAll()
                 .requestMatchers("/user/**", "/staff/**", "/booking/**", "/item/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()

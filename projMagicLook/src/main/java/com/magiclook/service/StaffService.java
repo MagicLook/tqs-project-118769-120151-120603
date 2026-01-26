@@ -61,17 +61,6 @@ public class StaffService {
         // Normalize target directory
         String normalizedDir = uploadDir.startsWith("/") ? uploadDir.substring(1) : uploadDir;
 
-        // 1. Save to Source Directory (Persistence)
-        Path srcStaticBase = Paths.get("src/main/resources/static").toAbsolutePath();
-        Path srcUploadPath = srcStaticBase.resolve(normalizedDir);
-        Files.createDirectories(srcUploadPath);
-
-        // 2. Save to Target Directory (Runtime - immediate update)
-        // Try to locate target/classes/static relative to project root
-        Path targetStaticBase = Paths.get("target/classes/static").toAbsolutePath();
-        Path targetUploadPath = targetStaticBase.resolve(normalizedDir);
-        Files.createDirectories(targetUploadPath);
-
         String safeOriginal = image.getOriginalFilename() == null ? "file"
                 : image.getOriginalFilename().replaceAll("[^a-zA-Z0-9._-]", "_");
         String idPart = (itemId != null) ? String.valueOf(itemId) : UUID.randomUUID().toString().substring(0, 8);
@@ -80,13 +69,31 @@ public class StaffService {
         // Read bytes once to avoid stream exhaustion issues with large files
         byte[] imageBytes = image.getBytes();
 
-        // Save to source
-        Path srcFilePath = srcUploadPath.resolve(fileName);
-        Files.write(srcFilePath, imageBytes);
+        // Save to external uploads directory (works in both dev and Docker)
+        Path externalUploadPath = Paths.get(uploadDir).toAbsolutePath();
+        Files.createDirectories(externalUploadPath);
+        Path externalFilePath = externalUploadPath.resolve(fileName);
+        Files.write(externalFilePath, imageBytes);
+        logger.info("Image saved to external path: {}", externalFilePath);
 
-        // Save to target
-        Path targetFilePath = targetUploadPath.resolve(fileName);
-        Files.write(targetFilePath, imageBytes);
+        // In development, also save to src and target for hot-reload
+        Path srcStaticBase = Paths.get("src/main/resources/static");
+        if (Files.exists(srcStaticBase)) {
+            Path srcUploadPath = srcStaticBase.resolve(normalizedDir).toAbsolutePath();
+            Files.createDirectories(srcUploadPath);
+            Path srcFilePath = srcUploadPath.resolve(fileName);
+            Files.write(srcFilePath, imageBytes);
+            logger.info("Image saved to source path: {}", srcFilePath);
+
+            Path targetStaticBase = Paths.get("target/classes/static");
+            if (Files.exists(targetStaticBase.getParent())) {
+                Path targetUploadPath = targetStaticBase.resolve(normalizedDir).toAbsolutePath();
+                Files.createDirectories(targetUploadPath);
+                Path targetFilePath = targetUploadPath.resolve(fileName);
+                Files.write(targetFilePath, imageBytes);
+                logger.info("Image saved to target path: {}", targetFilePath);
+            }
+        }
 
         return "/" + normalizedDir.replace("\\", "/") + "/" + fileName;
     }

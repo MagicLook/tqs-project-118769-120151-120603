@@ -40,8 +40,10 @@ import java.nio.file.Paths;
 import java.io.IOException;
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 class StaffControllerIT {
 
         @LocalServerPort
@@ -81,9 +83,14 @@ class StaffControllerIT {
 
         @AfterEach
         void cleanupUploadedImages() {
-                // Clean up uploaded images from both source and target directories
+                // Clean up uploaded images from all directories
                 String normalizedDir = uploadDir.startsWith("/") ? uploadDir.substring(1) : uploadDir;
                 
+                // Clean external upload directory
+                Path externalUploadPath = Paths.get(uploadDir).toAbsolutePath();
+                cleanupDirectory(externalUploadPath);
+                
+                // Clean source and target directories (for development)
                 Path srcUploadPath = Paths.get("src/main/resources/static").toAbsolutePath().resolve(normalizedDir);
                 Path targetUploadPath = Paths.get("target/classes/static").toAbsolutePath().resolve(normalizedDir);
                 
