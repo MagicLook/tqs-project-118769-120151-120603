@@ -134,7 +134,7 @@
                                 <h2 class="h4 mb-0">Itens da Loja</h2>
                             </div>
                             <div class="col-auto">
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">
+                                <button class="btn btn-primary" id="btn-add-item" data-bs-toggle="modal" data-bs-target="#addItemModal">
                                     <i class="bi bi-plus-circle"></i> Adicionar Item
                                 </button>
                             </div>
@@ -274,7 +274,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Tamanho</label>
-                                <select name="size" class="form-select" required>
+                                <select id="sizeSelect"name="size" class="form-select" required>
                                     <option value="">Selecione o tamanho...</option>
                                     <option value="XS">XS</option>
                                     <option value="S">S</option>
@@ -289,11 +289,11 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Nome</label>
-                                <input name="name" class="form-control" placeholder="Ex: Vestido Rosa" required>
+                                <input id="nameItem" name="name" class="form-control" placeholder="Ex: Vestido Rosa" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Marca</label>
-                                <input name="brand" class="form-control" placeholder="Ex: Zara">
+                                <input id="brandItem" name="brand" class="form-control" placeholder="Ex: Zara">
                             </div>
                         </div>
 
@@ -307,7 +307,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Cor</label>
-                                <input name="color" class="form-control" placeholder="Ex: Rosa">
+                                <input id="colorItem" name="color" class="form-control" placeholder="Ex: Rosa">
                             </div>
                         </div>
 
@@ -331,12 +331,12 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Preço Original (€)</label>
-                                <input name="priceSale" type="number" class="form-control" step="0.01"
+                                <input id="priceSale" name="priceSale" type="number" class="form-control" step="0.01"
                                     placeholder="0.00" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Preço de Aluguel (€)</label>
-                                <input name="priceRent" type="number" class="form-control" step="0.01"
+                                <input id="priceRent" name="priceRent" type="number" class="form-control" step="0.01"
                                     placeholder="0.00" required>
                             </div>
                         </div>
