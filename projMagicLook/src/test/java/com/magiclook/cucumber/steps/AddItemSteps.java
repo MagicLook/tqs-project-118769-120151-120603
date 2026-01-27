@@ -10,8 +10,9 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
@@ -25,8 +26,8 @@ public class AddItemSteps {
 
     @Before
     public void setup() {
-        WebDriverManager.chromedriver().setup();
-        driver = new ChromeDriver();
+        WebDriverManager.firefoxdriver().setup();
+        driver = new FirefoxDriver();
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
@@ -39,69 +40,85 @@ public class AddItemSteps {
 
     @Given("that Camila is on the website")
     public void that_camila_is_on_the_website() {
-        // Assuming the app is running locally on port 8080
-        // You might need to change this if your test environment is different
         driver.get("http://localhost:8080/magiclook/staff/login");
+        
+        WebElement usernameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("usernameOrEmail")));
+        WebElement passwordField = driver.findElement(By.id("password"));
+        WebElement loginButton = driver.findElement(By.id("login-submit"));
 
-        // Log in first as staff
-        driver.findElement(By.id("usernameOrEmail")).sendKeys("admin");
-        driver.findElement(By.id("password")).sendKeys("admin123");
-        driver.findElement(By.cssSelector("button[type='submit']")).click();
+        usernameField.sendKeys("admin");
+        passwordField.sendKeys("admin123");
 
-        // Verify we are on dashboard or items page
-        wait.until(ExpectedConditions.urlContains("/dashboard"));
+        loginButton.click();
+
+        wait.until(ExpectedConditions.urlContains("/staff/item"));
+        assertTrue(driver.getCurrentUrl().contains("/staff/item"));
     }
 
     @When("she clicks to add an item")
     public void she_clicks_to_add_an_item() {
-        // Navigate to items page first if needed
-        driver.get("http://localhost:8080/magiclook/staff/item");
+        WebElement addItemButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("btn-add-item")));
+        addItemButton.click();
 
-        // Click the "Add Item" button
-        // Assuming there is a button with ID or Class.
-        // Based on typical bootstrap structure, let's assume a button for opening modal
-        WebElement addButton = wait.until(
-                ExpectedConditions.elementToBeClickable(By.cssSelector("button[data-bs-target='#createItemModal']")));
-        addButton.click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("addItemModal")));
+        assertTrue(driver.findElement(By.id("addItemModal")).isDisplayed());
     }
 
-    @And("specifies the item's characteristics")
+    @And("specifies the item characteristics")
     public void specifies_the_items_characteristics() {
-        // Wait for modal to be visible
-        WebElement modal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("createItemModal")));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("genderSelect")));
+        
+        Select genderSelect = new Select(driver.findElement(By.id("genderSelect")));
+        genderSelect.selectByValue("F");  // or selectByValue("F")
+        
+        Select sizeSelect = new Select(driver.findElement(By.id("sizeSelect")));
+        sizeSelect.selectByVisibleText("M");
+        
+        Select materialSelect = new Select(driver.findElement(By.id("materialSelect")));
+        materialSelect.selectByVisibleText("Seda");
 
-        // Fill form fields
-        modal.findElement(By.id("itemName")).sendKeys("Selenium Test Dress");
-        modal.findElement(By.id("itemBrand")).sendKeys("TestBrand");
-        modal.findElement(By.id("itemMaterial")).sendKeys("Silk");
-        modal.findElement(By.id("itemColor")).sendKeys("Red");
-        modal.findElement(By.id("itemSize")).sendKeys("M");
-        modal.findElement(By.id("itemPriceRent")).sendKeys("50.0");
-        modal.findElement(By.id("itemPriceSale")).sendKeys("150.0");
+        Select categorySelect = new Select(driver.findElement(By.id("categorySelect")));
+        categorySelect.selectByVisibleText("Vestido");
 
-        // Select dropdowns if necessary (Category/Subcategory)
-        // new
+        Select subcategorySelect = new Select(driver.findElement(By.id("subcategorySelect")));
+        subcategorySelect.selectByVisibleText("Médio");
+        
+        WebElement nameInput = driver.findElement(By.id("nameItem"));
+        nameInput.clear();
+        nameInput.sendKeys("Vestido Teste Cucumber");
+        
+        WebElement brandInput = driver.findElement(By.id("brandItem"));
+        brandInput.clear();
+        brandInput.sendKeys("TestBrand");
+        
+        WebElement colorInput = driver.findElement(By.id("colorItem"));
+        colorInput.clear();
+        colorInput.sendKeys("Azul");
+        
+        WebElement priceSaleInput = driver.findElement(By.id("priceSale"));
+        priceSaleInput.clear();
+        priceSaleInput.sendKeys("1000.00");
+        
+        WebElement priceRentInput = driver.findElement(By.id("priceRent"));
+        priceRentInput.clear();
+        priceRentInput.sendKeys("100.00");
     }
 
-    @And("submits")
+    @And("submits the form")
     public void submits() {
-        // Click save button in the modal
-        // Assuming the submit button is inside the form in the modal
-        driver.findElement(By.cssSelector("#createItemModal button[type='submit']")).click();
+        WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("submitBtn")));
+        submitButton.click();
     }
 
     @Then("she receives confirmation that the item has been added")
     public void she_receives_confirmation_that_the_item_has_been_added() {
-        // Verify success message or redirection
-        // Checking for a success alert or the item appearing in the list
-
-        // Option A: Check URL or Alert
-
-        // Option B: Check if item is in the table
-        // Reload page to be sure
-        driver.get("http://localhost:8080/magiclook/staff/item");
-        boolean itemFound = wait
-                .until(ExpectedConditions.textToBePresentInElementLocated(By.tagName("body"), "Selenium Test Dress"));
-        assertTrue(itemFound, "The added item was not found on the page.");
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("addItemModal")));
+        
+        String itemName = "Vestido Teste Cucumber";
+        WebElement addedItem = wait.until(ExpectedConditions.visibilityOfElementLocated(
+            By.xpath("//*[contains(text(), '" + itemName + "')]")
+        ));
+        
+        assertTrue(addedItem.isDisplayed(), "Item '" + itemName + "' should be visible on the page");
     }
 }
