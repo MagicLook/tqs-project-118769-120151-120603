@@ -281,9 +281,9 @@
                                 </label>
                                 <div class="calendar-wrapper">
                                     <div class="calendar-header">
-                                        <button type="button" onclick="previousMonth()">&larr;</button>
+                                        <button type="button" id="btn-prev-month" onclick="previousMonth()">&larr;</button>
                                         <h5 id="monthYear"></h5>
-                                        <button type="button" onclick="nextMonth()">&rarr;</button>
+                                        <button type="button" id="btn-next-month" onclick="nextMonth()">&rarr;</button>
                                     </div>
                                     <div id="calendar" class="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; width: 100%; padding: 0; margin: 0;"></div>
                                     <div id="selectedDatesDisplay" class="selected-dates">
