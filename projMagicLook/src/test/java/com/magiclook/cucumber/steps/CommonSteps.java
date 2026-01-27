@@ -33,6 +33,18 @@ public class CommonSteps {
         this.wait = wait;
     }
 
+    @Given("that Alice is on the website")
+    public void alice_is_on_the_website() {
+        driver.get("http://localhost:8080/magiclook/user/login");
+        WebElement usernameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("usernameOrEmail")));
+        WebElement passwordField = driver.findElement(By.id("password"));
+        WebElement loginButton = driver.findElement(By.id("login-submit"));
+        usernameField.sendKeys("alice");
+        passwordField.sendKeys("alice123");
+        loginButton.click();
+        wait.until(ExpectedConditions.urlContains("/user/item"));
+    }
+
     @Given("that Camila is on the website")
     public void camila_is_on_the_website() {
         driver.get("http://localhost:8080/magiclook/staff/login");
