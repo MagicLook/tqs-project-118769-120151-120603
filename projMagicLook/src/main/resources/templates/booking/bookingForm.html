@@ -440,7 +440,7 @@
                     }
                 }
 
-                html += `<div class="${classes}" style="${styles}" onclick="selectDate('${dateStr}')">${day}</div>`;
+                html += `<div class="${classes}" style="${styles}" name="${dateStr}" onclick="selectDate('${dateStr}')">${day}</div>`;
             }
 
             const calendarElement = document.getElementById('calendar');

@@ -5,5 +5,5 @@ Feature: Report damaged item
     Scenario: Successfully report a damaged item
         Given that Camila is on the website
         When she searches for the item
-        And changes its status to ”Danificado" ,providing a description of the garment's condition,
+        And changes its status to Danificado, providing a description of the garment's condition,
         Then she receives confirmation of the operation

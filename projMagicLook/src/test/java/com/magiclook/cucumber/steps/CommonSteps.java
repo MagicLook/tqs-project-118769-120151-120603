@@ -17,8 +17,6 @@ public class CommonSteps {
     public WebDriver driver;
     public WebDriverWait wait;
 
-    public CommonSteps() {}
-
     @Before
     public void setup() {
         WebDriverManager.firefoxdriver().setup();
@@ -35,14 +33,14 @@ public class CommonSteps {
 
     @Given("that Alice is on the website")
     public void alice_is_on_the_website() {
-        driver.get("http://localhost:8080/magiclook/user/login");
-        WebElement usernameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("usernameOrEmail")));
+        driver.get("http://localhost:8080/magiclook/login");
+        WebElement usernameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
         WebElement passwordField = driver.findElement(By.id("password"));
         WebElement loginButton = driver.findElement(By.id("login-submit"));
-        usernameField.sendKeys("alice");
-        passwordField.sendKeys("alice123");
+        usernameField.sendKeys("maria");
+        passwordField.sendKeys("maria?");
         loginButton.click();
-        wait.until(ExpectedConditions.urlContains("/user/item"));
+        wait.until(ExpectedConditions.urlContains("magiclook/dashboard"));
     }
 
     @Given("that Camila is on the website")
@@ -60,5 +58,27 @@ public class CommonSteps {
 
         wait.until(ExpectedConditions.urlContains("/staff/item"));
         assertTrue(driver.getCurrentUrl().contains("/staff/item"));
+    }
+
+    @Given("that Alice is on the Mulher page")
+    public void alice_is_on_mulher_page() {
+        driver.get("http://localhost:8080/magiclook/login");
+        
+        WebElement usernameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("username")));
+        WebElement passwordField = driver.findElement(By.id("password"));
+        WebElement loginButton = driver.findElement(By.id("login-submit"));
+        
+        usernameField.sendKeys("maria");
+        passwordField.sendKeys("maria?");
+        
+        loginButton.click();
+        
+        wait.until(ExpectedConditions.urlContains("magiclook/dashboard"));
+        
+        WebElement mulherNav = wait.until(ExpectedConditions.elementToBeClickable(By.id("womenItemsLink")));
+        mulherNav.click();
+
+        wait.until(driver -> driver.getCurrentUrl().contains("items/women"));
+        assertTrue(driver.getCurrentUrl().contains("items/women"), "URL should contain 'items/women'");
     }
 }
