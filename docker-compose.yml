@@ -48,6 +48,29 @@ services:
     networks:
       - monitoring
 
+  pyrra-api:
+    image: ghcr.io/pyrra-dev/pyrra:v0.7.0
+    restart: always
+    command:
+      - api
+      - --prometheus-url=http://prometheus:9090
+      - --prometheus-external-url=http://localhost:9090
+      - --api-url=http://pyrra-filesystem:9444
+    ports:
+      - "9099:9099"
+
+  pyrra-filesystem:
+    image: ghcr.io/pyrra-dev/pyrra:v0.7.0
+    restart: always
+    user: root
+    command:
+      - filesystem
+      - --prometheus-url=http://prometheus:9090
+      - --generic-rules=true
+    volumes:
+      - ./config/slos:/etc/pyrra
+      - ./config/rules:/etc/prometheus/pyrra
+
 volumes:
   grafana-data:
   grafana-conf:
