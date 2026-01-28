@@ -3,7 +3,6 @@ package com.magiclook.cucumber.steps;
 import io.cucumber.java.After;
 import io.cucumber.java.en.*;
 
-import org.checkerframework.checker.units.qual.s;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
