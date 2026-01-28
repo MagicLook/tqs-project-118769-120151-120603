@@ -78,7 +78,7 @@ public class CommonSteps {
         WebElement mulherNav = wait.until(ExpectedConditions.elementToBeClickable(By.id("womenItemsLink")));
         mulherNav.click();
 
-        wait.until(driver -> driver.getCurrentUrl().contains("items/women"));
+        wait.until(ExpectedConditions.urlContains("items/women"));
         assertTrue(driver.getCurrentUrl().contains("items/women"), "URL should contain 'items/women'");
     }
 }

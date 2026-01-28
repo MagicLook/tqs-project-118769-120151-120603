@@ -2,6 +2,8 @@ package com.magiclook.cucumber.steps;
 
 import io.cucumber.java.After;
 import io.cucumber.java.en.*;
+
+import org.checkerframework.checker.units.qual.s;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -24,19 +26,11 @@ public class ViewItemSteps {
 
 	@When("she searches for the clothing she wants to view")
 	public void she_searches_for_clothing_to_view() {
-		WebElement searchInput = commonSteps.wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("searchInput")));
-		
-		// Pick the first available item name by id 'itemNameText'
-		WebElement firstItemNameElem = commonSteps.wait.until(
-			ExpectedConditions.visibilityOfElementLocated(By.id("itemNameText"))
+		java.util.List<WebElement> itemCards = commonSteps.wait.until(
+			ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector("div.item-card"))
 		);
-		searchedItemName = firstItemNameElem.getText().trim();
-		
-        searchInput.clear();
-		searchInput.sendKeys(searchedItemName);
-		
-        WebElement searchBtn = commonSteps.wait.until(ExpectedConditions.elementToBeClickable(By.id("searchBtn")));
-	    searchBtn.click();
+		assert !itemCards.isEmpty() : "No items found in staff item page.";
+        searchedItemName = itemCards.get(0).findElement(By.cssSelector("h6, .item-name")).getText();
 	}
 
 	@And("she clicks on the item")
