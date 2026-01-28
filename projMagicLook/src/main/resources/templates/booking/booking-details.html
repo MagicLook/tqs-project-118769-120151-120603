@@ -255,7 +255,7 @@
             <button onclick="history.back()" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Voltar
             </button>
-            <button th:if="${canCancel}" type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+            <button th:if="${canCancel}" id="cancelButton" type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
                 Cancelar Reserva
             </button>
         </div>
@@ -463,7 +463,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Voltar</button>
                         <form th:action="@{'/magiclook/my-bookings/' + ${booking.bookingId} + '/cancel'}" method="post">
-                                <button type="submit" class="btn btn-danger">Sim, Cancelar</button>
+                                <button id="confirmCancelButton" type="submit" class="btn btn-danger">Sim, Cancelar</button>
                         </form>
                     </div>
                 </div>

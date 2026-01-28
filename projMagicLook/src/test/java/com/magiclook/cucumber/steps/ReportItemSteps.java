@@ -25,7 +25,7 @@ public class ReportItemSteps {
         verDetalhesBtn.click();
     }
 
-    @And("she changes its status to \"Damaged\" and provides a description of the garment's condition")
+    @When("changes its status to Danificado, providing a description of the garment's condition,")
     public void she_changes_status_to_damaged_and_provides_description() {
         WebElement firstEditarBtn = commonSteps.wait.until(ExpectedConditions.elementToBeClickable(
             By.xpath("//button[contains(., 'Editar')]")
@@ -35,7 +35,6 @@ public class ReportItemSteps {
         WebElement stateSelect = commonSteps.wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("editSingleState")));
         Select select = new Select(stateSelect);
         select.selectByVisibleText("Danificado");
-
 
         WebElement descInput = commonSteps.driver.findElement(By.id("editDamageReason"));
         descInput.clear();

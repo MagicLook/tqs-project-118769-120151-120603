@@ -16,67 +16,69 @@ import com.magiclook.data.*;
 @Component
 public class DatabaseLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(DatabaseLoader.class);
-    private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    
-    // Constants for shops
-    private static final String LOCATION1 = "Porto";
-    private static final String LOCATION2 = "Lisboa";
-    
-    // Constants for item types
-    private static final String DRESS = "Vestido";
-    private static final String SHORT = "Curto";
-    private static final String MEDIUM = "Médio";
-    private static final String LONG = "Comprido";
-    private static final String JUMPSUIT = "Macacão";
-    private static final String SUIT = "Fato";
-    private static final String SIMPLE = "Simples";
-    private static final String THREE_PIECE = "Três peças";
-    
-    // Constants for item attributes
-    private static final String BEAUTY_BRAND = "Beauty";
-    private static final String POLYESTER = "Poliéster";
-    private static final String AVAILABLE = "AVAILABLE";
-    private static final String BLACK = "Preto";
-    private static final String OKSANA_MUKHA = "Oksana Mukha";
-    
-    // Constants for colors
-    private static final String BLUE = "Azul";
-    private static final String BEIGE = "Bege";
-    private static final String RED = "Vermelho";
-    private static final String PINK = "Rosa";
-    
-    // Constants for other brands
-    private static final String NICOLA = "NICOLA";
-    private static final String PAULINE = "PAULINE";
-    private static final String PIZHON = "PIZHON";
-    
-    // Constants for sizes
-    private static final String XS = "XS";
-    private static final String S = "S";
-    private static final String M = "M";
-    private static final String L = "L";
-    private static final String XL = "XL";
+        private static final Logger logger = LoggerFactory.getLogger(DatabaseLoader.class);
+        private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    private final ShopRepository shopRepository;
-    private final UserRepository userRepository;
-    private final StaffRepository staffRepository;
-    private final ItemTypeRepository itemTypeRepository;
-    private final ItemRepository itemRepository;
-    private final ItemSingleRepository itemSingleRepository;
+        // Constants for shops
+        private static final String LOCATION1 = "Porto";
+        private static final String LOCATION2 = "Lisboa";
+
+        // Constants for item types
+        private static final String DRESS = "Vestido";
+        private static final String SHORT = "Curto";
+        private static final String MEDIUM = "Médio";
+        private static final String LONG = "Comprido";
+        private static final String JUMPSUIT = "Macacão";
+        private static final String SUIT = "Fato";
+        private static final String SIMPLE = "Simples";
+        private static final String THREE_PIECE = "Três peças";
+
+        // Constants for item attributes
+        private static final String BEAUTY_BRAND = "Beauty";
+        private static final String POLYESTER = "Poliéster";
+        private static final String AVAILABLE = "AVAILABLE";
+        private static final String BLACK = "Preto";
+        private static final String OKSANA_MUKHA = "Oksana Mukha";
+
+        // Constants for colors
+        private static final String BLUE = "Azul";
+        private static final String BEIGE = "Bege";
+        private static final String RED = "Vermelho";
+        private static final String PINK = "Rosa";
+
+        // Constants for other brands
+        private static final String NICOLA = "NICOLA";
+        private static final String PAULINE = "PAULINE";
+        private static final String PIZHON = "PIZHON";
+
+        // Constants for sizes
+        private static final String XS = "XS";
+        private static final String S = "S";
+        private static final String M = "M";
+        private static final String L = "L";
+        private static final String XL = "XL";
+
+        private final ShopRepository shopRepository;
+        private final UserRepository userRepository;
+        private final StaffRepository staffRepository;
+        private final ItemTypeRepository itemTypeRepository;
+        private final ItemRepository itemRepository;
+        private final ItemSingleRepository itemSingleRepository;
+        private final BookingRepository bookingRepository;
 
     @Value("${app.upload.dir}")
     private String uploadDir;
 
     public DatabaseLoader(ShopRepository shopRepository, UserRepository userRepository,
                          StaffRepository staffRepository, ItemTypeRepository itemTypeRepository,
-                         ItemRepository itemRepository, ItemSingleRepository itemSingleRepository) {
+                         ItemRepository itemRepository, ItemSingleRepository itemSingleRepository, BookingRepository bookingRepository) {
         this.shopRepository = shopRepository;
         this.userRepository = userRepository;
         this.staffRepository = staffRepository;
         this.itemTypeRepository = itemTypeRepository;
         this.itemRepository = itemRepository;
         this.itemSingleRepository = itemSingleRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     @PostConstruct
@@ -298,6 +300,27 @@ public class DatabaseLoader {
             // Adicionar instâncias
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item13, S));
             itemSingleRepository.save(new ItemSingle(AVAILABLE, item13, M));
+
+
+            // Adicionar uma reserva para testes
+            java.time.LocalDate day1 = java.time.LocalDate.now().plusMonths(1).withDayOfMonth(1);
+            java.time.LocalDate day2 = day1.plusDays(1);
+            java.time.LocalDate day3 = day1.plusDays(2);
+            java.time.LocalDate day4 = day1.plusDays(3);
+            Booking booking1 = new Booking(
+                        java.sql.Date.valueOf(day1),
+                        java.sql.Date.valueOf(day2),
+                        java.sql.Date.valueOf(day3),
+                        java.sql.Date.valueOf(day4),
+                        "RESERVED",
+                        item1,
+                        userRepository.findByUsername("maria")
+            );
+
+            booking1.setTotalDays(4);
+            booking1.setTotalPrice(item1.getPriceRent().multiply(new BigDecimal(4)));
+
+            bookingRepository.save(booking1);
         }
     }
 }
