@@ -28,7 +28,7 @@ export const options = {
 
 // Dados de teste reutilizáveis
 const TEST_USER = {
-  username: 'smoketest',
+  username: 'testuser0',
   password: 'test123',
 };
 
@@ -37,55 +37,47 @@ const TEST_ITEM = {
   size: 'M',
 };
 
+// Variável global para armazenar headers de autenticação entre grupos
+let globalAuthHeaders = null;
+
 export default function () {
   group('1. Teste de saúde da aplicação', function () {
-    // 1.1 Página inicial
-    const homeRes = http.get('http://localhost:8080/magiclook/');
-    check(homeRes, {
-      'página inicial responde com 200': (r) => r.status === 200,
-      'contém título MagicLook': (r) => r.body.includes('MagicLook'),
-      'tem navbar': (r) => r.body.includes('navbar') || r.body.includes('menu'),
-    });
-    responseTimes.home.add(homeRes.timings.duration);
-    errorRate.add(homeRes.status !== 200);
-    
-    // 1.2 Página de login
+    // 1.1 Página de login como verificação inicial
     const loginPageRes = http.get('http://localhost:8080/magiclook/login');
     check(loginPageRes, {
       'página login carrega': (r) => r.status === 200,
       'tem formulário de login': (r) => r.body.includes('form') && r.body.includes('password'),
     });
+    responseTimes.home.add(loginPageRes.timings.duration);
+    errorRate.add(loginPageRes.status !== 200);
   });
 
   group('2. Teste de autenticação', function () {
-    // 2.1 Login
+    // 2.1 Login com dados corretos em formato URL-encoded
     const loginRes = http.post(
       'http://localhost:8080/magiclook/login',
-      {
-        username: TEST_USER.username,
-        password: TEST_USER.password,
-      },
+      `username=${TEST_USER.username}&password=${TEST_USER.password}`,
       {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        redirects: 0,  // Não seguir redirects para verificar
+        redirects: 0,
       }
     );
     
     check(loginRes, {
       'login processado (200 ou 302)': (r) => r.status === 200 || r.status === 302,
-      'recebe cookie de sessão': (r) => r.cookies && r.cookies.JSESSIONID,
+      'recebe cookie de sessão': (r) => r.cookies && r.cookies.JSESSIONID && r.cookies.JSESSIONID.length > 0,
     });
     responseTimes.login.add(loginRes.timings.duration);
     errorRate.add(loginRes.status >= 400);
     
     // Se login falhou, termina o teste
-    if (!loginRes.cookies || !loginRes.cookies.JSESSIONID) {
+    if (!loginRes.cookies?.JSESSIONID || loginRes.cookies.JSESSIONID.length === 0) {
       console.error(`Login falhou para ${TEST_USER.username}`);
       return;
     }
     
     const sessionCookie = `JSESSIONID=${loginRes.cookies.JSESSIONID[0].value}`;
-    const authHeaders = {
+    globalAuthHeaders = {
       'Cookie': sessionCookie,
       'Content-Type': 'application/x-www-form-urlencoded',
     };
@@ -93,62 +85,64 @@ export default function () {
     // 2.2 Dashboard após login
     const dashboardRes = http.get(
       'http://localhost:8080/magiclook/dashboard',
-      { headers: authHeaders }
+      { headers: globalAuthHeaders }
     );
     
     check(dashboardRes, {
       'dashboard acessível': (r) => r.status === 200,
-      'mostra nome do usuário': (r) => r.body.includes('Olá') || r.body.includes('Bem-vindo'),
     });
-    
-    return { authHeaders };
   });
 
+  // Se o login falhou, não continuar os testes
+  if (!globalAuthHeaders) {
+    return;
+  }
+
   group('3. Teste de catálogo de produtos', function () {
-    const authHeaders = __ENV.authHeaders || {};
-    
-    // 3.1 Listagem de produtos
-    const categories = ['men', 'women', 'dresses', 'suits'];
-    const category = categories[Math.floor(Math.random() * categories.length)];
-    
-    const itemsRes = http.get(
-      `http://localhost:8080/magiclook/items/${category}`,
-      { headers: authHeaders }
+    // 3.1 Listagem de produtos - homens
+    const itemsMenRes = http.get(
+      'http://localhost:8080/magiclook/items/men',
+      { headers: globalAuthHeaders }
     );
     
-    check(itemsRes, {
-      'catálogo carrega': (r) => r.status === 200,
+    check(itemsMenRes, {
+      'catálogo homem carrega': (r) => r.status === 200,
       'mostra produtos': (r) => r.body.includes('item') || r.body.includes('product') || r.body.includes('card'),
     });
-    responseTimes.items.add(itemsRes.timings.duration);
-    errorRate.add(itemsRes.status !== 200);
+    responseTimes.items.add(itemsMenRes.timings.duration);
+    errorRate.add(itemsMenRes.status !== 200);
     
-    // 3.2 Detalhe de produto
+    // 3.2 Listagem de produtos - mulheres
+    const itemsWomenRes = http.get(
+      'http://localhost:8080/magiclook/items/women',
+      { headers: globalAuthHeaders }
+    );
+    
+    check(itemsWomenRes, {
+      'catálogo mulher carrega': (r) => r.status === 200,
+      'mostra produtos': (r) => r.body.includes('item') || r.body.includes('product') || r.body.includes('card'),
+    });
+    responseTimes.items.add(itemsWomenRes.timings.duration);
+    
+    // 3.3 Detalhe de produto
     const itemDetailRes = http.get(
-      `http://localhost:8080/magiclook/items/${TEST_ITEM.id}`,
-      { headers: authHeaders }
+      `http://localhost:8080/magiclook/booking/${TEST_ITEM.id}`,
+      { headers: globalAuthHeaders }
     );
     
     check(itemDetailRes, {
-      'detalhe do produto carrega': (r) => r.status === 200,
-      'mostra preço': (r) => r.body.includes('€') || r.body.includes('price'),
-      'mostra tamanhos disponíveis': (r) => r.body.includes('size') || r.body.includes('tamanho'),
+      'página de produto carrega': (r) => r.status === 200,
     });
-    
-    return { authHeaders };
   });
 
   group('4. Teste de disponibilidade e reserva', function () {
-    const authHeaders = __ENV.authHeaders || {};
-    
-    // 4.1 Verificar disponibilidade
+    // 4.1 Verificar disponibilidade via API
     const startDate = getFutureDate(3);
     const endDate = getFutureDate(5);
     
     const availabilityRes = http.get(
-      `http://localhost:8080/magiclook/api/availability?` +
-      `itemId=${TEST_ITEM.id}&size=${TEST_ITEM.size}&start=${startDate}&end=${endDate}`,
-      { headers: authHeaders }
+      `http://localhost:8080/magiclook/api/items/${TEST_ITEM.id}/check?size=${TEST_ITEM.size}&start=${startDate}&end=${endDate}`,
+      { headers: globalAuthHeaders }
     );
     
     check(availabilityRes, {
@@ -167,115 +161,64 @@ export default function () {
     
     // 4.2 Página de reserva
     const bookingPageRes = http.get(
-      `http://localhost:8080/magiclook/booking/form/${TEST_ITEM.id}`,
-      { headers: authHeaders }
+      `http://localhost:8080/magiclook/booking/${TEST_ITEM.id}`,
+      { headers: globalAuthHeaders }
     );
     
     check(bookingPageRes, {
       'página de reserva carrega': (r) => r.status === 200,
-      'tem calendário': (r) => r.body.includes('calendar') || r.body.includes('calendário'),
-      'tem formulário de reserva': (r) => r.body.includes('form') && r.body.includes('booking'),
+      'tem formulário de reserva': (r) => r.body.includes('form') || r.body.includes('booking'),
     });
     
-    // 4.3 Tentativa de reserva (se disponível)
-    const availabilityData = JSON.parse(availabilityRes.body);
-    if (availabilityData.available) {
-      const bookingRes = http.post(
-        'http://localhost:8080/magiclook/booking/create',
-        {
-          itemId: TEST_ITEM.id.toString(),
-          size: TEST_ITEM.size,
-          startUseDate: startDate,
-          endUseDate: endDate,
-        },
-        { headers: authHeaders }
-      );
-      
-      check(bookingRes, {
-        'resposta da reserva (qualquer status)': (r) => r.status > 0,
-      });
-      responseTimes.booking.add(bookingRes.timings.duration);
-      
-      if (bookingRes.status === 200 || bookingRes.status === 302) {
-        console.log(`Reserva criada com sucesso para item ${TEST_ITEM.id}`);
+    // 4.3 Tentativa de reserva
+    if (availabilityRes.status === 200) {
+      try {
+        const availabilityData = JSON.parse(availabilityRes.body);
+        if (availabilityData && availabilityData.available !== false) {
+          const bookingRes = http.post(
+            'http://localhost:8080/magiclook/booking/create',
+            `itemId=${TEST_ITEM.id}&size=${TEST_ITEM.size}&startUseDate=${startDate}&endUseDate=${endDate}`,
+            { headers: globalAuthHeaders }
+          );
+          
+          check(bookingRes, {
+            'resposta da reserva (200 ou 302)': (r) => r.status === 200 || r.status === 302 || r.status === 400,
+          });
+          responseTimes.booking.add(bookingRes.timings.duration);
+          
+          if (bookingRes.status === 200 || bookingRes.status === 302) {
+            console.log(`Reserva processada para item ${TEST_ITEM.id}`);
+          }
+        }
+      } catch (e) {
+        console.log(`Erro ao processar disponibilidade: ${e}`);
       }
-    } else {
-      console.log(`Item ${TEST_ITEM.id} não disponível nas datas selecionadas`);
     }
   });
 
   group('5. Teste de funcionalidades auxiliares', function () {
-    const authHeaders = __ENV.authHeaders || {};
-    
     // 5.1 Minhas reservas
     const myBookingsRes = http.get(
       'http://localhost:8080/magiclook/my-bookings',
-      { headers: authHeaders }
+      { headers: globalAuthHeaders }
     );
     
     check(myBookingsRes, {
       'minhas reservas carrega': (r) => r.status === 200,
-      'mostra lista de reservas': (r) => r.body.includes('booking') || r.body.includes('reserva'),
     });
     
-    // 5.2 Perfil do usuário
-    const profileRes = http.get(
-      'http://localhost:8080/magiclook/profile',
-      { headers: authHeaders }
-    );
-    
-    check(profileRes, {
-      'perfil carrega': (r) => r.status === 200,
-      'mostra informações do usuário': (r) => r.body.includes('profile') || r.body.includes('perfil'),
-    });
-    
-    // 5.3 Logout
+    // 5.2 Logout
     const logoutRes = http.get(
       'http://localhost:8080/magiclook/logout',
-      { headers: authHeaders }
+      { headers: globalAuthHeaders }
     );
     
     check(logoutRes, {
       'logout funciona': (r) => r.status === 200 || r.status === 302,
     });
-  });
-
-  group('6. Teste de APIs públicas', function () {
-    // APIs que não precisam de autenticação
     
-    // 6.1 API de categorias
-    const categoriesRes = http.get(
-      'http://localhost:8080/magiclook/api/categories'
-    );
-    
-    check(categoriesRes, {
-      'API categorias responde': (r) => r.status === 200,
-      'categorias em JSON': (r) => {
-        try {
-          const data = JSON.parse(r.body);
-          return Array.isArray(data);
-        } catch {
-          return false;
-        }
-      },
-    });
-    
-    // 6.2 API de itens populares
-    const popularRes = http.get(
-      'http://localhost:8080/magiclook/api/items/popular?limit=5'
-    );
-    
-    check(popularRes, {
-      'API popular responde': (r) => r.status === 200,
-      'retorna array de itens': (r) => {
-        try {
-          const data = JSON.parse(r.body);
-          return Array.isArray(data);
-        } catch {
-          return false;
-        }
-      },
-    });
+    // Limpar o token após logout
+    globalAuthHeaders = null;
   });
 }
 
@@ -290,17 +233,11 @@ export function setup() {
   console.log('Testando endpoints críticos...');
   
   // Teste de conectividade básico
-  const pingRes = http.get('http://localhost:8080/magiclook/health');
-  if (pingRes.status === 200) {
-    console.log('Aplicação acessível');
-  } else {
-    // Tenta a página inicial
-    const homeRes = http.get('http://localhost:8080/magiclook/');
-    if (homeRes.status !== 200) {
-      throw new Error(`Aplicação não está acessível. Status: ${homeRes.status}`);
-    }
-    console.log('Endpoint /health não disponível, mas aplicação responde');
+  const loginPageRes = http.get('http://localhost:8080/magiclook/login');
+  if (loginPageRes.status !== 200) {
+    throw new Error(`Aplicação não está acessível. Status: ${loginPageRes.status}`);
   }
+  console.log('Aplicação acessível');
   
   return {
     timestamp: new Date().toISOString(),

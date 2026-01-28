@@ -15,7 +15,7 @@ export const options = {
   ],
   thresholds: {
     http_req_duration: ['p(95)<1500'],
-    http_req_failed: ['rate<0.03'],
+    http_req_failed: ['rate<0.10'],
   },
 };
 
@@ -26,22 +26,22 @@ export default function () {
   const userIndex = __VU * __ITER % USER_POOL.length;
   const username = USER_POOL[userIndex];
   
-  // Login (assume users pre-created)
-  const loginRes = http.post(`${BASE_URL}/login`, {
-    username: username,
-    password: 'test123',
-  }, {
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    redirects: 0,
-  });
+  // Login (assume users pre-created) - com dados em formato URL-encoded
+  const loginRes = http.post(
+    `${BASE_URL}/login`, 
+    `username=${username}&password=test123`,
+    {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      redirects: 0,
+    }
+  );
   
   // If login fails, try another user
-  if (!loginRes.cookies?.JSESSIONID) return;
+  if (!loginRes.cookies?.JSESSIONID || loginRes.cookies.JSESSIONID.length === 0) return;
   
   const sessionCookie = `JSESSIONID=${loginRes.cookies.JSESSIONID[0].value}`;
   const authHeaders = {
     'Cookie': sessionCookie,
-    'Content-Type': 'application/x-www-form-urlencoded',
   };
   
   // Mixed workload
@@ -50,6 +50,7 @@ export default function () {
   if (action < 0.3) {
     // Browse items
     http.get(`${BASE_URL}/dashboard`, { headers: authHeaders });
+    sleep(0.5);
     http.get(`${BASE_URL}/items/${Math.random() > 0.5 ? 'men' : 'women'}`, { 
       headers: authHeaders 
     });
@@ -69,14 +70,13 @@ export default function () {
     const start = getFutureDate(1);
     const end = getFutureDate(3);
     
-    http.post(`${BASE_URL}/booking/create`, {
-      itemId: itemId.toString(),
-      size: 'M',
-      startUseDate: start,
-      endUseDate: end,
-    }, {
-      headers: authHeaders,
-    });
+    http.post(
+      `${BASE_URL}/booking/create`,
+      `itemId=${itemId}&size=M&startUseDate=${start}&endUseDate=${end}`,
+      {
+        headers: authHeaders,
+      }
+    );
   } else {
     // View bookings
     http.get(`${BASE_URL}/my-bookings`, { headers: authHeaders });

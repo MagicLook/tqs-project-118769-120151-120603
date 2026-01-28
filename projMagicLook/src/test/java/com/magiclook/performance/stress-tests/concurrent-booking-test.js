@@ -24,20 +24,19 @@ export const options = {
 
 export default function () {
   // TODOS tentam reservar o MESMO item nas MESMAS datas
-  const targetItem = 123; // ID de um item popular
+  const targetItem = 1; // ID de um item popular
   const targetSize = 'M';
-  const startDate = '2024-12-15';
-  const endDate = '2024-12-17';
+  const startDate = getFutureDate(5);
+  const endDate = getFutureDate(7);
   
-  // Headers com session fake (ou usar login real)
+  // Headers com session real (executar com login real seria ideal)
   const headers = {
     'Content-Type': 'application/x-www-form-urlencoded',
-    'X-Test-User': `user-${__VU}-${__ITER}`,
   };
   
   // 1. Verificar disponibilidade
   const checkRes = http.get(
-    `http://localhost:8080/magiclook/api/availability?itemId=${targetItem}&size=${targetSize}`,
+    `http://localhost:8080/magiclook/api/items/${targetItem}/check?size=${targetSize}&start=${startDate}&end=${endDate}`,
     { headers }
   );
   
@@ -49,17 +48,12 @@ export default function () {
   // 2. Tentar reserva
   const bookingRes = http.post(
     'http://localhost:8080/magiclook/booking/create',
-    {
-      itemId: targetItem.toString(),
-      size: targetSize,
-      startUseDate: startDate,
-      endUseDate: endDate,
-    },
+    `itemId=${targetItem}&size=${targetSize}&startUseDate=${startDate}&endUseDate=${endDate}`,
     { headers }
   );
   
   // Análise dos resultados
-  if (bookingRes.status === 200) {
+  if (bookingRes.status === 200 || bookingRes.status === 302) {
     successfulBookings.add(1);
     console.log(`VU ${__VU} conseguiu reservar!`);
   } else if (bookingRes.status === 409 || bookingRes.status === 400) {
@@ -71,4 +65,10 @@ export default function () {
   }
   
   sleep(0.5);
+}
+
+function getFutureDate(daysFromNow) {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  return date.toISOString().split('T')[0];
 }

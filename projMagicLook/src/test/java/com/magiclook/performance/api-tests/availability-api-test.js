@@ -19,7 +19,7 @@ export const options = {
 
 export default function () {
   // Testar diferentes combinações
-  const items = Array.from({length: 100}, (_, i) => i + 1);
+  const items = Array.from({length: 10}, (_, i) => i + 1);
   const sizes = ['XS', 'S', 'M', 'L', 'XL'];
   const daysFromNow = Math.floor(Math.random() * 30) + 1;
   
@@ -33,8 +33,7 @@ export default function () {
   const startTime = Date.now();
   
   const res = http.get(
-    `http://localhost:8080/magiclook/api/availability?` +
-    `itemId=${params.itemId}&size=${params.size}&start=${params.start}&end=${params.end}`
+    `http://localhost:8080/magiclook/api/items/${params.itemId}/check?size=${params.size}&start=${params.start}&end=${params.end}`
   );
   
   availabilityTime.add(Date.now() - startTime);

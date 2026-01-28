@@ -1,6 +1,13 @@
 import http from 'k6/http';
 import { check, sleep, group } from 'k6';
-import { randomIntBetween, randomItem } from 'https://jslib.k6.io/k6-utils/1.2.0/index.js';
+
+function randomIntBetween(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomItem(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 const BASE_URL = 'http://localhost:8080/magiclook';
 
@@ -42,17 +49,13 @@ export default function () {
 
   // 1. Registro
   group('register', function () {
-    const registerRes = http.post(`${BASE_URL}/register`, {
-      username: userData.username,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      email: userData.email,
-      phone: userData.phone,
-      password: userData.password,
-      confirmPassword: userData.password,
-    }, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
+    const registerRes = http.post(
+      `${BASE_URL}/register`,
+      `username=${userData.username}&firstName=${userData.firstName}&lastName=${userData.lastName}&email=${userData.email}&phone=${userData.phone}&password=${userData.password}&confirmPassword=${userData.password}`,
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      }
+    );
     
     check(registerRes, {
       'register responded': (r) => r.status === 200 || r.status === 302,
@@ -64,15 +67,16 @@ export default function () {
   // 2. Login
   let sessionCookie = null;
   group('login', function () {
-    const loginRes = http.post(`${BASE_URL}/login`, {
-      username: userData.username,
-      password: userData.password,
-    }, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      redirects: 0,
-    });
+    const loginRes = http.post(
+      `${BASE_URL}/login`,
+      `username=${userData.username}&password=${userData.password}`,
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        redirects: 0,
+      }
+    );
     
-    if (loginRes.cookies && loginRes.cookies.JSESSIONID) {
+    if (loginRes.cookies && loginRes.cookies.JSESSIONID && loginRes.cookies.JSESSIONID.length > 0) {
       sessionCookie = `JSESSIONID=${loginRes.cookies.JSESSIONID[0].value}`;
     }
     
@@ -88,7 +92,6 @@ export default function () {
 
   const authHeaders = {
     'Cookie': sessionCookie,
-    'Content-Type': 'application/x-www-form-urlencoded',
   };
 
   // 3. Navegação
@@ -126,14 +129,13 @@ export default function () {
     const startDate = getFutureDate(1 + randomIntBetween(0, 7));
     const endDate = getFutureDate(3 + randomIntBetween(0, 7));
     
-    const bookingRes = http.post(`${BASE_URL}/booking/create`, {
-      itemId: item.id.toString(),
-      size: item.size,
-      startUseDate: startDate,
-      endUseDate: endDate,
-    }, {
-      headers: authHeaders,
-    });
+    const bookingRes = http.post(
+      `${BASE_URL}/booking/create`,
+      `itemId=${item.id}&size=${item.size}&startUseDate=${startDate}&endUseDate=${endDate}`,
+      {
+        headers: authHeaders,
+      }
+    );
     
     check(bookingRes, {
       'booking processed': (r) => r.status === 200 || r.status === 302,
@@ -146,12 +148,6 @@ export default function () {
   group('bookings_list', function () {
     http.get(`${BASE_URL}/my-bookings`, { headers: authHeaders });
     sleep(0.5);
-    
-    // Testar filtros
-    const filter = randomItem(['active', 'past', null]);
-    if (filter) {
-      http.get(`${BASE_URL}/my-bookings?filter=${filter}`, { headers: authHeaders });
-    }
     
     sleep(1);
   });
