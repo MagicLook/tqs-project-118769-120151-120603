@@ -28,3 +28,72 @@ jobs:
         run: |
           echo "Deployment complete!"
           docker-compose ps
+
+  performance-tests:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: magiclook
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: maven
+    
+    - name: Install k6
+      run: |
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6-stable.list
+        sudo apt-get update
+        sudo apt-get install -y k6
+    
+    - name: Wait for MySQL
+      run: |
+        for i in {1..30}; do
+          mysqladmin -h 127.0.0.1 -u root -proot ping && break
+          echo "Waiting for MySQL..."
+          sleep 1
+        done
+    
+    - name: Setup database
+      run: |
+        mysql -h 127.0.0.1 -u root -proot magiclook < projMagicLook/db/schema.sql || true
+    
+    - name: Start application
+      run: |
+        cd projMagicLook
+        mvn spring-boot:run -DskipTests &
+        sleep 30
+        # Verify application is running
+        curl -f http://localhost:8080/magiclook/ || exit 1
+    
+    - name: Run performance tests
+      working-directory: projMagicLook/src/test/java/com/magiclook/performance
+      run: bash run-performance-tests.sh
+      continue-on-error: true
+    
+    - name: Upload results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-test-results
+        path: projMagicLook/src/test/java/com/magiclook/performance/results/
+        if-no-files-found: ignore
