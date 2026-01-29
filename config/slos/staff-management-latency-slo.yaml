@@ -1,0 +1,17 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: staff-management-latency
+  labels:
+    pyrra.dev/team: magiclook
+    pyrra.dev/service: staff-management
+spec:
+  description: "RNF 2: Staff management operations must respond within 2 seconds for 95% of requests"
+  target: "95"
+  window: 30d
+  indicator:
+    latency:
+      success:
+        metric: http_server_requests_seconds_bucket{uri=~".*staff.*", le="2"}
+      total:
+        metric: http_server_requests_seconds_count{uri=~".*staff.*"}

@@ -1,0 +1,153 @@
+groups:
+- interval: 2m30s
+  name: success-rate-increase
+  rules:
+  - expr: sum by (status) (increase(http_server_requests_seconds_count[30d]))
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: http_server_requests_seconds:increase30d
+  - alert: SLOMetricAbsent
+    expr: absent(http_server_requests_seconds_count) == 1
+    for: 2m
+    labels:
+      service: overall
+      severity: critical
+      slo: success-rate
+      team: magiclook
+- interval: 30s
+  name: success-rate
+  rules:
+  - expr: sum(rate(http_server_requests_seconds_count{status=~"4..|5.."}[5m])) / sum(rate(http_server_requests_seconds_count[5m]))
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: http_server_requests_seconds:burnrate5m
+  - expr: sum(rate(http_server_requests_seconds_count{status=~"4..|5.."}[32m])) /
+      sum(rate(http_server_requests_seconds_count[32m]))
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: http_server_requests_seconds:burnrate32m
+  - expr: sum(rate(http_server_requests_seconds_count{status=~"4..|5.."}[1h4m])) /
+      sum(rate(http_server_requests_seconds_count[1h4m]))
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: http_server_requests_seconds:burnrate1h4m
+  - expr: sum(rate(http_server_requests_seconds_count{status=~"4..|5.."}[2h9m])) /
+      sum(rate(http_server_requests_seconds_count[2h9m]))
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: http_server_requests_seconds:burnrate2h9m
+  - expr: sum(rate(http_server_requests_seconds_count{status=~"4..|5.."}[6h26m]))
+      / sum(rate(http_server_requests_seconds_count[6h26m]))
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: http_server_requests_seconds:burnrate6h26m
+  - expr: sum(rate(http_server_requests_seconds_count{status=~"4..|5.."}[1d1h43m]))
+      / sum(rate(http_server_requests_seconds_count[1d1h43m]))
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: http_server_requests_seconds:burnrate1d1h43m
+  - expr: sum(rate(http_server_requests_seconds_count{status=~"4..|5.."}[4d6h51m]))
+      / sum(rate(http_server_requests_seconds_count[4d6h51m]))
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: http_server_requests_seconds:burnrate4d6h51m
+  - alert: ErrorBudgetBurn
+    expr: http_server_requests_seconds:burnrate5m{slo="success-rate"} > (14 * (1-0.99))
+      and http_server_requests_seconds:burnrate1h4m{slo="success-rate"} > (14 * (1-0.99))
+    for: 2m0s
+    labels:
+      exhaustion: 2d3h25m42s
+      long: 1h4m
+      service: overall
+      severity: critical
+      short: 5m
+      slo: success-rate
+      team: magiclook
+  - alert: ErrorBudgetBurn
+    expr: http_server_requests_seconds:burnrate32m{slo="success-rate"} > (7 * (1-0.99))
+      and http_server_requests_seconds:burnrate6h26m{slo="success-rate"} > (7 * (1-0.99))
+    for: 16m0s
+    labels:
+      exhaustion: 4d6h51m25s
+      long: 6h26m
+      service: overall
+      severity: critical
+      short: 32m
+      slo: success-rate
+      team: magiclook
+  - alert: ErrorBudgetBurn
+    expr: http_server_requests_seconds:burnrate2h9m{slo="success-rate"} > (2 * (1-0.99))
+      and http_server_requests_seconds:burnrate1d1h43m{slo="success-rate"} > (2 *
+      (1-0.99))
+    for: 1h4m0s
+    labels:
+      exhaustion: 15d
+      long: 1d1h43m
+      service: overall
+      severity: warning
+      short: 2h9m
+      slo: success-rate
+      team: magiclook
+  - alert: ErrorBudgetBurn
+    expr: http_server_requests_seconds:burnrate6h26m{slo="success-rate"} > (1 * (1-0.99))
+      and http_server_requests_seconds:burnrate4d6h51m{slo="success-rate"} > (1 *
+      (1-0.99))
+    for: 3h13m0s
+    labels:
+      exhaustion: 30d
+      long: 4d6h51m
+      service: overall
+      severity: warning
+      short: 6h26m
+      slo: success-rate
+      team: magiclook
+- interval: 30s
+  name: success-rate-generic
+  rules:
+  - expr: "0.99"
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: pyrra_objective
+  - expr: 2592000
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: pyrra_window
+  - expr: 1 - sum(http_server_requests_seconds:increase30d{slo="success-rate",status=~"4..|5.."}
+      or vector(0)) / sum(http_server_requests_seconds:increase30d{slo="success-rate"})
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: pyrra_availability
+  - expr: sum(http_server_requests_seconds_count)
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: pyrra_requests_total
+  - expr: sum(http_server_requests_seconds_count{status=~"4..|5.."} or vector(0))
+    labels:
+      service: overall
+      slo: success-rate
+      team: magiclook
+    record: pyrra_errors_total
