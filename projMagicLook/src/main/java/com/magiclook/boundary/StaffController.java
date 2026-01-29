@@ -24,7 +24,7 @@ import java.math.BigDecimal;
 public class StaffController {
 
     private static final Logger logger = LoggerFactory.getLogger(StaffController.class);
-    
+
     // Constants
     private static final String STAFF_LOGIN_VIEW = "staffLogin";
     private static final String STAFF_ITEM_VIEW = "staffItem";
@@ -80,7 +80,8 @@ public class StaffController {
     // ========== DASHBOARD STAFF ==========
 
     @GetMapping("/dashboard")
-    @Timed(value = "request.staffDashboard")
+    @Timed(value = "request.staff.management", histogram = true, description = "Staff dashboard latency", extraTags = {
+            "slo", "staff-management", "operation", "dashboard" })
     public String showStaffDashboard(HttpSession session, Model model) {
         Staff staff = (Staff) session.getAttribute(LOGGED_IN_STAFF);
 
@@ -94,7 +95,8 @@ public class StaffController {
     // ========== ADD ITEM ==========
 
     @PostMapping("/item")
-    @Timed(value = "request.addItem")
+    @Timed(value = "request.staff.management", histogram = true, description = "Staff add item latency", extraTags = {
+            "slo", "staff-management", "operation", "addItem" })
     public String addItem(
             @RequestParam String name,
             @RequestParam String brand,
@@ -167,7 +169,8 @@ public class StaffController {
     // ========== VIEW ITEMS ============
 
     @GetMapping("/item")
-    @Timed(value = "request.getItems")
+    @Timed(value = "request.staff.management", histogram = true, description = "Staff get items latency", extraTags = {
+            "slo", "staff-management", "operation", "getItems" })
     public String getItems(
             HttpSession session,
             Model model,
@@ -190,7 +193,8 @@ public class StaffController {
                     .toList();
         }
 
-        // Optional state filter: keep items that have at least one ItemSingle in that state
+        // Optional state filter: keep items that have at least one ItemSingle in that
+        // state
         if (state != null && !state.isBlank()) {
             state = state.trim().toUpperCase();
             List<Item> itemsByState = itemService.getAllItemsByState(state);
@@ -230,7 +234,8 @@ public class StaffController {
     // ========== VIEW ITEM DETAILS =====
 
     @GetMapping("/item/{itemId}")
-    @Timed(value = "request.getItemDetails")
+    @Timed(value = "request.staff.management", histogram = true, description = "Staff item details latency", extraTags = {
+            "slo", "staff-management", "operation", "getItemDetails" })
     public String getItemDetails(
             @PathVariable Integer itemId,
             HttpSession session,
@@ -260,7 +265,8 @@ public class StaffController {
     // ========== UPDATE ITEM ===========
 
     @PostMapping("/item/{itemId}")
-    @Timed(value = "request.updateItem")
+    @Timed(value = "request.staff.management", histogram = true, description = "Staff update item latency", extraTags = {
+            "slo", "staff-management", "operation", "updateItem" })
     public String updateItem(
             @PathVariable Integer itemId,
             @RequestParam String name,
@@ -322,7 +328,8 @@ public class StaffController {
     }
 
     @DeleteMapping("/item/{itemId}/size/{size}")
-    @Timed(value = "request.deleteItemSize")
+    @Timed(value = "request.staff.management", histogram = true, description = "Staff delete item size latency", extraTags = {
+            "slo", "staff-management", "operation", "deleteItemSize" })
     @ResponseBody
     public org.springframework.http.ResponseEntity<Void> deleteItemSize(
             @PathVariable Integer itemId,
@@ -343,7 +350,8 @@ public class StaffController {
     }
 
     @PostMapping("/itemsingle/update/{id}")
-    @Timed(value = "request.updateItemSingle")
+    @Timed(value = "request.staff.management", histogram = true, description = "Staff update item single latency", extraTags = {
+            "slo", "staff-management", "operation", "updateItemSingle" })
     public String updateItemSingle(
             @PathVariable java.util.UUID id,
             @RequestParam String size,

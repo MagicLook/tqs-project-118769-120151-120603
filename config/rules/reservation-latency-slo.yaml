@@ -1,0 +1,182 @@
+groups:
+- interval: 2m30s
+  name: reservation-latency-increase
+  rules:
+  - expr: sum by (uri) (increase(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[30d]))
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: http_server_requests_seconds:increase30d
+  - expr: sum by (uri) (increase(http_server_requests_seconds_bucket{le="1",uri=~".*booking.*|.*my-bookings.*"}[30d]))
+    labels:
+      le: "1"
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: http_server_requests_seconds:increase30d
+  - alert: SLOMetricAbsent
+    expr: absent(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"})
+      == 1
+    for: 2m
+    labels:
+      service: reservations
+      severity: critical
+      slo: reservation-latency
+      team: magiclook
+  - alert: SLOMetricAbsent
+    expr: absent(http_server_requests_seconds_bucket{le="1",uri=~".*booking.*|.*my-bookings.*"})
+      == 1
+    for: 2m
+    labels:
+      le: "1"
+      service: reservations
+      severity: critical
+      slo: reservation-latency
+      team: magiclook
+- interval: 30s
+  name: reservation-latency
+  rules:
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[5m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="1",uri=~".*booking.*|.*my-bookings.*"}[5m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[5m]))
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate5m
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[32m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="1",uri=~".*booking.*|.*my-bookings.*"}[32m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[32m]))
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate32m
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[1h4m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="1",uri=~".*booking.*|.*my-bookings.*"}[1h4m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[1h4m]))
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate1h4m
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[2h9m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="1",uri=~".*booking.*|.*my-bookings.*"}[2h9m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[2h9m]))
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate2h9m
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[6h26m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="1",uri=~".*booking.*|.*my-bookings.*"}[6h26m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[6h26m]))
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate6h26m
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[1d1h43m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="1",uri=~".*booking.*|.*my-bookings.*"}[1d1h43m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[1d1h43m]))
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate1d1h43m
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[4d6h51m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="1",uri=~".*booking.*|.*my-bookings.*"}[4d6h51m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}[4d6h51m]))
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate4d6h51m
+  - alert: ErrorBudgetBurn
+    expr: http_server_requests_seconds:burnrate5m{slo="reservation-latency"} > (14
+      * (1-0.98)) and http_server_requests_seconds:burnrate1h4m{slo="reservation-latency"}
+      > (14 * (1-0.98))
+    for: 2m
+    labels:
+      exhaustion: 2d3h25m42s
+      long: 1h4m
+      service: reservations
+      severity: critical
+      short: 5m
+      slo: reservation-latency
+      team: magiclook
+  - alert: ErrorBudgetBurn
+    expr: http_server_requests_seconds:burnrate32m{slo="reservation-latency"} > (7
+      * (1-0.98)) and http_server_requests_seconds:burnrate6h26m{slo="reservation-latency"}
+      > (7 * (1-0.98))
+    for: 16m
+    labels:
+      exhaustion: 4d6h51m25s
+      long: 6h26m
+      service: reservations
+      severity: critical
+      short: 32m
+      slo: reservation-latency
+      team: magiclook
+  - alert: ErrorBudgetBurn
+    expr: http_server_requests_seconds:burnrate2h9m{slo="reservation-latency"} > (2
+      * (1-0.98)) and http_server_requests_seconds:burnrate1d1h43m{slo="reservation-latency"}
+      > (2 * (1-0.98))
+    for: 1h4m
+    labels:
+      exhaustion: 15d
+      long: 1d1h43m
+      service: reservations
+      severity: warning
+      short: 2h9m
+      slo: reservation-latency
+      team: magiclook
+  - alert: ErrorBudgetBurn
+    expr: http_server_requests_seconds:burnrate6h26m{slo="reservation-latency"} >
+      (1 * (1-0.98)) and http_server_requests_seconds:burnrate4d6h51m{slo="reservation-latency"}
+      > (1 * (1-0.98))
+    for: 3h13m
+    labels:
+      exhaustion: 30d
+      long: 4d6h51m
+      service: reservations
+      severity: warning
+      short: 6h26m
+      slo: reservation-latency
+      team: magiclook
+- interval: 30s
+  name: reservation-latency-generic
+  rules:
+  - expr: "0.98"
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: pyrra_objective
+  - expr: 2592000
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: pyrra_window
+  - expr: sum(http_server_requests_seconds:increase30d{le="1",slo="reservation-latency",uri=~".*booking.*|.*my-bookings.*"}
+      or vector(0)) / sum(http_server_requests_seconds:increase30d{le="",slo="reservation-latency",uri=~".*booking.*|.*my-bookings.*"})
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: pyrra_availability
+  - expr: sum(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"})
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: pyrra_requests_total
+  - expr: sum(http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"})
+      - sum(http_server_requests_seconds_bucket{le="1",uri=~".*booking.*|.*my-bookings.*"})
+    labels:
+      service: reservations
+      slo: reservation-latency
+      team: magiclook
+    record: pyrra_errors_total

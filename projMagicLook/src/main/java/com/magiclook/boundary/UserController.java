@@ -24,12 +24,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
-import java.util.AbstractMap; 
+import java.util.AbstractMap;
 
 @Controller
 @RequestMapping("/magiclook")
 public class UserController {
-    
+
     private final UserService userService;
     private final ItemService itemService;
     private final NotificationRepository notificationRepository;
@@ -119,7 +119,8 @@ public class UserController {
     // ========== ITEMS (Homens e Mulheres) ==========
 
     @GetMapping("/items/men")
-    @Timed(value = "request.getMenItems")
+    @Timed(value = "request.catalog", histogram = true, description = "Men's catalog display latency", extraTags = {
+            "slo", "catalog", "operation", "getMenItems" })
     public String showMenItems(
             @RequestParam(required = false) String color,
             @RequestParam(required = false) String brand,
@@ -154,7 +155,8 @@ public class UserController {
     }
 
     @GetMapping("/items/women")
-    @Timed(value = "request.getWomenItems")
+    @Timed(value = "request.catalog", histogram = true, description = "Women's catalog display latency", extraTags = {
+            "slo", "catalog", "operation", "getWomenItems" })
     public String showWomenItems(
             @RequestParam(required = false) String color,
             @RequestParam(required = false) String brand,
@@ -236,7 +238,8 @@ public class UserController {
     // ========== FILTRAR ITENS ==========
 
     @PostMapping("/items/{gender}/filter")
-    @Timed(value = "request.filterItems")
+    @Timed(value = "request.catalog", histogram = true, description = "Item filter latency", extraTags = { "slo",
+            "catalog", "operation", "filterItems" })
     public String filterItems(
             @PathVariable String gender,
             @RequestParam(required = false) String color,
@@ -282,9 +285,7 @@ public class UserController {
     }
 
     private String encodeParameter(Object value) {
-        return value instanceof String string ? 
-               URLEncoder.encode(string, StandardCharsets.UTF_8) : 
-               value.toString();
+        return value instanceof String string ? URLEncoder.encode(string, StandardCharsets.UTF_8) : value.toString();
     }
 
     // Convenience overload for unit tests that takes an ItemFilterDTO
@@ -319,7 +320,8 @@ public class UserController {
     // ========== LIMPAR FILTROS ==========
 
     @GetMapping("/items/{gender}/clear")
-    @Timed(value = "request.clearItemFilters")
+    @Timed(value = "request.catalog", histogram = true, description = "Clear filters latency", extraTags = { "slo",
+            "catalog", "operation", "clearFilters" })
     public String clearFilters(@PathVariable String gender, HttpSession session) {
         return "redirect:/magiclook/items/" + gender;
     }
@@ -327,7 +329,8 @@ public class UserController {
     // ============== DASHBOARD ===============
 
     @GetMapping("/dashboard")
-    @Timed(value = "request.getDashboard")
+    @Timed(value = "request.catalog", histogram = true, description = "Dashboard display latency", extraTags = { "slo",
+            "catalog", "operation", "getDashboard" })
     public String showDashboard(HttpSession session, Model model) {
         User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
 
@@ -376,15 +379,15 @@ public class UserController {
 
         // Abordagem imperativa para evitar problemas de inferência de tipos
         com.magiclook.data.Notification notification = notificationRepository.findById(id).orElse(null);
-        
+
         if (notification == null) {
             return org.springframework.http.ResponseEntity.notFound().build();
         }
-        
+
         if (!notification.getUser().getUserId().equals(user.getUserId())) {
             return org.springframework.http.ResponseEntity.status(403).build();
         }
-        
+
         notification.setRead(true);
         notificationRepository.save(notification);
         return org.springframework.http.ResponseEntity.ok().build();

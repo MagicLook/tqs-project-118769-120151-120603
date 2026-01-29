@@ -1,3 +1,9 @@
+# Prometheus configuration for MagicLook SLO monitoring
+
+# Load Pyrra-generated recording rules for SLO calculations
+rule_files:
+  - /etc/prometheus/pyrra/*.yaml
+
 scrape_configs:
   - job_name: magiclook_app
     metrics_path: '/actuator/prometheus'
