@@ -52,7 +52,7 @@ for test_entry in "${TESTS[@]}"; do
     
     echo -e "${YELLOW}[$COUNT/$TOTAL] ► $test_name${NC}"
     
-    if [ ! -f "$test_path" ]; then
+    if [[ ! -f "$test_path" ]]; then
         echo -e "  ${RED}✗ Ficheiro não encontrado: $test_path${NC}"
         FAILED_TESTS+=("$test_name")
         echo ""
@@ -80,7 +80,7 @@ echo "════════════════════════�
 echo ""
 echo "RESULTADOS FINAIS:"
 echo -e "  ${GREEN}✓ Passaram: ${#PASSED_TESTS[@]}/${TOTAL}${NC}"
-if [ ${#PASSED_TESTS[@]} -gt 0 ]; then
+if [[ ${#PASSED_TESTS[@]} -gt 0 ]]; then
     for test in "${PASSED_TESTS[@]}"; do
         echo -e "      ${GREEN}✓${NC} $test"
     done
@@ -88,7 +88,7 @@ fi
 
 echo ""
 echo -e "  ${RED}✗ Falharam: ${#FAILED_TESTS[@]}/${TOTAL}${NC}"
-if [ ${#FAILED_TESTS[@]} -gt 0 ]; then
+if [[ ${#FAILED_TESTS[@]} -gt 0 ]]; then
     for test in "${FAILED_TESTS[@]}"; do
         echo -e "      ${RED}✗${NC} $test"
     done
@@ -98,7 +98,7 @@ echo ""
 echo "Duração total: ${MINUTES}m ${SECONDS}s"
 echo ""
 
-if [ ${#FAILED_TESTS[@]} -eq 0 ]; then
+if [[ ${#FAILED_TESTS[@]} -eq 0 ]]; then
     echo -e "${GREEN}✓ Todos os testes executados com sucesso!${NC}"
     exit 0
 else
