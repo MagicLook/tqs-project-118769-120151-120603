@@ -24,6 +24,11 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class MetricsFilter implements Filter {
 
+    // Metric name constants to avoid duplication
+    private static final String METRIC_SUCCESS = "http.requests.success";
+    private static final String METRIC_FAILURE = "http.requests.failure";
+    private static final String TAG_DOMAIN = "domain";
+
     // Overall counters for RNF 4 (99% success rate)
     private final Counter totalRequests;
     private final Counter successfulRequests;
@@ -46,44 +51,44 @@ public class MetricsFilter implements Filter {
                 .description("Total number of HTTP requests")
                 .register(registry);
 
-        this.successfulRequests = Counter.builder("http.requests.success")
+        this.successfulRequests = Counter.builder(METRIC_SUCCESS)
                 .description("Number of successful HTTP requests (2xx, 3xx)")
                 .register(registry);
 
-        this.failedRequests = Counter.builder("http.requests.failure")
+        this.failedRequests = Counter.builder(METRIC_FAILURE)
                 .description("Number of failed HTTP requests (4xx, 5xx)")
                 .register(registry);
 
         // Reservation domain counters (RNF 1)
-        this.reservationSuccess = Counter.builder("http.requests.success")
-                .tag("domain", "reservation")
+        this.reservationSuccess = Counter.builder(METRIC_SUCCESS)
+                .tag(TAG_DOMAIN, "reservation")
                 .description("Successful reservation requests")
                 .register(registry);
 
-        this.reservationFailure = Counter.builder("http.requests.failure")
-                .tag("domain", "reservation")
+        this.reservationFailure = Counter.builder(METRIC_FAILURE)
+                .tag(TAG_DOMAIN, "reservation")
                 .description("Failed reservation requests")
                 .register(registry);
 
         // Staff management domain counters (RNF 2)
-        this.staffSuccess = Counter.builder("http.requests.success")
-                .tag("domain", "staff")
+        this.staffSuccess = Counter.builder(METRIC_SUCCESS)
+                .tag(TAG_DOMAIN, "staff")
                 .description("Successful staff management requests")
                 .register(registry);
 
-        this.staffFailure = Counter.builder("http.requests.failure")
-                .tag("domain", "staff")
+        this.staffFailure = Counter.builder(METRIC_FAILURE)
+                .tag(TAG_DOMAIN, "staff")
                 .description("Failed staff management requests")
                 .register(registry);
 
         // Catalog domain counters (RNF 3)
-        this.catalogSuccess = Counter.builder("http.requests.success")
-                .tag("domain", "catalog")
+        this.catalogSuccess = Counter.builder(METRIC_SUCCESS)
+                .tag(TAG_DOMAIN, "catalog")
                 .description("Successful catalog requests")
                 .register(registry);
 
-        this.catalogFailure = Counter.builder("http.requests.failure")
-                .tag("domain", "catalog")
+        this.catalogFailure = Counter.builder(METRIC_FAILURE)
+                .tag(TAG_DOMAIN, "catalog")
                 .description("Failed catalog requests")
                 .register(registry);
 
