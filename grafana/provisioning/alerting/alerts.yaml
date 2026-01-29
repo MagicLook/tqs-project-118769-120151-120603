@@ -1,0 +1,311 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: SLO Alerts
+    folder: SLOs
+    interval: 1m
+    rules:
+      # RNF1: Reservation Latency SLO Alert (98% < 1s)
+      - uid: reservation-slo-alert
+        title: Reservation SLO Breach
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: sum(rate(request_reservation_seconds_bucket{le="1.0"}[5m])) / sum(rate(request_reservation_seconds_count[5m])) * 100
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 98
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Reservation SLO is below 98%"
+          description: "Current reservation latency SLO compliance is {{ $values.B.Value | printf \"%.2f\" }}%. Target: 98% of requests under 1s."
+        labels:
+          severity: warning
+          slo: reservation
+
+      # RNF2: Staff Management Latency SLO Alert (95% < 2s)
+      - uid: staff-mgmt-slo-alert
+        title: Staff Management SLO Breach
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: sum(rate(request_staff_management_seconds_bucket{le="2.0"}[5m])) / sum(rate(request_staff_management_seconds_count[5m])) * 100
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 95
+                    type: lt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Staff Management SLO is below 95%"
+          description: "Current staff management latency SLO compliance is {{ $values.B.Value | printf \"%.2f\" }}%. Target: 95% of requests under 2s."
+        labels:
+          severity: warning
+          slo: staff-management
+
+      # RNF3: Catalog Latency SLO Alert (95% < 800ms)
+      - uid: catalog-slo-alert
+        title: Catalog SLO Breach
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: sum(rate(request_catalog_seconds_bucket{le="0.8"}[5m])) / sum(rate(request_catalog_seconds_count[5m])) * 100
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 95
+                    type: lt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Catalog SLO is below 95%"
+          description: "Current catalog latency SLO compliance is {{ $values.B.Value | printf \"%.2f\" }}%. Target: 95% of requests under 800ms."
+        labels:
+          severity: warning
+          slo: catalog
+
+      # RNF4: Success Rate SLO Alert (99%)
+      - uid: success-rate-slo-alert
+        title: Success Rate SLO Breach
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: (1 - (sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count[5m])))) * 100
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 99
+                    type: lt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Success Rate SLO is below 99%"
+          description: "Current success rate is {{ $values.B.Value | printf \"%.2f\" }}%. Target: 99%."
+        labels:
+          severity: critical
+          slo: success-rate
+
+      # High Error Rate Alert
+      - uid: high-error-rate-alert
+        title: High Error Rate
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count[5m])) * 100
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 5
+                    type: gt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $values.B.Value | printf \"%.2f\" }}%. This is above the 5% threshold."
+        labels:
+          severity: critical
+          type: error-rate
+
+      # High Heap Usage Alert
+      - uid: high-heap-usage-alert
+        title: High JVM Heap Usage
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: sum(jvm_memory_used_bytes{area="heap"}) / sum(jvm_memory_max_bytes{area="heap"}) * 100
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 85
+                    type: gt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "High JVM heap usage"
+          description: "JVM heap usage is {{ $values.B.Value | printf \"%.2f\" }}%. This is above the 85% threshold."
+        labels:
+          severity: warning
+          type: system
