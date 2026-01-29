@@ -33,20 +33,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy
     if: always()
-    
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: magiclook
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-        ports:
-          - 3306:3306
 
     steps:
     - uses: actions/checkout@v4
@@ -65,23 +51,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y k6
     
-    - name: Wait for MySQL
-      run: |
-        for i in {1..30}; do
-          mysqladmin -h 127.0.0.1 -u root -proot ping && break
-          echo "Waiting for MySQL..."
-          sleep 1
-        done
-    
-    - name: Setup database
-      run: |
-        mysql -h 127.0.0.1 -u root -proot magiclook < projMagicLook/db/schema.sql || true
-    
-    - name: Start application
+    - name: Start application with H2
       run: |
         cd projMagicLook
         mvn spring-boot:run -DskipTests \
-          -Dspring-boot.run.arguments="--spring.datasource.url=jdbc:mysql://127.0.0.1:3306/magiclook --spring.datasource.username=root --spring.datasource.password=root --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver --spring.jpa.hibernate.ddl-auto=update" &
+          -Dspring-boot.run.arguments="--spring.datasource.url=jdbc:h2:mem:testdb --spring.datasource.driver-class-name=org.h2.Driver --spring.jpa.hibernate.ddl-auto=create-drop" &
         sleep 60
         # Verify application is running
         curl -f http://localhost:8080/magiclook/login || exit 1
