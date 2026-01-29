@@ -134,7 +134,7 @@
                                 <h2 class="h4 mb-0">Itens da Loja</h2>
                             </div>
                             <div class="col-auto">
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">
+                                <button class="btn btn-primary" id="btn-add-item" data-bs-toggle="modal" data-bs-target="#addItemModal">
                                     <i class="bi bi-plus-circle"></i> Adicionar Item
                                 </button>
                             </div>
@@ -149,11 +149,11 @@
                         <div class="card-body">
                             <div class="row g-3 align-items-center">
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" name="q" placeholder="Pesquisar por nome..."
+                                    <input type="text" class="form-control" id="searchInput" name="q" placeholder="Pesquisar por nome..."
                                         th:value="${q}">
                                 </div>
                                 <div class="col-md-3 ms-auto">
-                                    <select class="form-select" name="state" th:value="${selectedState}">
+                                    <select class="form-select" id="stateFilter" name="state" th:value="${selectedState}">
                                         <option value="">Estado</option>
                                         <option value="AVAILABLE" th:selected="${selectedState == 'AVAILABLE'}">
                                             Disponível</option>
@@ -166,7 +166,7 @@
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <button class="btn btn-outline-secondary w-100" type="submit">
+                                    <button id="searchBtn" class="btn btn-outline-secondary w-100" type="submit">
                                         Filtrar
                                     </button>
                                 </div>
@@ -184,7 +184,7 @@
                                         class="item-image" th:alt="${item.name}">
                                 </div>
                                 <div class="p-3 d-flex flex-column flex-grow-1">
-                                    <h6 class="mb-2 text-center" th:text="${item.name}">Nome do Item</h6>
+                                    <h6 id="itemNameText"class="mb-2 text-center" th:text="${item.name}">Nome do Item</h6>
                                     <div class="small text-muted mb-2">
                                         <div>
                                             <strong>Cor:</strong>
@@ -274,7 +274,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Tamanho</label>
-                                <select name="size" class="form-select" required>
+                                <select id="sizeSelect"name="size" class="form-select" required>
                                     <option value="">Selecione o tamanho...</option>
                                     <option value="XS">XS</option>
                                     <option value="S">S</option>
@@ -289,11 +289,11 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Nome</label>
-                                <input name="name" class="form-control" placeholder="Ex: Vestido Rosa" required>
+                                <input id="nameItem" name="name" class="form-control" placeholder="Ex: Vestido Rosa" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Marca</label>
-                                <input name="brand" class="form-control" placeholder="Ex: Zara">
+                                <input id="brandItem" name="brand" class="form-control" placeholder="Ex: Zara">
                             </div>
                         </div>
 
@@ -307,7 +307,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Cor</label>
-                                <input name="color" class="form-control" placeholder="Ex: Rosa">
+                                <input id="colorItem" name="color" class="form-control" placeholder="Ex: Rosa">
                             </div>
                         </div>
 
@@ -331,12 +331,12 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Preço Original (€)</label>
-                                <input name="priceSale" type="number" class="form-control" step="0.01"
+                                <input id="priceSale" name="priceSale" type="number" class="form-control" step="0.01"
                                     placeholder="0.00" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Preço de Aluguel (€)</label>
-                                <input name="priceRent" type="number" class="form-control" step="0.01"
+                                <input id="priceRent" name="priceRent" type="number" class="form-control" step="0.01"
                                     placeholder="0.00" required>
                             </div>
                         </div>
@@ -460,7 +460,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary"
                             data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" id="editSubmitBtn" class="btn btn-primary">
                             <i class="bi bi-save"></i> Guardar Alterações
                         </button>
                     </div>

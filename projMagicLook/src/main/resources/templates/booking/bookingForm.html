@@ -123,11 +123,11 @@
         }
 
         .calendar-day.disabled {
-            background: #b4b4b4 !important;
-            color: white !important;
+            background: #f5f5f5 !important;
+            color: #999 !important;
             cursor: not-allowed !important;
-            border-color: #b4b4b4 !important;
-            font-weight: bold !important;
+            border-color: #e0e0e0 !important;
+            font-weight: normal !important;
         }
 
         .calendar-day.selected {
@@ -281,9 +281,9 @@
                                 </label>
                                 <div class="calendar-wrapper">
                                     <div class="calendar-header">
-                                        <button type="button" onclick="previousMonth()">&larr;</button>
+                                        <button type="button" id="btn-prev-month" onclick="previousMonth()">&larr;</button>
                                         <h5 id="monthYear"></h5>
-                                        <button type="button" onclick="nextMonth()">&rarr;</button>
+                                        <button type="button" id="btn-next-month" onclick="nextMonth()">&rarr;</button>
                                     </div>
                                     <div id="calendar" class="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; width: 100%; padding: 0; margin: 0;"></div>
                                     <div id="selectedDatesDisplay" class="selected-dates">
@@ -313,6 +313,7 @@
                 <li>Período total da reserva = <strong>1 dia antes</strong> + <strong>dias de uso</strong> + <strong>1 dia depois</strong></li>
                 <li>Você só paga pelos <strong>dias de uso efectivo</strong></li>
                 <li>Exemplo: 2 dias de uso = 4 dias reservados, paga 2 diárias</li>
+                <li><strong>Nota:</strong> A reserva só está disponível a partir de 2 dias após a data atual</li>
             </ul>
         </div>
     </div>
@@ -320,7 +321,7 @@
     <script>
         const itemId = [[${item.itemId}]];
         const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-                           'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
         const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
         
         let currentMonth = new Date();
@@ -401,6 +402,10 @@
             // Dias do mês
             const today = new Date();
             today.setHours(0, 0, 0, 0);
+            
+            // Calcular a data mínima permitida (2 dias após hoje)
+            const minDate = new Date(today);
+            minDate.setDate(today.getDate() + 2);
 
             for (let day = 1; day <= lastDay; day++) {
                 const date = new Date(year, month, day);
@@ -408,34 +413,34 @@
                 let classes = 'calendar-day';
                 let styles = 'min-height: 50px; display: flex; align-items: center; justify-content: center; border: 2px solid #e0e0e0; border-radius: 5px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; background: white; user-select: none; padding: 0; margin: 0; box-sizing: border-box; font-size: 14px; grid-column: span 1;';
 
-                // Verificar se está desabilitado (passado ou sem disponibilidade)
-                const isPast = date < today;
+                // Verificar se está desabilitado (antes da data mínima ou sem disponibilidade)
+                const isBeforeMinDate = date < minDate; // Menor que minDate (não inclui minDate)
                 const isUnavailable = unavailableDates.includes(dateStr);
-                const isDisabled = isPast || isUnavailable;
+                const isDisabled = isBeforeMinDate || isUnavailable;
                 
                 if (isDisabled) {
                     classes += ' disabled';
-                    // styles += ' background: #ff0000 !important; color: white !important; border-color: #cc0000 !important; cursor: not-allowed !important;';
-                    if (day <= 5) console.log(`Data ${dateStr}: past=${isPast}, unavailable=${isUnavailable}, array=${JSON.stringify(unavailableDates.slice(0, 3))}`);
+                    if (isBeforeMinDate) {
+                        styles += ' color: #999 !important;';
+                    }
                 } else if (date.toDateString() === today.toDateString()) {
                     classes += ' today';
                 }
 
                 // Verificar seleção
-                if (startDate && endDate) {
-                    if (date.getTime() === startDate.getTime() || date.getTime() === endDate.getTime()) {
+                if (startDate) {
+                    const end = (endDate && endDate !== startDate) ? endDate : startDate;
+                    
+                    if (date.getTime() === startDate.getTime() || date.getTime() === end.getTime()) {
                         classes += ' selected';
                         styles += ' background: #0066cc !important; color: white !important; border-color: #0052a3 !important;';
-                    } else if (date > startDate && date < endDate) {
+                    } else if (date > startDate && date < end) {
                         classes += ' in-range';
                         styles += ' background: #3399ff !important; color: white !important; border-color: #0066cc !important;';
                     }
-                } else if (startDate && date.getTime() === startDate.getTime()) {
-                    classes += ' selected';
-                    styles += ' background: #0066cc !important; color: white !important; border-color: #0052a3 !important;';
                 }
 
-                html += `<div class="${classes}" style="${styles}" onclick="selectDate('${dateStr}')">${day}</div>`;
+                html += `<div class="${classes}" style="${styles}" name="${dateStr}" onclick="selectDate('${dateStr}')">${day}</div>`;
             }
 
             const calendarElement = document.getElementById('calendar');
@@ -462,22 +467,48 @@
 
         function selectDate(dateStr) {
             const date = new Date(dateStr + 'T00:00:00');
+            
+            // Verificar se a data está desabilitada
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const minDate = new Date(today);
+            minDate.setDate(today.getDate() + 2);
+            
+            const isBeforeMinDate = date < minDate;
+            const isUnavailable = unavailableDates.includes(dateStr);
+            
+            if (isBeforeMinDate || isUnavailable) {
+                return; // Não permite selecionar datas desabilitadas
+            }
 
+            // Se não há nenhuma data selecionada
             if (!startDate) {
+                // Começar uma nova seleção
                 startDate = new Date(date);
-                endDate = null;
-            } else if (!endDate) {
-                if (date < startDate) {
-                    endDate = startDate;
-                    startDate = new Date(date);
-                } else if (date.getTime() === startDate.getTime()) {
+                endDate = new Date(date); // Mesma data para seleção de um dia
+            } 
+            // Se já temos uma data de início
+            else {
+                // Se clicar na mesma data de início, deselecionar tudo
+                if (date.getTime() === startDate.getTime()) {
                     startDate = null;
-                } else {
-                    endDate = new Date(date);
+                    endDate = null;
+                } 
+                // Se clicar em uma data diferente
+                else {
+                    // Se temos uma seleção de um dia (startDate e endDate iguais)
+                    // OU se temos um intervalo já selecionado
+                    // Criar novo intervalo entre a data existente e a nova data
+                    if (date < startDate) {
+                        // A nova data é anterior à data inicial
+                        endDate = new Date(startDate);
+                        startDate = new Date(date);
+                    } else {
+                        // A nova data é posterior à data inicial
+                        endDate = new Date(date);
+                        // startDate mantém-se
+                    }
                 }
-            } else {
-                startDate = new Date(date);
-                endDate = null;
             }
 
             renderCalendar();
@@ -487,9 +518,10 @@
         function updateDisplay() {
             const display = document.getElementById('selectedDatesDisplay');
             
-            if (startDate && endDate) {
+            if (startDate) {
                 const start = new Date(startDate);
-                const end = new Date(endDate);
+                // Se endDate for null ou undefined, usar startDate (para um dia)
+                const end = (endDate && endDate !== startDate) ? new Date(endDate) : new Date(startDate);
                 const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
                 document.getElementById('dateStart').textContent = start.toLocaleDateString('pt-PT');
@@ -497,7 +529,7 @@
                 document.getElementById('dayCount').textContent = days;
 
                 document.getElementById('startUseDateInput').value = startDate.toISOString().split('T')[0];
-                document.getElementById('endUseDateInput').value = endDate.toISOString().split('T')[0];
+                document.getElementById('endUseDateInput').value = end.toISOString().split('T')[0];
 
                 display.classList.add('show');
                 document.getElementById('submitBtn').disabled = false;
