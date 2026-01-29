@@ -1,0 +1,17 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: reservation-latency
+  labels:
+    pyrra.dev/team: magiclook
+    pyrra.dev/service: reservations
+spec:
+  description: "RNF 1: Reservation operations must respond within 1 second for 98% of requests"
+  target: "98"
+  window: 30d
+  indicator:
+    latency:
+      success:
+        metric: http_server_requests_seconds_bucket{uri=~".*booking.*|.*my-bookings.*", le="1"}
+      total:
+        metric: http_server_requests_seconds_count{uri=~".*booking.*|.*my-bookings.*"}

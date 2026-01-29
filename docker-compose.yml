@@ -26,8 +26,10 @@ services:
       - monitoring
   prometheus:
     image: prom/prometheus
+    container_name: prometheus
     volumes:
       - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "./config/rules:/etc/prometheus/pyrra"
     ports:
       - 9090:9090
     networks:
@@ -50,6 +52,7 @@ services:
 
   pyrra-api:
     image: ghcr.io/pyrra-dev/pyrra:v0.7.0
+    container_name: pyrra-api
     restart: always
     command:
       - api
@@ -58,9 +61,12 @@ services:
       - --api-url=http://pyrra-filesystem:9444
     ports:
       - "9099:9099"
+    networks:
+      - monitoring
 
   pyrra-filesystem:
     image: ghcr.io/pyrra-dev/pyrra:v0.7.0
+    container_name: pyrra-filesystem
     restart: always
     user: root
     command:
@@ -70,6 +76,8 @@ services:
     volumes:
       - ./config/slos:/etc/pyrra
       - ./config/rules:/etc/prometheus/pyrra
+    networks:
+      - monitoring
 
 volumes:
   grafana-data:

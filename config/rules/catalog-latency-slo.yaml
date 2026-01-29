@@ -1,0 +1,182 @@
+groups:
+- interval: 2m30s
+  name: catalog-latency-increase
+  rules:
+  - expr: sum by (uri) (increase(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[30d]))
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: http_server_requests_seconds:increase30d
+  - expr: sum by (uri) (increase(http_server_requests_seconds_bucket{le="0.8",uri=~".*items.*|.*dashboard.*"}[30d]))
+    labels:
+      le: "0.8"
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: http_server_requests_seconds:increase30d
+  - alert: SLOMetricAbsent
+    expr: absent(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"})
+      == 1
+    for: 2m
+    labels:
+      service: catalog
+      severity: critical
+      slo: catalog-latency
+      team: magiclook
+  - alert: SLOMetricAbsent
+    expr: absent(http_server_requests_seconds_bucket{le="0.8",uri=~".*items.*|.*dashboard.*"})
+      == 1
+    for: 2m
+    labels:
+      le: "0.8"
+      service: catalog
+      severity: critical
+      slo: catalog-latency
+      team: magiclook
+- interval: 30s
+  name: catalog-latency
+  rules:
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[5m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="0.8",uri=~".*items.*|.*dashboard.*"}[5m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[5m]))
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate5m
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[32m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="0.8",uri=~".*items.*|.*dashboard.*"}[32m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[32m]))
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate32m
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[1h4m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="0.8",uri=~".*items.*|.*dashboard.*"}[1h4m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[1h4m]))
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate1h4m
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[2h9m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="0.8",uri=~".*items.*|.*dashboard.*"}[2h9m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[2h9m]))
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate2h9m
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[6h26m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="0.8",uri=~".*items.*|.*dashboard.*"}[6h26m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[6h26m]))
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate6h26m
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[1d1h43m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="0.8",uri=~".*items.*|.*dashboard.*"}[1d1h43m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[1d1h43m]))
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate1d1h43m
+  - expr: (sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[4d6h51m]))
+      - sum(rate(http_server_requests_seconds_bucket{le="0.8",uri=~".*items.*|.*dashboard.*"}[4d6h51m])))
+      / sum(rate(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"}[4d6h51m]))
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: http_server_requests_seconds:burnrate4d6h51m
+  - alert: ErrorBudgetBurn
+    expr: http_server_requests_seconds:burnrate5m{slo="catalog-latency"} > (14 * (1-0.95))
+      and http_server_requests_seconds:burnrate1h4m{slo="catalog-latency"} > (14 *
+      (1-0.95))
+    for: 2m
+    labels:
+      exhaustion: 2d3h25m42s
+      long: 1h4m
+      service: catalog
+      severity: critical
+      short: 5m
+      slo: catalog-latency
+      team: magiclook
+  - alert: ErrorBudgetBurn
+    expr: http_server_requests_seconds:burnrate32m{slo="catalog-latency"} > (7 * (1-0.95))
+      and http_server_requests_seconds:burnrate6h26m{slo="catalog-latency"} > (7 *
+      (1-0.95))
+    for: 16m
+    labels:
+      exhaustion: 4d6h51m25s
+      long: 6h26m
+      service: catalog
+      severity: critical
+      short: 32m
+      slo: catalog-latency
+      team: magiclook
+  - alert: ErrorBudgetBurn
+    expr: http_server_requests_seconds:burnrate2h9m{slo="catalog-latency"} > (2 *
+      (1-0.95)) and http_server_requests_seconds:burnrate1d1h43m{slo="catalog-latency"}
+      > (2 * (1-0.95))
+    for: 1h4m
+    labels:
+      exhaustion: 15d
+      long: 1d1h43m
+      service: catalog
+      severity: warning
+      short: 2h9m
+      slo: catalog-latency
+      team: magiclook
+  - alert: ErrorBudgetBurn
+    expr: http_server_requests_seconds:burnrate6h26m{slo="catalog-latency"} > (1 *
+      (1-0.95)) and http_server_requests_seconds:burnrate4d6h51m{slo="catalog-latency"}
+      > (1 * (1-0.95))
+    for: 3h13m
+    labels:
+      exhaustion: 30d
+      long: 4d6h51m
+      service: catalog
+      severity: warning
+      short: 6h26m
+      slo: catalog-latency
+      team: magiclook
+- interval: 30s
+  name: catalog-latency-generic
+  rules:
+  - expr: "0.95"
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: pyrra_objective
+  - expr: 2592000
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: pyrra_window
+  - expr: sum(http_server_requests_seconds:increase30d{le="0.8",slo="catalog-latency",uri=~".*items.*|.*dashboard.*"}
+      or vector(0)) / sum(http_server_requests_seconds:increase30d{le="",slo="catalog-latency",uri=~".*items.*|.*dashboard.*"})
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: pyrra_availability
+  - expr: sum(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"})
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: pyrra_requests_total
+  - expr: sum(http_server_requests_seconds_count{uri=~".*items.*|.*dashboard.*"})
+      - sum(http_server_requests_seconds_bucket{le="0.8",uri=~".*items.*|.*dashboard.*"})
+    labels:
+      service: catalog
+      slo: catalog-latency
+      team: magiclook
+    record: pyrra_errors_total
