@@ -83,7 +83,7 @@ jobs:
         mvn spring-boot:run -DskipTests &
         sleep 30
         # Verify application is running
-        curl -f http://localhost:8080/magiclook/ || exit 1
+        curl -f http://localhost:8080/magiclook/login || exit 1
     
     - name: Run performance tests
       working-directory: projMagicLook/src/test/java/com/magiclook/performance
