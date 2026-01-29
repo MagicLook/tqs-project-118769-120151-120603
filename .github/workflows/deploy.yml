@@ -92,7 +92,7 @@ jobs:
     
     - name: Upload results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: performance-test-results
         path: projMagicLook/src/test/java/com/magiclook/performance/results/
