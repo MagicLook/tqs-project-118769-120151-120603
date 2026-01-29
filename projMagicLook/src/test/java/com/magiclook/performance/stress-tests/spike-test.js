@@ -35,8 +35,8 @@ export const options = {
 
 export default function () {
   group('spike_test_homepage', function () {
-    // Teste de página inicial - deve ser rápido mesmo com spike
-    const homeRes = http.get(`${BASE_URL}/`);
+    // Teste de página inicial - deve ser rápida mesmo com spike
+    const homeRes = http.get(`${BASE_URL}/login`);
     
     check(homeRes, {
       'homepage loads under spike': (r) => r.status === 200,
@@ -81,7 +81,7 @@ export default function () {
 
 export function setup() {
   // Verificar disponibilidade
-  const res = http.get(`${BASE_URL}/`);
+  const res = http.get(`${BASE_URL}/login`);
   if (res.status !== 200) {
     throw new Error(`Application not accessible. Status: ${res.status}`);
   }

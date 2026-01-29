@@ -133,7 +133,10 @@ export default function () {
       `${BASE_URL}/booking/create`,
       `itemId=${item.id}&size=${item.size}&startUseDate=${startDate}&endUseDate=${endDate}`,
       {
-        headers: authHeaders,
+        headers: { 
+          ...authHeaders,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
       }
     );
     

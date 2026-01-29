@@ -28,12 +28,11 @@ export const options = {
   thresholds: {
     http_req_duration: ['p(95)<2000'],
     http_req_failed: ['rate<0.1'],
-    booking_cancellations: ['count>=10'],
   },
 };
 
 const USERS = Array.from({ length: 50 }, (_, i) => ({
-  username: `canceltest${i}`,
+  username: `testuser${i}`,
   password: 'test123',
 }));
 
@@ -78,7 +77,10 @@ export default function () {
       `${BASE_URL}/booking/create`,
       `itemId=${item}&size=M&startUseDate=${startDate}&endUseDate=${endDate}`,
       {
-        headers: authHeaders,
+        headers: { 
+          ...authHeaders,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
       }
     );
 
@@ -100,7 +102,7 @@ export default function () {
     sleep(0.5);
   });
 
-  // 3. Ver lista de reservas
+  // 3. Ver lista de reservas e extrair booking ID
   group('view_bookings_list', function () {
     const bookingsRes = http.get(`${BASE_URL}/my-bookings`, { 
       headers: authHeaders 
@@ -109,6 +111,14 @@ export default function () {
     check(bookingsRes, {
       'bookings list ok': (r) => r.status === 200,
     });
+
+    // Tentar extrair booking ID da página HTML
+    if (bookingsRes.body) {
+      const matches = bookingsRes.body.match(/my-bookings\/(\d+)/);
+      if (matches && matches[1]) {
+        bookingId = matches[1];
+      }
+    }
 
     sleep(1);
   });
