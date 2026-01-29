@@ -1,0 +1,92 @@
+TESTES MAGICLOOK - RESUMO
+=========================
+
+SMOKE TEST
+----------
+O que testa: Saúde básica da aplicação
+Objetivo: Verificar se tudo funciona (login, páginas, APIs)
+Config: 3 utilizadores, 1 minuto
+Para: Teste rápido após deploy
+
+CONCURRENT BOOKING TEST
+-----------------------
+O que testa: Concorrência em reservas
+Objetivo: Evitar que 2 pessoas reservem o mesmo item nas mesmas datas
+Config: 50 utilizadores a tentar reservar o MESMO item
+CRÍTICO: Garante integridade do negócio
+
+AVAILABILITY API TEST
+---------------------
+O que testa: Performance da API de disponibilidade
+Objetivo: API mais usada - deve ser rápida (<500ms)
+Config: 50 requisições/segundo, 3 minutos
+Para: Otimizar queries de BD
+
+DATABASE LOAD TEST
+------------------
+O que testa: Queries pesadas da base de dados
+Objetivo: Verificar performance de buscas complexas
+Config: 10 utilizadores, 2.5 minutos
+Para: Otimizar índices e queries
+
+FILTER AND SEARCH TEST
+----------------------
+O que testa: Filtros e pesquisa de produtos
+Objetivo: Validar performance de filtros
+Config: 20→50 utilizadores (ramping), 3.5 minutos
+Para: Testes regulares de funcionalidade
+
+BOOKING CANCELLATION TEST
+--------------------------
+O que testa: Fluxo de cancelamento de reservas
+Objetivo: Garantir que cancelamentos funcionam sob carga
+Config: 30 utilizadores, 3 minutos
+Para: Teste de fluxos críticos
+
+FULL USER JOURNEY TEST
+----------------------
+O que testa: Fluxo completo do utilizador
+Objetivo: Simular utilizador real (registo → reserva → logout)
+Config: 100 utilizadores, 5 minutos
+Para: Testar integração entre componentes
+
+GENERAL LOAD TEST
+-----------------
+O que testa: Carga mista geral
+Objetivo: Ver comportamento sob carga variável
+Config: 50→150→50 utilizadores, 6 minutos
+Para: Encontrar pontos de estrangulamento
+
+SPIKE TEST
+----------
+O que testa: Picos de tráfego inesperado
+Objetivo: Validar que o sistema não quebra com picos
+Config: Ramping com 2 picos (200 e 150 VUs), 3 minutos
+Para: Simular eventos de marketing/flash sales
+
+TEMPO TOTAL: ~28.5 minutos
+
+
+COMO EXECUTAR
+==============
+Todos:
+  $ bash run-performance-tests.sh
+
+Um teste específico:
+  $ k6 run smoke-tests/smoke-test.js
+  $ k6 run stress-tests/concurrent-booking-test.js
+  $ k6 run api-tests/availability-api-test.js
+  $ k6 run load-tests/database-load-test.js
+  $ k6 run load-tests/filter-and-search-test.js
+  $ k6 run load-tests/booking-cancellation-test.js
+  $ k6 run load-tests/full-journey-test.js
+  $ k6 run load-tests/general-load-test.js
+  $ k6 run stress-tests/spike-test.js
+
+TROUBLESHOOTING
+================
+Connection refused → App não está a correr
+Login failed → Utilizadores não existem (crie testuser0-99)
+Item not found → Itens 1-5 não existem (crie com tamanhos S/M/L/XL)
+Performance degrada → Verifique índices da BD
+
