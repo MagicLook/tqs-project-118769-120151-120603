@@ -110,7 +110,7 @@ jobs:
                     XRAY_CLIENT_SECRET: ${{ secrets.XRAYCLOUD_CLIENT_SECRET }}
               run: |
                 if [ -s target/cucumber.json ]; then
-                  mvn -B xray:import-results -Dxray.cloud=true -Dxray.clientId="$XRAY_CLIENT_ID" -Dxray.clientSecret="$XRAY_CLIENT_SECRET" -Dxray.reportFormat=cucumber -Dxray.reportFile=target/cucumber.json -Dxray.testExecInfoJson=xray-testexec-info.json
+                  mvn -B xray:import-results -Dxray.clientId="$XRAY_CLIENT_ID" -Dxray.clientSecret="$XRAY_CLIENT_SECRET" -Dxray.reportFormat=cucumber -Dxray.reportFile=target/cucumber.json
                 else
                   echo "Warning: cucumber.json is empty or missing, skipping Xray import"
                 fi
