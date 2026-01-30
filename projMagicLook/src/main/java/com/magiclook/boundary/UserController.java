@@ -122,21 +122,11 @@ public class UserController {
     @Timed(value = "request.catalog", histogram = true, description = "Men's catalog display latency", extraTags = {
             "slo", "catalog", "operation", "getMenItems" })
     public String showMenItems(
-            @RequestParam(required = false) String color,
-            @RequestParam(required = false) String brand,
-            @RequestParam(required = false) String material,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String subcategory,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) String shopLocation,
-            @RequestParam(required = false) String size,
+            ItemFilterDTO filter,
             HttpSession session,
             Model model) {
 
-        return showGenderItems(session, model, "M", "men",
-                color, brand, material, category, subcategory,
-                minPrice, maxPrice, shopLocation, size);
+        return showGenderItems(session, model, "M", "men", filter);
     }
 
     // Convenience overload for unit tests (direct call)
@@ -158,21 +148,11 @@ public class UserController {
     @Timed(value = "request.catalog", histogram = true, description = "Women's catalog display latency", extraTags = {
             "slo", "catalog", "operation", "getWomenItems" })
     public String showWomenItems(
-            @RequestParam(required = false) String color,
-            @RequestParam(required = false) String brand,
-            @RequestParam(required = false) String material,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String subcategory,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) String shopLocation,
-            @RequestParam(required = false) String size,
+            ItemFilterDTO filter,
             HttpSession session,
             Model model) {
 
-        return showGenderItems(session, model, "F", "women",
-                color, brand, material, category, subcategory,
-                minPrice, maxPrice, shopLocation, size);
+        return showGenderItems(session, model, "F", "women", filter);
     }
 
     // Convenience overload for unit tests (direct call)
@@ -192,21 +172,13 @@ public class UserController {
 
     private String showGenderItems(HttpSession session, Model model,
             String genderCode, String pageName,
-            String color, String brand, String material,
-            String category, String subcategory,
-            Double minPrice, Double maxPrice,
-            String shopLocation, String size) {
+            ItemFilterDTO filter) {
 
         User user = (User) session.getAttribute(ATTR_LOGGED_IN_USER);
 
         if (user == null) {
             return REDIRECT_LOGIN;
         }
-
-        // Criar filtro com os parâmetros
-        ItemFilterDTO filter = new ItemFilterDTO(color, brand, material, category,
-                subcategory, minPrice, maxPrice,
-                shopLocation, size);
 
         // Buscar itens com filtros
         List<Item> items = itemService.findByGenderAndFilters(genderCode, filter);
@@ -242,30 +214,22 @@ public class UserController {
             "catalog", "operation", "filterItems" })
     public String filterItems(
             @PathVariable String gender,
-            @RequestParam(required = false) String color,
-            @RequestParam(required = false) String brand,
-            @RequestParam(required = false) String material,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String subcategory,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) String shopLocation,
-            @RequestParam(required = false) String size) {
+            ItemFilterDTO filter) {
 
         StringBuilder redirectUrl = new StringBuilder("redirect:/magiclook/items/").append(gender);
         boolean firstParam = true;
 
         // Create a list of parameter entries
         List<Map.Entry<String, Object>> params = new ArrayList<>();
-        params.add(new AbstractMap.SimpleEntry<>("color", color));
-        params.add(new AbstractMap.SimpleEntry<>("brand", brand));
-        params.add(new AbstractMap.SimpleEntry<>("material", material));
-        params.add(new AbstractMap.SimpleEntry<>("category", category));
-        params.add(new AbstractMap.SimpleEntry<>("subcategory", subcategory));
-        params.add(new AbstractMap.SimpleEntry<>("size", size));
-        params.add(new AbstractMap.SimpleEntry<>("minPrice", minPrice));
-        params.add(new AbstractMap.SimpleEntry<>("maxPrice", maxPrice));
-        params.add(new AbstractMap.SimpleEntry<>("shopLocation", shopLocation));
+        params.add(new AbstractMap.SimpleEntry<>("color", filter.getColor()));
+        params.add(new AbstractMap.SimpleEntry<>("brand", filter.getBrand()));
+        params.add(new AbstractMap.SimpleEntry<>("material", filter.getMaterial()));
+        params.add(new AbstractMap.SimpleEntry<>("category", filter.getCategory()));
+        params.add(new AbstractMap.SimpleEntry<>("subcategory", filter.getSubcategory()));
+        params.add(new AbstractMap.SimpleEntry<>("size", filter.getSize()));
+        params.add(new AbstractMap.SimpleEntry<>("minPrice", filter.getMinPrice()));
+        params.add(new AbstractMap.SimpleEntry<>("maxPrice", filter.getMaxPrice()));
+        params.add(new AbstractMap.SimpleEntry<>("shopLocation", filter.getShopLocation()));
 
         for (Map.Entry<String, Object> param : params) {
             if (shouldIncludeParameter(param.getValue())) {
@@ -297,15 +261,7 @@ public class UserController {
 
         String genderCode = "men".equals(gender) ? "M" : "F";
 
-        List<Item> items = itemService.searchItemsWithFilters(
-                genderCode,
-                filter.getColor(),
-                filter.getBrand(),
-                filter.getMaterial(),
-                filter.getCategory(),
-                filter.getShopLocation(),
-                filter.getMinPrice(),
-                filter.getMaxPrice());
+        List<Item> items = itemService.findByGenderAndFilters(genderCode, filter);
 
         model.addAttribute("filter", filter);
         model.addAttribute(ITEMS, items);

@@ -139,6 +139,18 @@ class UserControllerTest {
         String shopLocation = "Lisbon";
         String size = "M";
 
+        ItemFilterDTO filterDTO = ItemFilterDTO.builder()
+                .color(color)
+                .brand(brand)
+                .material(material)
+                .category(category)
+                .subcategory(subcategory)
+                .minPrice(minPrice)
+                .maxPrice(maxPrice)
+                .shopLocation(shopLocation)
+                .size(size)
+                .build();
+
         List<Item> filteredItems = createTestItems("M", 2);
         when(itemService.findByGenderAndFilters(eq("M"), any())).thenReturn(filteredItems);
         when(itemService.getAllDistinctColors()).thenReturn(List.of("Blue"));
@@ -149,13 +161,14 @@ class UserControllerTest {
         when(itemService.getAllDistinctSizesByGender("M")).thenReturn(List.of("M"));
         when(itemService.getAllDistinctShopLocations()).thenReturn(List.of("Lisbon"));
 
-        String viewName = userController.showMenItems(color, brand, material, category, subcategory, minPrice, maxPrice, shopLocation, size, session, model);
+        String viewName = userController.showMenItems(filterDTO, session, model);
 
         assertEquals("items/men", viewName);
 
         // capture filter passed into model - verify called exactly once
         @SuppressWarnings("unchecked")
-        org.mockito.ArgumentCaptor<com.magiclook.dto.ItemFilterDTO> captor = org.mockito.ArgumentCaptor.forClass(com.magiclook.dto.ItemFilterDTO.class);
+        org.mockito.ArgumentCaptor<com.magiclook.dto.ItemFilterDTO> captor = org.mockito.ArgumentCaptor
+                .forClass(com.magiclook.dto.ItemFilterDTO.class);
         verify(model, times(1)).addAttribute(eq("filter"), captor.capture());
         com.magiclook.dto.ItemFilterDTO captured = captor.getValue();
         assertEquals(color, captured.getColor());
@@ -181,10 +194,23 @@ class UserControllerTest {
 
     @Test
     void testFilterItems_Post_BuildsRedirectUrlWithParams() {
-        String res = userController.filterItems("men", "blue color", "Acme", "cotton", "Shirt", "Casual", 5.0, 20.0, "Lisbon Downtown", "M");
-        assertEquals("redirect:/magiclook/items/men?color=blue+color&brand=Acme&material=cotton&category=Shirt&subcategory=Casual&size=M&minPrice=5.0&maxPrice=20.0&shopLocation=Lisbon+Downtown", res);
+        ItemFilterDTO filter = ItemFilterDTO.builder()
+                .color("blue color")
+                .brand("Acme")
+                .material("cotton")
+                .category("Shirt")
+                .subcategory("Casual")
+                .minPrice(5.0)
+                .maxPrice(20.0)
+                .shopLocation("Lisbon Downtown")
+                .size("M")
+                .build();
+        String res = userController.filterItems("men", filter);
+        assertEquals(
+                "redirect:/magiclook/items/men?color=blue+color&brand=Acme&material=cotton&category=Shirt&subcategory=Casual&size=M&minPrice=5.0&maxPrice=20.0&shopLocation=Lisbon+Downtown",
+                res);
     }
-    
+
     @Test
     void testLogout_ShouldInvalidateSession() {
         User user = new User();
@@ -266,7 +292,7 @@ class UserControllerTest {
         filter.setColor("Blue");
 
         List<Item> filteredItems = createTestItems(2);
-        when(itemService.searchItemsWithFilters("M", "Blue", null, null, null, null, null, null))
+        when(itemService.findByGenderAndFilters(eq("M"), any(ItemFilterDTO.class)))
                 .thenReturn(filteredItems);
 
         String viewName = userController.filterItems("men", filter, session, model);
@@ -297,22 +323,22 @@ class UserControllerTest {
     void testMarkNotificationAsRead_WithValidNotification_ShouldReturnOk() {
         UUID notificationId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        
+
         User user = new User();
         user.setUserId(userId);
         session.setAttribute("loggedInUser", user);
-        
+
         com.magiclook.data.Notification notification = new com.magiclook.data.Notification();
         notification.setNotificationId(notificationId);
         notification.setUser(user);
         notification.setRead(false);
-        
+
         when(notificationRepository.findById(notificationId))
                 .thenReturn(java.util.Optional.of(notification));
-        
-        org.springframework.http.ResponseEntity<?> response = 
-                userController.markNotificationAsRead(notificationId, session);
-        
+
+        org.springframework.http.ResponseEntity<?> response = userController.markNotificationAsRead(notificationId,
+                session);
+
         assertEquals(org.springframework.http.HttpStatus.OK, response.getStatusCode());
         assertTrue(notification.isRead());
         verify(notificationRepository).save(notification);
@@ -321,10 +347,10 @@ class UserControllerTest {
     @Test
     void testMarkNotificationAsRead_WithoutLoggedInUser_ShouldReturn401() {
         UUID notificationId = UUID.randomUUID();
-        
-        org.springframework.http.ResponseEntity<?> response = 
-                userController.markNotificationAsRead(notificationId, session);
-        
+
+        org.springframework.http.ResponseEntity<?> response = userController.markNotificationAsRead(notificationId,
+                session);
+
         assertEquals(org.springframework.http.HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(notificationRepository, never()).findById(any());
         verify(notificationRepository, never()).save(any());
@@ -334,17 +360,17 @@ class UserControllerTest {
     void testMarkNotificationAsRead_WithNonExistentNotification_ShouldReturn404() {
         UUID notificationId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        
+
         User user = new User();
         user.setUserId(userId);
         session.setAttribute("loggedInUser", user);
-        
+
         when(notificationRepository.findById(notificationId))
                 .thenReturn(java.util.Optional.empty());
-        
-        org.springframework.http.ResponseEntity<?> response = 
-                userController.markNotificationAsRead(notificationId, session);
-        
+
+        org.springframework.http.ResponseEntity<?> response = userController.markNotificationAsRead(notificationId,
+                session);
+
         assertEquals(org.springframework.http.HttpStatus.NOT_FOUND, response.getStatusCode());
         verify(notificationRepository).findById(notificationId);
         verify(notificationRepository, never()).save(any());
@@ -355,25 +381,25 @@ class UserControllerTest {
         UUID notificationId = UUID.randomUUID();
         UUID loggedInUserId = UUID.randomUUID();
         UUID notificationOwnerId = UUID.randomUUID();
-        
+
         User loggedInUser = new User();
         loggedInUser.setUserId(loggedInUserId);
         session.setAttribute("loggedInUser", loggedInUser);
-        
+
         User notificationOwner = new User();
         notificationOwner.setUserId(notificationOwnerId);
-        
+
         com.magiclook.data.Notification notification = new com.magiclook.data.Notification();
         notification.setNotificationId(notificationId);
         notification.setUser(notificationOwner);
         notification.setRead(false);
-        
+
         when(notificationRepository.findById(notificationId))
                 .thenReturn(java.util.Optional.of(notification));
-        
-        org.springframework.http.ResponseEntity<?> response = 
-                userController.markNotificationAsRead(notificationId, session);
-        
+
+        org.springframework.http.ResponseEntity<?> response = userController.markNotificationAsRead(notificationId,
+                session);
+
         assertEquals(org.springframework.http.HttpStatus.FORBIDDEN, response.getStatusCode());
         assertFalse(notification.isRead());
         verify(notificationRepository).findById(notificationId);
@@ -384,22 +410,22 @@ class UserControllerTest {
     void testMarkNotificationAsRead_AlreadyRead_ShouldStillReturnOk() {
         UUID notificationId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        
+
         User user = new User();
         user.setUserId(userId);
         session.setAttribute("loggedInUser", user);
-        
+
         com.magiclook.data.Notification notification = new com.magiclook.data.Notification();
         notification.setNotificationId(notificationId);
         notification.setUser(user);
         notification.setRead(true);
-        
+
         when(notificationRepository.findById(notificationId))
                 .thenReturn(java.util.Optional.of(notification));
-        
-        org.springframework.http.ResponseEntity<?> response = 
-                userController.markNotificationAsRead(notificationId, session);
-        
+
+        org.springframework.http.ResponseEntity<?> response = userController.markNotificationAsRead(notificationId,
+                session);
+
         assertEquals(org.springframework.http.HttpStatus.OK, response.getStatusCode());
         assertTrue(notification.isRead());
         verify(notificationRepository).save(notification);

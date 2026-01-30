@@ -121,17 +121,18 @@ public class StaffController {
             }
 
             // Converter em ItemDTO
-            ItemDTO itemDTO = new ItemDTO(
-                    name,
-                    material,
-                    color,
-                    brand,
-                    priceRent,
-                    priceSale,
-                    shop,
-                    gender,
-                    category,
-                    subcategory);
+            ItemDTO itemDTO = ItemDTO.builder()
+                    .name(name)
+                    .material(material)
+                    .color(color)
+                    .brand(brand)
+                    .priceRent(priceRent)
+                    .priceSale(priceSale)
+                    .shopId(shop)
+                    .gender(gender)
+                    .category(category)
+                    .subcategory(subcategory)
+                    .build();
 
             int result = staffService.addItem(itemDTO, size);
 
@@ -289,17 +290,18 @@ public class StaffController {
         }
 
         try {
-            ItemDTO itemDTO = new ItemDTO(
-                    name,
-                    material,
-                    color,
-                    brand,
-                    priceRent,
-                    priceSale,
-                    shop,
-                    gender,
-                    category,
-                    subcategory);
+            ItemDTO itemDTO = ItemDTO.builder()
+                    .name(name)
+                    .material(material)
+                    .color(color)
+                    .brand(brand)
+                    .priceRent(priceRent)
+                    .priceSale(priceSale)
+                    .shopId(shop)
+                    .gender(gender)
+                    .category(category)
+                    .subcategory(subcategory)
+                    .build();
             itemDTO.setItemId(itemId);
 
             staffService.updateItem(itemDTO);

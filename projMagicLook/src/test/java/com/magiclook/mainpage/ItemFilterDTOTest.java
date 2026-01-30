@@ -11,7 +11,7 @@ class ItemFilterDTOTest {
     @Test
     void testDefaultConstructor_CreatesEmptyFilter() {
         ItemFilterDTO filter = new ItemFilterDTO();
-        
+
         assertThat(filter.getColor()).isNull();
         assertThat(filter.getBrand()).isNull();
         assertThat(filter.getMaterial()).isNull();
@@ -24,8 +24,15 @@ class ItemFilterDTOTest {
 
     @Test
     void testArgsConstructor6Params_CreatesFilterWithAllValues() {
-        ItemFilterDTO filter = new ItemFilterDTO("Blue", "Zara", "Cotton", "Shirt", 20.0, 50.0);
-        
+        ItemFilterDTO filter = ItemFilterDTO.builder()
+                .color("Blue")
+                .brand("Zara")
+                .material("Cotton")
+                .category("Shirt")
+                .minPrice(20.0)
+                .maxPrice(50.0)
+                .build();
+
         assertThat(filter.getColor()).isEqualTo("Blue");
         assertThat(filter.getBrand()).isEqualTo("Zara");
         assertThat(filter.getMaterial()).isEqualTo("Cotton");
@@ -38,8 +45,16 @@ class ItemFilterDTOTest {
 
     @Test
     void testArgsConstructor7Params_CreatesFilterWithAllValuesAndShopLocation() {
-        ItemFilterDTO filter = new ItemFilterDTO("Blue", "Zara", "Cotton", "Shirt", 20.0, 50.0, "Lisbon");
-        
+        ItemFilterDTO filter = ItemFilterDTO.builder()
+                .color("Blue")
+                .brand("Zara")
+                .material("Cotton")
+                .category("Shirt")
+                .minPrice(20.0)
+                .maxPrice(50.0)
+                .shopLocation("Lisbon")
+                .build();
+
         assertThat(filter.getColor()).isEqualTo("Blue");
         assertThat(filter.getBrand()).isEqualTo("Zara");
         assertThat(filter.getMaterial()).isEqualTo("Cotton");
@@ -53,7 +68,7 @@ class ItemFilterDTOTest {
     @Test
     void testSettersAndGetters_WorkCorrectly() {
         ItemFilterDTO filter = new ItemFilterDTO();
-        
+
         filter.setColor("Red");
         filter.setBrand("H&M");
         filter.setMaterial("Silk");
@@ -61,7 +76,7 @@ class ItemFilterDTOTest {
         filter.setMinPrice(30.0);
         filter.setMaxPrice(60.0);
         filter.setShopLocation("Porto");
-        
+
         assertThat(filter.getColor()).isEqualTo("Red");
         assertThat(filter.getBrand()).isEqualTo("H&M");
         assertThat(filter.getMaterial()).isEqualTo("Silk");
@@ -129,7 +144,11 @@ class ItemFilterDTOTest {
 
     @Test
     void testHasFilters_WithMultipleFilters_ReturnsTrue() {
-        ItemFilterDTO filter = new ItemFilterDTO("Blue", "Zara", null, null, Double.valueOf(20.0), null);
+        ItemFilterDTO filter = ItemFilterDTO.builder()
+                .color("Blue")
+                .brand("Zara")
+                .minPrice(20.0)
+                .build();
         assertThat(filter.hasFilters()).isTrue();
     }
 }

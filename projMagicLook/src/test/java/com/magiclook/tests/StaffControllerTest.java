@@ -64,8 +64,16 @@ class StaffControllerTest {
         testItemType = new ItemType("M", "Camiseta", "Manga Curta");
         testItemType.setId(1);
 
-        testItem = new Item("Test Item", "Cotton", "Blue", "Test Brand", 
-                           new BigDecimal("50.00"), new BigDecimal("200.00"), testShop, testItemType);
+        testItem = Item.builder()
+                .name("Test Item")
+                .material("Cotton")
+                .color("Blue")
+                .brand("Test Brand")
+                .priceRent(new BigDecimal("50.00"))
+                .priceSale(new BigDecimal("200.00"))
+                .shop(testShop)
+                .itemType(testItemType)
+                .build();
         testItem.setItemId(1);
     }
 
@@ -221,11 +229,10 @@ class StaffControllerTest {
             when(session.getAttribute("loggedInStaff")).thenReturn(null);
 
             String viewName = staffController.addItem(
-                "Item", "Brand", "Cotton", "Blue", "M",
-                new BigDecimal("50.00"), new BigDecimal("200.00"),
-                "M", "Camiseta", "Manga Curta", 1, null,
-                session, model
-            );
+                    "Item", "Brand", "Cotton", "Blue", "M",
+                    new BigDecimal("50.00"), new BigDecimal("200.00"),
+                    "M", "Camiseta", "Manga Curta", 1, null,
+                    session, model);
 
             assertEquals("redirect:/magiclook/staff/login", viewName);
             verifyNoInteractions(staffService);
@@ -238,11 +245,10 @@ class StaffControllerTest {
             when(staffService.addItem(any(ItemDTO.class), eq("M"))).thenReturn(0);
 
             String viewName = staffController.addItem(
-                "Test Item", "Test Brand", "Cotton", "Blue", "M",
-                new BigDecimal("50.00"), new BigDecimal("200.00"),
-                "M", "Camiseta", "Manga Curta", 1, null,
-                session, model
-            );
+                    "Test Item", "Test Brand", "Cotton", "Blue", "M",
+                    new BigDecimal("50.00"), new BigDecimal("200.00"),
+                    "M", "Camiseta", "Manga Curta", 1, null,
+                    session, model);
 
             assertEquals("redirect:/magiclook/staff/item", viewName);
             verify(staffService).addItem(any(ItemDTO.class), eq("M"));
@@ -256,11 +262,10 @@ class StaffControllerTest {
             when(staffService.addItem(any(ItemDTO.class), eq("XXXL"))).thenReturn(-1);
 
             String viewName = staffController.addItem(
-                "Test Item", "Test Brand", "Cotton", "Blue", "XXXL",
-                new BigDecimal("50.00"), new BigDecimal("200.00"),
-                "M", "Camiseta", "Manga Curta", 1, null,
-                session, model
-            );
+                    "Test Item", "Test Brand", "Cotton", "Blue", "XXXL",
+                    new BigDecimal("50.00"), new BigDecimal("200.00"),
+                    "M", "Camiseta", "Manga Curta", 1, null,
+                    session, model);
 
             assertEquals("staffItem", viewName);
             verify(model).addAttribute("error", "Tamanho inválido!");
@@ -273,11 +278,10 @@ class StaffControllerTest {
             when(staffService.addItem(any(ItemDTO.class), eq("M"))).thenReturn(-2);
 
             String viewName = staffController.addItem(
-                "Test Item", "Test Brand", "InvalidMaterial", "Blue", "M",
-                new BigDecimal("50.00"), new BigDecimal("200.00"),
-                "M", "Camiseta", "Manga Curta", 1, null,
-                session, model
-            );
+                    "Test Item", "Test Brand", "InvalidMaterial", "Blue", "M",
+                    new BigDecimal("50.00"), new BigDecimal("200.00"),
+                    "M", "Camiseta", "Manga Curta", 1, null,
+                    session, model);
 
             assertEquals("staffItem", viewName);
             verify(model).addAttribute("error", "Material inválido!");
@@ -290,11 +294,10 @@ class StaffControllerTest {
             when(staffService.addItem(any(ItemDTO.class), eq("M"))).thenReturn(-3);
 
             String viewName = staffController.addItem(
-                "Test Item", "Test Brand", "Cotton", "Blue", "M",
-                new BigDecimal("50.00"), new BigDecimal("200.00"),
-                "M", "InvalidCategory", "InvalidSubcategory", 999, null,
-                session, model
-            );
+                    "Test Item", "Test Brand", "Cotton", "Blue", "M",
+                    new BigDecimal("50.00"), new BigDecimal("200.00"),
+                    "M", "InvalidCategory", "InvalidSubcategory", 999, null,
+                    session, model);
 
             assertEquals("staffItem", viewName);
             verify(model).addAttribute("error", "Shop ou ItemType inválido!");
@@ -309,11 +312,10 @@ class StaffControllerTest {
             when(staffService.saveImage(any(MultipartFile.class), any())).thenReturn("/uploads/item_123_test.jpg");
 
             String viewName = staffController.addItem(
-                "Test Item", "Test Brand", "Cotton", "Blue", "M",
-                new BigDecimal("50.00"), new BigDecimal("200.00"),
-                "M", "Camiseta", "Manga Curta", 1, multipartFile,
-                session, model
-            );
+                    "Test Item", "Test Brand", "Cotton", "Blue", "M",
+                    new BigDecimal("50.00"), new BigDecimal("200.00"),
+                    "M", "Camiseta", "Manga Curta", 1, multipartFile,
+                    session, model);
 
             assertEquals("redirect:/magiclook/staff/item", viewName);
             verify(staffService).saveImage(eq(multipartFile), any());
@@ -326,11 +328,10 @@ class StaffControllerTest {
             when(staffService.addItem(any(ItemDTO.class), eq("M"))).thenReturn(0);
 
             String viewName = staffController.addItem(
-                "Test Item", "Test Brand", "Cotton", "Blue", "M",
-                new BigDecimal("50.00"), new BigDecimal("200.00"),
-                "M", "Camiseta", "Manga Curta", 1, null,
-                session, model
-            );
+                    "Test Item", "Test Brand", "Cotton", "Blue", "M",
+                    new BigDecimal("50.00"), new BigDecimal("200.00"),
+                    "M", "Camiseta", "Manga Curta", 1, null,
+                    session, model);
 
             assertEquals("redirect:/magiclook/staff/item", viewName);
             verify(staffService, never()).saveImage(any(), any());
@@ -344,11 +345,10 @@ class StaffControllerTest {
             when(multipartFile.isEmpty()).thenReturn(true);
 
             String viewName = staffController.addItem(
-                "Test Item", "Test Brand", "Cotton", "Blue", "M",
-                new BigDecimal("50.00"), new BigDecimal("200.00"),
-                "M", "Camiseta", "Manga Curta", 1, multipartFile,
-                session, model
-            );
+                    "Test Item", "Test Brand", "Cotton", "Blue", "M",
+                    new BigDecimal("50.00"), new BigDecimal("200.00"),
+                    "M", "Camiseta", "Manga Curta", 1, multipartFile,
+                    session, model);
 
             assertEquals("redirect:/magiclook/staff/item", viewName);
             verify(staffService, never()).saveImage(any(), any());
@@ -359,14 +359,13 @@ class StaffControllerTest {
         void addItem_withException_shouldShowError() {
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
             when(staffService.addItem(any(ItemDTO.class), eq("M")))
-                .thenThrow(new RuntimeException("Database error"));
+                    .thenThrow(new RuntimeException("Database error"));
 
             String viewName = staffController.addItem(
-                "Test Item", "Test Brand", "Cotton", "Blue", "M",
-                new BigDecimal("50.00"), new BigDecimal("200.00"),
-                "M", "Camiseta", "Manga Curta", 1, null,
-                session, model
-            );
+                    "Test Item", "Test Brand", "Cotton", "Blue", "M",
+                    new BigDecimal("50.00"), new BigDecimal("200.00"),
+                    "M", "Camiseta", "Manga Curta", 1, null,
+                    session, model);
 
             assertEquals("staffItem", viewName);
             verify(model).addAttribute(eq("error"), contains("Erro ao adicionar item"));
@@ -379,24 +378,21 @@ class StaffControllerTest {
             when(staffService.addItem(any(ItemDTO.class), eq("L"))).thenReturn(0);
 
             staffController.addItem(
-                "Vestido", "Zara", "Seda", "Vermelho", "L",
-                new BigDecimal("100.00"), new BigDecimal("500.00"),
-                "F", "Vestido", "Longo", 2, null,
-                session, model
-            );
+                    "Vestido", "Zara", "Seda", "Vermelho", "L",
+                    new BigDecimal("100.00"), new BigDecimal("500.00"),
+                    "F", "Vestido", "Longo", 2, null,
+                    session, model);
 
-            verify(staffService).addItem(argThat(dto ->
-                dto.getName().equals("Vestido") &&
-                dto.getBrand().equals("Zara") &&
-                dto.getMaterial().equals("Seda") &&
-                dto.getColor().equals("Vermelho") &&
-                dto.getPriceRent().equals(new BigDecimal("100.00")) &&
-                dto.getPriceSale().equals(new BigDecimal("500.00")) &&
-                dto.getShopId().equals(2) &&
-                dto.getGender().equals("F") &&
-                dto.getCategory().equals("Vestido") &&
-                dto.getSubcategory().equals("Longo")
-            ), eq("L"));
+            verify(staffService).addItem(argThat(dto -> dto.getName().equals("Vestido") &&
+                    dto.getBrand().equals("Zara") &&
+                    dto.getMaterial().equals("Seda") &&
+                    dto.getColor().equals("Vermelho") &&
+                    dto.getPriceRent().equals(new BigDecimal("100.00")) &&
+                    dto.getPriceSale().equals(new BigDecimal("500.00")) &&
+                    dto.getShopId().equals(2) &&
+                    dto.getGender().equals("F") &&
+                    dto.getCategory().equals("Vestido") &&
+                    dto.getSubcategory().equals("Longo")), eq("L"));
         }
     }
 
@@ -451,16 +447,13 @@ class StaffControllerTest {
             when(staffService.addItem(any(ItemDTO.class), eq("M"))).thenReturn(0);
 
             staffController.addItem(
-                "Item", "Brand", "Cotton", "Blue", "M",
-                new BigDecimal("99.99"), new BigDecimal("499.99"),
-                "M", "Camiseta", "Manga Curta", 1, null,
-                session, model
-            );
+                    "Item", "Brand", "Cotton", "Blue", "M",
+                    new BigDecimal("99.99"), new BigDecimal("499.99"),
+                    "M", "Camiseta", "Manga Curta", 1, null,
+                    session, model);
 
-            verify(staffService).addItem(argThat(dto ->
-                dto.getPriceRent().equals(new BigDecimal("99.99")) &&
-                dto.getPriceSale().equals(new BigDecimal("499.99"))
-            ), eq("M"));
+            verify(staffService).addItem(argThat(dto -> dto.getPriceRent().equals(new BigDecimal("99.99")) &&
+                    dto.getPriceSale().equals(new BigDecimal("499.99"))), eq("M"));
         }
 
         @Test
@@ -470,16 +463,13 @@ class StaffControllerTest {
             when(staffService.addItem(any(ItemDTO.class), eq("M"))).thenReturn(0);
 
             staffController.addItem(
-                "Item & Co. #1", "Brand's", "Cotton", "Blue", "M",
-                new BigDecimal("50.00"), new BigDecimal("200.00"),
-                "M", "Camiseta", "Manga Curta", 1, null,
-                session, model
-            );
+                    "Item & Co. #1", "Brand's", "Cotton", "Blue", "M",
+                    new BigDecimal("50.00"), new BigDecimal("200.00"),
+                    "M", "Camiseta", "Manga Curta", 1, null,
+                    session, model);
 
-            verify(staffService).addItem(argThat(dto ->
-                dto.getName().equals("Item & Co. #1") &&
-                dto.getBrand().equals("Brand's")
-            ), eq("M"));
+            verify(staffService).addItem(argThat(dto -> dto.getName().equals("Item & Co. #1") &&
+                    dto.getBrand().equals("Brand's")), eq("M"));
         }
     }
 
@@ -533,10 +523,18 @@ class StaffControllerTest {
         @Test
         @DisplayName("GET /item with search query should filter items by name")
         void getItems_withSearchQuery_shouldFilterByName() {
-            Item item2 = new Item("Blue Shirt", "Cotton", "Blue", "Brand", 
-                                 new BigDecimal("40.00"), new BigDecimal("150.00"), testShop, testItemType);
+            Item item2 = Item.builder()
+                    .name("Blue Shirt")
+                    .material("Cotton")
+                    .color("Blue")
+                    .brand("Brand")
+                    .priceRent(new BigDecimal("40.00"))
+                    .priceSale(new BigDecimal("150.00"))
+                    .shop(testShop)
+                    .itemType(testItemType)
+                    .build();
             item2.setItemId(2);
-            
+
             List<Item> allItems = Arrays.asList(testItem, item2);
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
             when(itemService.getItemsByShop(testShop)).thenReturn(allItems);
@@ -590,7 +588,7 @@ class StaffControllerTest {
             ItemSingle single1 = new ItemSingle("AVAILABLE", testItem, "M");
             ItemSingle single2 = new ItemSingle("AVAILABLE", testItem, "L");
             List<ItemSingle> singles = Arrays.asList(single1, single2);
-            
+
             List<Item> items = Arrays.asList(testItem);
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
             when(itemService.getItemsByShop(testShop)).thenReturn(items);
@@ -599,22 +597,30 @@ class StaffControllerTest {
             String viewName = staffController.getItems(session, model, null, null);
 
             assertEquals("staffItem", viewName);
-            verify(model).addAttribute(eq("itemSizes"), argThat(map ->
-                ((Map<Integer, List<String>>) map).containsKey(testItem.getItemId()) &&
-                ((Map<Integer, List<String>>) map).get(testItem.getItemId()).containsAll(Arrays.asList("L", "M"))
-            ));
+            verify(model).addAttribute(eq("itemSizes"),
+                    argThat(map -> ((Map<Integer, List<String>>) map).containsKey(testItem.getItemId()) &&
+                            ((Map<Integer, List<String>>) map).get(testItem.getItemId())
+                                    .containsAll(Arrays.asList("L", "M"))));
         }
 
         @Test
         @DisplayName("GET /item with multiple items should create sizes map for all")
         void getItems_withMultipleItems_shouldCreateSizesForAll() {
-            Item item2 = new Item("Pants", "Cotton", "Black", "Brand", 
-                                 new BigDecimal("60.00"), new BigDecimal("250.00"), testShop, testItemType);
+            Item item2 = Item.builder()
+                    .name("Pants")
+                    .material("Cotton")
+                    .color("Black")
+                    .brand("Brand")
+                    .priceRent(new BigDecimal("60.00"))
+                    .priceSale(new BigDecimal("250.00"))
+                    .shop(testShop)
+                    .itemType(testItemType)
+                    .build();
             item2.setItemId(2);
-            
+
             ItemSingle single1 = new ItemSingle("AVAILABLE", testItem, "M");
             ItemSingle single2 = new ItemSingle("AVAILABLE", item2, "S");
-            
+
             List<Item> items = Arrays.asList(testItem, item2);
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
             when(itemService.getItemsByShop(testShop)).thenReturn(items);
@@ -624,9 +630,7 @@ class StaffControllerTest {
             String viewName = staffController.getItems(session, model, null, null);
 
             assertEquals("staffItem", viewName);
-            verify(model).addAttribute(eq("itemSizes"), argThat(map ->
-                ((Map<Integer, List<String>>) map).size() == 2
-            ));
+            verify(model).addAttribute(eq("itemSizes"), argThat(map -> ((Map<Integer, List<String>>) map).size() == 2));
         }
 
         @Test
@@ -692,9 +696,8 @@ class StaffControllerTest {
         @DisplayName("GET /item/{id} with logged staff should return details view")
         void getItemDetails_withLoggedStaff_shouldReturnDetailsView() {
             List<ItemSingle> singles = Arrays.asList(
-                new ItemSingle("AVAILABLE", testItem, "M"),
-                new ItemSingle("AVAILABLE", testItem, "L")
-            );
+                    new ItemSingle("AVAILABLE", testItem, "M"),
+                    new ItemSingle("AVAILABLE", testItem, "L"));
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
             when(itemService.getItemById(1)).thenReturn(Optional.of(testItem));
             when(itemService.getItems(1)).thenReturn(singles);
@@ -738,12 +741,11 @@ class StaffControllerTest {
         @DisplayName("GET /item/{id} with multiple item singles should display all")
         void getItemDetails_withMultipleItemSingles_shouldDisplayAll() {
             List<ItemSingle> singles = Arrays.asList(
-                new ItemSingle("AVAILABLE", testItem, "XS"),
-                new ItemSingle("AVAILABLE", testItem, "S"),
-                new ItemSingle("RENTED", testItem, "M"),
-                new ItemSingle("DAMAGED", testItem, "L"),
-                new ItemSingle("LAUNDRY", testItem, "XL")
-            );
+                    new ItemSingle("AVAILABLE", testItem, "XS"),
+                    new ItemSingle("AVAILABLE", testItem, "S"),
+                    new ItemSingle("RENTED", testItem, "M"),
+                    new ItemSingle("DAMAGED", testItem, "L"),
+                    new ItemSingle("LAUNDRY", testItem, "XL"));
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
             when(itemService.getItemById(1)).thenReturn(Optional.of(testItem));
             when(itemService.getItems(1)).thenReturn(singles);
@@ -771,14 +773,30 @@ class StaffControllerTest {
         @Test
         @DisplayName("GET /item/{id} with different items should fetch correct item")
         void getItemDetails_withDifferentItems_shouldFetchCorrectOne() {
-            Item item1 = new Item("Item 1", "Cotton", "Red", "Brand", 
-                                 new BigDecimal("50.00"), new BigDecimal("200.00"), testShop, testItemType);
+            Item item1 = Item.builder()
+                    .name("Item 1")
+                    .material("Cotton")
+                    .color("Red")
+                    .brand("Brand")
+                    .priceRent(new BigDecimal("50.00"))
+                    .priceSale(new BigDecimal("200.00"))
+                    .shop(testShop)
+                    .itemType(testItemType)
+                    .build();
             item1.setItemId(1);
-            
-            Item item2 = new Item("Item 2", "Silk", "Blue", "Brand", 
-                                 new BigDecimal("100.00"), new BigDecimal("400.00"), testShop, testItemType);
+
+            Item item2 = Item.builder()
+                    .name("Item 2")
+                    .material("Silk")
+                    .color("Blue")
+                    .brand("Brand")
+                    .priceRent(new BigDecimal("100.00"))
+                    .priceSale(new BigDecimal("400.00"))
+                    .shop(testShop)
+                    .itemType(testItemType)
+                    .build();
             item2.setItemId(2);
-            
+
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
             when(itemService.getItemById(2)).thenReturn(Optional.of(item2));
             when(itemService.getItems(2)).thenReturn(Collections.emptyList());
@@ -806,10 +824,9 @@ class StaffControllerTest {
         @DisplayName("GET /item/{id} with item singles of different states should display all states")
         void getItemDetails_withDifferentStates_shouldDisplayAll() {
             List<ItemSingle> singles = Arrays.asList(
-                new ItemSingle("AVAILABLE", testItem, "M"),
-                new ItemSingle("RENTED", testItem, "L"),
-                new ItemSingle("LAUNDRY", testItem, "XL")
-            );
+                    new ItemSingle("AVAILABLE", testItem, "M"),
+                    new ItemSingle("RENTED", testItem, "L"),
+                    new ItemSingle("LAUNDRY", testItem, "XL"));
             when(session.getAttribute("loggedInStaff")).thenReturn(testStaff);
             when(itemService.getItemById(1)).thenReturn(Optional.of(testItem));
             when(itemService.getItems(1)).thenReturn(singles);
@@ -817,9 +834,7 @@ class StaffControllerTest {
             String viewName = staffController.getItemDetails(1, session, model);
 
             assertEquals("staffItemDetails", viewName);
-            verify(model).addAttribute(eq("itemSingles"), argThat(list ->
-                ((List<?>) list).size() == 3
-            ));
+            verify(model).addAttribute(eq("itemSingles"), argThat(list -> ((List<?>) list).size() == 3));
         }
 
         @Test

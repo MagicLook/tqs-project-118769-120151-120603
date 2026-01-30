@@ -15,12 +15,12 @@ import java.util.Optional;
 
 @Service
 public class ItemService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(ItemService.class);
-    
+
     private final ItemRepository itemRepository;
     private final ItemSingleRepository itemSingleRepository;
-    
+
     public ItemService(ItemRepository itemRepository, ItemSingleRepository itemSingleRepository) {
         this.itemRepository = itemRepository;
         this.itemSingleRepository = itemSingleRepository;
@@ -33,7 +33,7 @@ public class ItemService {
         }
         return itemRepository.findByShop(shop);
     }
-    
+
     public List<Item> getAllItems() {
         return itemRepository.findAll();
     }
@@ -55,36 +55,50 @@ public class ItemService {
     public List<String> getAllDistinctColors() {
         return itemRepository.findAllDistinctColors();
     }
-    
+
     public List<String> getAllDistinctBrands() {
         return itemRepository.findAllDistinctBrands();
     }
-    
+
     public List<String> getAllDistinctMaterials() {
         return itemRepository.findAllDistinctMaterials();
     }
-    
+
     public List<String> getAllDistinctCategories() {
         return itemRepository.findAllDistinctCategories();
     }
-    
+
     public List<String> getAllDistinctShopLocations() {
         return itemRepository.findAllDistinctShopLocations();
     }
 
-    public List<Item> searchItemsWithFilters(String gender, String color, String brand, 
-                                             String material, String category, 
-                                             String shopLocation,
-                                             Double minPrice, Double maxPrice) {
-        String cleanedColor = (color == null || color.isEmpty()) ? null : color;
-        String cleanedBrand = (brand == null || brand.isEmpty()) ? null : brand;
-        String cleanedMaterial = (material == null || material.isEmpty()) ? null : material;
-        String cleanedCategory = (category == null || category.isEmpty()) ? null : category;
-        String cleanedShopLocation = (shopLocation == null || shopLocation.isEmpty()) ? null : shopLocation;
-        
-        return itemRepository.findByGenderAndFilters(gender, cleanedColor, cleanedBrand, 
-                                                    cleanedMaterial, cleanedCategory,
-                                                    cleanedShopLocation, minPrice, maxPrice);
+    public List<Item> findByGenderAndFilters(String gender, ItemFilterDTO filter) {
+        if (gender == null || gender.isEmpty() || filter == null) {
+            logger.warn("findByGenderAndFilters called with invalid parameters");
+            return List.of();
+        }
+
+        // Sanitize filter: convert empty strings to nulls
+        sanitizeFilter(filter);
+
+        return itemRepository.findByGenderAndFilters(gender, filter);
+    }
+
+    private void sanitizeFilter(ItemFilterDTO filter) {
+        if (filter.getColor() != null && filter.getColor().isEmpty())
+            filter.setColor(null);
+        if (filter.getBrand() != null && filter.getBrand().isEmpty())
+            filter.setBrand(null);
+        if (filter.getMaterial() != null && filter.getMaterial().isEmpty())
+            filter.setMaterial(null);
+        if (filter.getCategory() != null && filter.getCategory().isEmpty())
+            filter.setCategory(null);
+        if (filter.getSubcategory() != null && filter.getSubcategory().isEmpty())
+            filter.setSubcategory(null);
+        if (filter.getShopLocation() != null && filter.getShopLocation().isEmpty())
+            filter.setShopLocation(null);
+        if (filter.getSize() != null && filter.getSize().isEmpty())
+            filter.setSize(null);
     }
 
     public List<Item> getAllItemsByState(String state) {
@@ -102,7 +116,7 @@ public class ItemService {
         }
         return itemSingleRepository.findByItem_ItemId(itemId);
     }
-    
+
     public Optional<Item> getItemById(Integer itemId) {
         if (itemId == null) {
             logger.warn("getItemById called with null itemId");
@@ -110,7 +124,7 @@ public class ItemService {
         }
         return itemRepository.findById(itemId);
     }
-    
+
     // Método simplificado para obter tamanhos disponíveis
     public List<String> getAvailableSizesForItem(Integer itemId) {
         if (itemId == null) {
@@ -118,14 +132,14 @@ public class ItemService {
             return List.of();
         }
         return itemSingleRepository.findByItem_ItemId(itemId)
-            .stream()
-            .filter(is -> "AVAILABLE".equals(is.getState()))
-            .map(ItemSingle::getSize)
-            .distinct()
-            .sorted()
-            .toList();
+                .stream()
+                .filter(is -> "AVAILABLE".equals(is.getState()))
+                .map(ItemSingle::getSize)
+                .distinct()
+                .sorted()
+                .toList();
     }
-    
+
     public List<String> getAllDistinctSubcategoriesByGender(String gender) {
         if (gender == null || gender.isEmpty()) {
             logger.warn("getAllDistinctSubcategoriesByGender called with null or empty gender");
@@ -133,7 +147,7 @@ public class ItemService {
         }
         return itemRepository.findAllDistinctSubcategoriesByGender(gender);
     }
-    
+
     public List<String> getAllDistinctSizesByGender(String gender) {
         if (gender == null || gender.isEmpty()) {
             logger.warn("getAllDistinctSizesByGender called with null or empty gender");
@@ -141,23 +155,5 @@ public class ItemService {
         }
         return itemRepository.findAllDistinctSizesByGender(gender);
     }
-    
-    public List<Item> findByGenderAndFilters(String gender, ItemFilterDTO filter) {
-        if (gender == null || gender.isEmpty() || filter == null) {
-            logger.warn("findByGenderAndFilters called with invalid parameters");
-            return List.of();
-        }
-        return itemRepository.findByGenderAndFilters(
-            gender,
-            filter.getColor(),
-            filter.getBrand(),
-            filter.getMaterial(),
-            filter.getCategory(),
-            filter.getSubcategory(),
-            filter.getSize(),
-            filter.getShopLocation(),
-            filter.getMinPrice(),
-            filter.getMaxPrice()
-        );
-    }
+
 }

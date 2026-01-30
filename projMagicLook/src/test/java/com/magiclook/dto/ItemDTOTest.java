@@ -55,20 +55,20 @@ class ItemDTOTest {
     }
 
     @Test
-    @DisplayName("Constructor should set all required fields correctly")
-    void constructor_ShouldSetAllFields() {
-        ItemDTO dto = new ItemDTO(
-            "Vestido",
-            "Seda",
-            "Vermelho",
-            "Mango",
-            new BigDecimal("200.00"),
-            new BigDecimal("4000.00"),
-            2,
-            "F",
-            "Vestido",
-            "Curto"
-        );
+    @DisplayName("Builder should set all required fields correctly")
+    void builder_ShouldSetAllFields() {
+        ItemDTO dto = ItemDTO.builder()
+                .name("Vestido")
+                .material("Seda")
+                .color("Vermelho")
+                .brand("Mango")
+                .priceRent(new BigDecimal("200.00"))
+                .priceSale(new BigDecimal("4000.00"))
+                .shopId(2)
+                .gender("F")
+                .category("Vestido")
+                .subcategory("Curto")
+                .build();
 
         assertEquals("Vestido", dto.getName());
         assertEquals("Seda", dto.getMaterial());
@@ -90,10 +90,10 @@ class ItemDTOTest {
 
         Set<ConstraintViolation<ItemDTO>> violations = validator.validate(dto);
         assertFalse(violations.isEmpty(), "Deve haver violações para shopId null");
-        
+
         boolean hasNotNullViolation = violations.stream()
-            .anyMatch(v -> v.getPropertyPath().toString().equals("shopId"));
-        
+                .anyMatch(v -> v.getPropertyPath().toString().equals("shopId"));
+
         assertTrue(hasNotNullViolation, "Deve haver violação @NotNull para shopId");
     }
 
@@ -105,10 +105,10 @@ class ItemDTOTest {
 
         Set<ConstraintViolation<ItemDTO>> violations = validator.validate(dto);
         assertFalse(violations.isEmpty(), "Deve haver violações para gender null");
-        
+
         boolean hasNotNullViolation = violations.stream()
-            .anyMatch(v -> v.getPropertyPath().toString().equals("gender"));
-        
+                .anyMatch(v -> v.getPropertyPath().toString().equals("gender"));
+
         assertTrue(hasNotNullViolation, "Deve haver violação @NotNull para gender");
     }
 
@@ -120,10 +120,10 @@ class ItemDTOTest {
 
         Set<ConstraintViolation<ItemDTO>> violations = validator.validate(dto);
         assertFalse(violations.isEmpty(), "Deve haver violações para category null");
-        
+
         boolean hasNotNullViolation = violations.stream()
-            .anyMatch(v -> v.getPropertyPath().toString().equals("category"));
-        
+                .anyMatch(v -> v.getPropertyPath().toString().equals("category"));
+
         assertTrue(hasNotNullViolation, "Deve haver violação @NotNull para category");
     }
 
@@ -135,10 +135,10 @@ class ItemDTOTest {
 
         Set<ConstraintViolation<ItemDTO>> violations = validator.validate(dto);
         assertFalse(violations.isEmpty(), "Deve haver violações para subcategory null");
-        
+
         boolean hasNotNullViolation = violations.stream()
-            .anyMatch(v -> v.getPropertyPath().toString().equals("subcategory"));
-        
+                .anyMatch(v -> v.getPropertyPath().toString().equals("subcategory"));
+
         assertTrue(hasNotNullViolation, "Deve haver violação @NotNull para subcategory");
     }
 
@@ -169,7 +169,7 @@ class ItemDTOTest {
     @DisplayName("All setters should update values correctly")
     void setters_ShouldUpdateValuesCorrectly() {
         ItemDTO dto = new ItemDTO();
-        
+
         dto.setItemId(20);
         dto.setName("Fato");
         dto.setMaterial("Algodão");
@@ -210,8 +210,8 @@ class ItemDTOTest {
         // name, material, color, brand, prices, state, imagePath são todos null
 
         Set<ConstraintViolation<ItemDTO>> violations = validator.validate(dto);
-        assertTrue(violations.isEmpty(), 
-            () -> "Campos opcionais null não devem causar violações: " + violations);
+        assertTrue(violations.isEmpty(),
+                () -> "Campos opcionais null não devem causar violações: " + violations);
     }
 
     @Test
@@ -244,7 +244,7 @@ class ItemDTOTest {
 
         Set<ConstraintViolation<ItemDTO>> violations = validator.validate(dto);
         assertFalse(violations.isEmpty(), "Deve haver violações");
-        assertEquals(4, violations.size(), 
-            "Deve haver 4 violações (shopId, gender, category, subcategory)");
+        assertEquals(4, violations.size(),
+                "Deve haver 4 violações (shopId, gender, category, subcategory)");
     }
 }

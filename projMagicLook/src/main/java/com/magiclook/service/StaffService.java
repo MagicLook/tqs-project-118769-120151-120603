@@ -183,9 +183,7 @@ public class StaffService {
             return -2;
         }
 
-        Optional<Item> found = itemRepository.findByAllCharacteristics(
-                itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(),
-                itemDTO.getGender(), itemDTO.getCategory(), itemDTO.getSubcategory(), itemDTO.getShopId());
+        Optional<Item> found = itemRepository.findByAllCharacteristics(itemDTO);
 
         Item itemToUse;
         if (found.isEmpty()) {
@@ -217,86 +215,91 @@ public class StaffService {
 
     public int updateItem(ItemDTO itemDTO) {
         Optional<Item> optionalItem = itemRepository.findById(itemDTO.getItemId());
-        
+
         if (optionalItem.isEmpty()) {
             return -1;
         }
 
         Item itemToUpdate = optionalItem.get();
         boolean hasChanges = false;
-        
+
         // Update basic fields
         hasChanges = updateBasicField(itemDTO.getName(), itemToUpdate::getName, itemToUpdate::setName) || hasChanges;
         hasChanges = updateBasicField(itemDTO.getBrand(), itemToUpdate::getBrand, itemToUpdate::setBrand) || hasChanges;
-        hasChanges = updateBasicField(itemDTO.getMaterial(), itemToUpdate::getMaterial, itemToUpdate::setMaterial) || hasChanges;
+        hasChanges = updateBasicField(itemDTO.getMaterial(), itemToUpdate::getMaterial, itemToUpdate::setMaterial)
+                || hasChanges;
         hasChanges = updateBasicField(itemDTO.getColor(), itemToUpdate::getColor, itemToUpdate::setColor) || hasChanges;
-        
+
         // Update price fields
-        hasChanges = updatePriceField(itemDTO.getPriceRent(), itemToUpdate::getPriceRent, itemToUpdate::setPriceRent) || hasChanges;
-        hasChanges = updatePriceField(itemDTO.getPriceSale(), itemToUpdate::getPriceSale, itemToUpdate::setPriceSale) || hasChanges;
-        
+        hasChanges = updatePriceField(itemDTO.getPriceRent(), itemToUpdate::getPriceRent, itemToUpdate::setPriceRent)
+                || hasChanges;
+        hasChanges = updatePriceField(itemDTO.getPriceSale(), itemToUpdate::getPriceSale, itemToUpdate::setPriceSale)
+                || hasChanges;
+
         // Update item type if needed
         hasChanges = updateItemType(itemDTO, itemToUpdate) || hasChanges;
-        
+
         // Save if there were changes
         if (hasChanges) {
             itemRepository.save(itemToUpdate);
         }
-        
+
         return 0;
     }
-    
-    private boolean updateBasicField(String newValue, java.util.function.Supplier<String> getter, java.util.function.Consumer<String> setter) {
+
+    private boolean updateBasicField(String newValue, java.util.function.Supplier<String> getter,
+            java.util.function.Consumer<String> setter) {
         if (newValue == null || newValue.isBlank() || newValue.equals(getter.get())) {
             return false;
         }
         setter.accept(newValue);
         return true;
     }
-    
-    private boolean updatePriceField(BigDecimal newValue, java.util.function.Supplier<BigDecimal> getter, java.util.function.Consumer<BigDecimal> setter) {
+
+    private boolean updatePriceField(BigDecimal newValue, java.util.function.Supplier<BigDecimal> getter,
+            java.util.function.Consumer<BigDecimal> setter) {
         if (newValue == null || newValue.equals(getter.get())) {
             return false;
         }
         setter.accept(newValue);
         return true;
     }
-    
+
     private boolean updateItemType(ItemDTO itemDTO, Item item) {
         if (!hasItemTypeUpdate(itemDTO)) {
             return false;
         }
-        
+
         ItemType currentType = item.getItemType();
         String gender = getOrDefault(itemDTO.getGender(), currentType::getGender);
         String category = getOrDefault(itemDTO.getCategory(), currentType::getCategory);
         String subcategory = getOrDefault(itemDTO.getSubcategory(), currentType::getSubcategory);
-        
+
         if (isItemTypeChanged(gender, category, subcategory, currentType)) {
             ItemType newItemType = itemTypeRepository.findByGenderAndCategoryAndSubcategory(
-                gender, category, subcategory);
-            
+                    gender, category, subcategory);
+
             if (newItemType != null) {
                 item.setItemType(newItemType);
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     private boolean hasItemTypeUpdate(ItemDTO itemDTO) {
         return itemDTO.getGender() != null || itemDTO.getCategory() != null || itemDTO.getSubcategory() != null;
     }
-    
+
     private String getOrDefault(String value, java.util.function.Supplier<String> defaultValueSupplier) {
         return value != null ? value : defaultValueSupplier.get();
     }
-    
+
     private boolean isItemTypeChanged(String gender, String category, String subcategory, ItemType currentType) {
         return !gender.equals(currentType.getGender()) ||
-               !category.equals(currentType.getCategory()) ||
-               !subcategory.equals(currentType.getSubcategory());
+                !category.equals(currentType.getCategory()) ||
+                !subcategory.equals(currentType.getSubcategory());
     }
 
     public Staff login(String usernameOrEmail, String password) {
@@ -335,8 +338,16 @@ public class StaffService {
 
         Shop shop = optionalShop.get();
 
-        return new Item(itemDTO.getName(), itemDTO.getMaterial(), itemDTO.getColor(), itemDTO.getBrand(),
-                itemDTO.getPriceRent(), itemDTO.getPriceSale(), shop, itemType);
+        return Item.builder()
+                .name(itemDTO.getName())
+                .material(itemDTO.getMaterial())
+                .color(itemDTO.getColor())
+                .brand(itemDTO.getBrand())
+                .priceRent(itemDTO.getPriceRent())
+                .priceSale(itemDTO.getPriceSale())
+                .shop(shop)
+                .itemType(itemType)
+                .build();
     }
 
     public List<Staff> getAllStaff() {

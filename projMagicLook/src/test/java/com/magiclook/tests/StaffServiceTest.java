@@ -64,25 +64,34 @@ class StaffServiceTest {
         // Use hashed password for staff
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String hashedPassword = passwordEncoder.encode("password123");
-        
+
         staff = new Staff("Test Staff", "staff@test.com", hashedPassword, "teststaff", shop);
         staff.setStaffId(UUID.randomUUID());
 
-        item = new Item("Test Item", "Algodão", "Blue", "Brand",
-                new BigDecimal("50.00"), new BigDecimal("200.00"), shop, itemType);
+        item = Item.builder()
+                .name("Test Item")
+                .material("Algodão")
+                .color("Blue")
+                .brand("Brand")
+                .priceRent(new BigDecimal("50.00"))
+                .priceSale(new BigDecimal("200.00"))
+                .shop(shop)
+                .itemType(itemType)
+                .build();
         item.setItemId(1);
 
-        sampleDto = new ItemDTO(
-                "Vestido",
-                "Seda",
-                "Azul",
-                "Marca",
-                new BigDecimal("200.00"),
-                new BigDecimal("2500.00"),
-                1,
-                "M",
-                "Vestido",
-                "Curto");
+        sampleDto = ItemDTO.builder()
+                .name("Vestido")
+                .material("Seda")
+                .color("Azul")
+                .brand("Marca")
+                .priceRent(new BigDecimal("200.00"))
+                .priceSale(new BigDecimal("2500.00"))
+                .shopId(1)
+                .gender("M")
+                .category("Vestido")
+                .subcategory("Curto")
+                .build();
     }
 
     // ==================== ADD ITEM TESTS ====================
@@ -95,7 +104,7 @@ class StaffServiceTest {
         @DisplayName("Should add new item when it does NOT exist")
         void addItem_whenNotExists_shouldSaveItem() {
             when(itemRepository.findByAllCharacteristics(
-                    "Vestido", "Seda", "Azul", "Marca", "M", "Vestido", "Curto", 1)).thenReturn(Optional.empty());
+                    any(ItemDTO.class))).thenReturn(Optional.empty());
 
             when(shopRepository.findById(1)).thenReturn(Optional.of(shop));
             when(itemTypeRepository.findByGenderAndCategoryAndSubcategory("M", "Vestido", "Curto"))
@@ -114,7 +123,7 @@ class StaffServiceTest {
         @DisplayName("Should add ItemSingle when item already exists")
         void addItem_whenDuplicateExists_shouldOnlyAddItemSingle() {
             when(itemRepository.findByAllCharacteristics(
-                    "Vestido", "Seda", "Azul", "Marca", "M", "Vestido", "Curto", 1)).thenReturn(Optional.of(item));
+                    any(ItemDTO.class))).thenReturn(Optional.of(item));
 
             int result = staffService.addItem(sampleDto, "M");
 
@@ -126,8 +135,7 @@ class StaffServiceTest {
         @Test
         @DisplayName("Should create ItemSingle with AVAILABLE state")
         void addItem_shouldCreateItemSingleWithAvailableState() {
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
-                    anyString(), anyString(), anyString(), anyString(), anyInt()))
+            when(itemRepository.findByAllCharacteristics(any(ItemDTO.class)))
                     .thenReturn(Optional.of(item));
 
             staffService.addItem(sampleDto, "L");
@@ -142,8 +150,7 @@ class StaffServiceTest {
         void addItem_withAllValidSizes_shouldSucceed() {
             List<String> validSizes = Arrays.asList("XS", "S", "M", "L", "XL");
 
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
-                    anyString(), anyString(), anyString(), anyString(), anyInt()))
+            when(itemRepository.findByAllCharacteristics(any(ItemDTO.class)))
                     .thenReturn(Optional.of(item));
 
             for (String size : validSizes) {
@@ -159,8 +166,7 @@ class StaffServiceTest {
         void addItem_withAllValidMaterials_shouldSucceed() {
             List<String> validMaterials = Arrays.asList("Algodão", "Poliéster", "Seda", "Couro", "Veludo");
 
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
-                    anyString(), anyString(), anyString(), anyString(), anyInt()))
+            when(itemRepository.findByAllCharacteristics(any(ItemDTO.class)))
                     .thenReturn(Optional.of(item));
 
             for (String material : validMaterials) {
@@ -176,8 +182,7 @@ class StaffServiceTest {
             Item createdItem = new Item();
             createdItem.setItemId(999);
 
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
-                    anyString(), anyString(), anyString(), anyString(), anyInt()))
+            when(itemRepository.findByAllCharacteristics(any(ItemDTO.class)))
                     .thenReturn(Optional.empty());
             when(shopRepository.findById(1)).thenReturn(Optional.of(shop));
             when(itemTypeRepository.findByGenderAndCategoryAndSubcategory("M", "Vestido", "Curto"))
@@ -194,8 +199,7 @@ class StaffServiceTest {
         void addItem_withImagePath_shouldPreserveImagePath() {
             sampleDto.setImagePath("/uploads/test.jpg");
 
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
-                    anyString(), anyString(), anyString(), anyString(), anyInt()))
+            when(itemRepository.findByAllCharacteristics(any(ItemDTO.class)))
                     .thenReturn(Optional.empty());
             when(shopRepository.findById(1)).thenReturn(Optional.of(shop));
             when(itemTypeRepository.findByGenderAndCategoryAndSubcategory("M", "Vestido", "Curto"))
@@ -254,8 +258,7 @@ class StaffServiceTest {
         @Test
         @DisplayName("Should return -3 when shop does not exist")
         void addItem_whenShopNotFound_shouldReturnMinusThree() {
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
-                    anyString(), anyString(), anyString(), anyString(), anyInt()))
+            when(itemRepository.findByAllCharacteristics(any(ItemDTO.class)))
                     .thenReturn(Optional.empty());
             when(shopRepository.findById(1)).thenReturn(Optional.empty());
 
@@ -268,8 +271,7 @@ class StaffServiceTest {
         @Test
         @DisplayName("Should return -3 when ItemType does not exist")
         void addItem_whenItemTypeNotFound_shouldReturnMinusThree() {
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
-                    anyString(), anyString(), anyString(), anyString(), anyInt()))
+            when(itemRepository.findByAllCharacteristics(any(ItemDTO.class)))
                     .thenReturn(Optional.empty());
             when(shopRepository.findById(1)).thenReturn(Optional.of(shop));
             when(itemTypeRepository.findByGenderAndCategoryAndSubcategory("M", "Vestido", "Curto"))
@@ -690,8 +692,7 @@ class StaffServiceTest {
         void addItem_withSpecialCharactersInName_shouldWork() {
             sampleDto.setName("Vestido & Macacão #1");
 
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
-                    anyString(), anyString(), anyString(), anyString(), anyInt()))
+            when(itemRepository.findByAllCharacteristics(any(ItemDTO.class)))
                     .thenReturn(Optional.of(item));
 
             int result = staffService.addItem(sampleDto, "M");
@@ -705,8 +706,7 @@ class StaffServiceTest {
             sampleDto.setPriceRent(new BigDecimal("999999.99"));
             sampleDto.setPriceSale(new BigDecimal("9999999.99"));
 
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
-                    anyString(), anyString(), anyString(), anyString(), anyInt()))
+            when(itemRepository.findByAllCharacteristics(any(ItemDTO.class)))
                     .thenReturn(Optional.of(item));
 
             int result = staffService.addItem(sampleDto, "M");
@@ -720,8 +720,7 @@ class StaffServiceTest {
             sampleDto.setPriceRent(BigDecimal.ZERO);
             sampleDto.setPriceSale(BigDecimal.ZERO);
 
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
-                    anyString(), anyString(), anyString(), anyString(), anyInt()))
+            when(itemRepository.findByAllCharacteristics(any(ItemDTO.class)))
                     .thenReturn(Optional.of(item));
 
             int result = staffService.addItem(sampleDto, "M");
@@ -740,8 +739,7 @@ class StaffServiceTest {
         @Test
         @DisplayName("Should handle multiple ItemSingle creations for same Item")
         void addItem_multipleTimes_shouldCreateMultipleItemSingles() {
-            when(itemRepository.findByAllCharacteristics(anyString(), anyString(), anyString(),
-                    anyString(), anyString(), anyString(), anyString(), anyInt()))
+            when(itemRepository.findByAllCharacteristics(any(ItemDTO.class)))
                     .thenReturn(Optional.of(item));
 
             staffService.addItem(sampleDto, "M");
