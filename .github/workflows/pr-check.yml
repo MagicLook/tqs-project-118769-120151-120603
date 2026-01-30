@@ -29,6 +29,9 @@ jobs:
             - name: Run Unit Tests
               run: mvn -B -U clean test
 
+            - name: Install Firefox
+              uses: browser-actions/setup-firefox@latest
+
             - name: Package Application (skip tests)
               run: mvn -B package -DskipTests
 
