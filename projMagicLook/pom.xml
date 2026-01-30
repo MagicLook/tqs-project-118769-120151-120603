@@ -257,28 +257,13 @@
 				<executions>
 					<execution>
 						<id>import-junit-results</id>
-						<phase>
-							none
-						</phase>
+						<phase>none</phase>
 						<goals>
 							<goal>import-results</goal>
 						</goals>
 						<configuration>
 							<reportFormat>junit</reportFormat>
 							<reportFile>target/TEST-junit-jupiter.xml</reportFile>
-						</configuration>
-					</execution>
-					<execution>
-						<id>import-cucumber-results</id>
-						<phase>
-							none
-						</phase>
-						<goals>
-							<goal>import-results</goal>
-						</goals>
-						<configuration>
-							<reportFormat>cucumber</reportFormat>
-							<reportFile>target/cucumber.json</reportFile>
 						</configuration>
 					</execution>
 				</executions>
