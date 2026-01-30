@@ -1,0 +1,11 @@
+{
+    "fields": {
+        "project": {
+            "key": "SCRUM"
+        },
+        "summary": "Cucumber Test Execution",
+        "issuetype": {
+            "name": "Test Execution"
+        }
+    }
+}
