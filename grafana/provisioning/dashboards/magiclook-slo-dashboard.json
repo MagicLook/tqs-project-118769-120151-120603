@@ -58,7 +58,7 @@
             },
             "gridPos": {
                 "h": 6,
-                "w": 6,
+                "w": 8,
                 "x": 0,
                 "y": 1
             },
@@ -124,8 +124,8 @@
             },
             "gridPos": {
                 "h": 6,
-                "w": 6,
-                "x": 6,
+                "w": 8,
+                "x": 8,
                 "y": 1
             },
             "id": 2,
@@ -190,8 +190,8 @@
             },
             "gridPos": {
                 "h": 6,
-                "w": 6,
-                "x": 12,
+                "w": 8,
+                "x": 16,
                 "y": 1
             },
             "id": 3,
@@ -216,72 +216,6 @@
                         "uid": "prometheus"
                     },
                     "expr": "sum(rate(request_catalog_seconds_bucket{le=\"0.8\"}[5m])) / sum(rate(request_catalog_seconds_count[5m])) * 100",
-                    "refId": "A"
-                }
-            ]
-        },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "max": 100,
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "red",
-                                "value": null
-                            },
-                            {
-                                "color": "yellow",
-                                "value": 99
-                            },
-                            {
-                                "color": "green",
-                                "value": 99.5
-                            }
-                        ]
-                    },
-                    "unit": "percent"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 6,
-                "w": 6,
-                "x": 18,
-                "y": 1
-            },
-            "id": 4,
-            "options": {
-                "orientation": "auto",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showThresholdLabels": false,
-                "showThresholdMarkers": true
-            },
-            "title": "Success Rate SLO (99%)",
-            "type": "gauge",
-            "targets": [
-                {
-                    "datasource": {
-                        "type": "prometheus",
-                        "uid": "prometheus"
-                    },
-                    "expr": "(1 - (sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count[5m])))) * 100",
                     "refId": "A"
                 }
             ]
@@ -485,7 +419,7 @@
                     "sort": "desc"
                 }
             },
-            "title": "P95 Latency by Service",
+            "title": "Latency by Service",
             "type": "timeseries",
             "targets": [
                 {
@@ -744,7 +678,7 @@
                     "sort": "desc"
                 }
             },
-            "title": "Errors by Status Code",
+            "title": "Failed Requests by Domain",
             "type": "timeseries",
             "targets": [
                 {
@@ -752,9 +686,36 @@
                         "type": "prometheus",
                         "uid": "prometheus"
                     },
-                    "expr": "sum by (status) (rate(http_server_requests_seconds_count{status=~\"4..|5..\"}[5m]))",
-                    "legendFormat": "{{status}}",
+                    "expr": "rate(http_requests_failure_total{domain=\"reservation\"}[5m])",
+                    "legendFormat": "Reservation Failures",
                     "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "prometheus"
+                    },
+                    "expr": "rate(http_requests_failure_total{domain=\"staff\"}[5m])",
+                    "legendFormat": "Staff Failures",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "prometheus"
+                    },
+                    "expr": "rate(http_requests_failure_total{domain=\"catalog\"}[5m])",
+                    "legendFormat": "Catalog Failures",
+                    "refId": "C"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "prometheus"
+                    },
+                    "expr": "rate(http_requests_overall_failure_total[5m])",
+                    "legendFormat": "Total Failures",
+                    "refId": "D"
                 }
             ]
         },
