@@ -281,7 +281,7 @@
                         "type": "prometheus",
                         "uid": "prometheus"
                     },
-                    "expr": "(1 - (sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count[5m])))) * 100",
+                    "expr": "(sum(http_requests_success_total) or vector(0)) / (sum(http_requests_total_total) or vector(1)) * 100",
                     "refId": "A"
                 }
             ]
@@ -485,7 +485,7 @@
                     "sort": "desc"
                 }
             },
-            "title": "P95 Latency by Service",
+            "title": "Latency by Service",
             "type": "timeseries",
             "targets": [
                 {
@@ -752,8 +752,8 @@
                         "type": "prometheus",
                         "uid": "prometheus"
                     },
-                    "expr": "sum by (status) (rate(http_server_requests_seconds_count{status=~\"4..|5..\"}[5m]))",
-                    "legendFormat": "{{status}}",
+                    "expr": "sum by (domain) (http_requests_failure_total)",
+                    "legendFormat": "{{domain}}",
                     "refId": "A"
                 }
             ]
