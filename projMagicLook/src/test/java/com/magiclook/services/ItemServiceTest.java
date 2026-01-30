@@ -41,7 +41,7 @@ class ItemServiceTest {
         item = new Item();
         item.setItemId(1);
         item.setName("Test Item");
-        
+
         shop = new Shop();
         shop.setShopId(1);
         shop.setLocation("Lisboa");
@@ -167,13 +167,13 @@ class ItemServiceTest {
         filter.setMinPrice(10.0);
         filter.setMaxPrice(100.0);
 
-        when(itemRepository.findByGenderAndFilters("M", "Red", "Acme", "Cotton", "Shirt", "Casual", "M", "Lisboa", 10.0, 100.0))
-            .thenReturn(List.of(item));
+        when(itemRepository.findByGenderAndFilters(eq("M"), any(ItemFilterDTO.class)))
+                .thenReturn(List.of(item));
 
         List<Item> res = itemService.findByGenderAndFilters("M", filter);
         assertNotNull(res);
         assertEquals(1, res.size());
-        verify(itemRepository, times(1)).findByGenderAndFilters("M", "Red", "Acme", "Cotton", "Shirt", "Casual", "M", "Lisboa", 10.0, 100.0);
+        verify(itemRepository, times(1)).findByGenderAndFilters(eq("M"), any(ItemFilterDTO.class));
     }
 
     @Test
@@ -194,23 +194,47 @@ class ItemServiceTest {
     }
 
     @Test
-    void testSearchItemsWithFilters_CleansEmptyStrings() {
-        when(itemRepository.findByGenderAndFilters(eq("F"), isNull(), isNull(), isNull(), isNull(), isNull(), eq(0.0), eq(50.0)))
+    void testFindByGenderAndFilters_CleansEmptyStrings() {
+        when(itemRepository.findByGenderAndFilters(eq("F"), any(ItemFilterDTO.class)))
                 .thenReturn(List.of(item));
 
-        List<Item> res = itemService.searchItemsWithFilters("F", "", "", "", "", "", 0.0, 50.0);
+        ItemFilterDTO filter = ItemFilterDTO.builder()
+                .color("")
+                .brand("")
+                .material("")
+                .category("")
+                .subcategory("")
+                .shopLocation("")
+                .size("")
+                .minPrice(0.0)
+                .maxPrice(50.0)
+                .build();
+
+        List<Item> res = itemService.findByGenderAndFilters("F", filter);
         assertEquals(1, res.size());
-        verify(itemRepository, times(1)).findByGenderAndFilters(eq("F"), isNull(), isNull(), isNull(), isNull(), isNull(), eq(0.0), eq(50.0));
+
+        verify(itemRepository, times(1)).findByGenderAndFilters(eq("F"), argThat(f -> f.getColor() == null &&
+                f.getBrand() == null &&
+                f.getMaterial() == null &&
+                f.getCategory() == null &&
+                f.getSubcategory() == null &&
+                f.getShopLocation() == null &&
+                f.getSize() == null));
     }
 
     @Test
-    void testSearchItemsWithFilters_NullValues() {
-        when(itemRepository.findByGenderAndFilters(eq("M"), isNull(), isNull(), isNull(), isNull(), isNull(), eq(10.0), eq(100.0)))
+    void testFindByGenderAndFilters_NullValues() {
+        when(itemRepository.findByGenderAndFilters(eq("M"), any(ItemFilterDTO.class)))
                 .thenReturn(List.of(item));
 
-        List<Item> res = itemService.searchItemsWithFilters("M", null, null, null, null, null, 10.0, 100.0);
+        ItemFilterDTO filter = ItemFilterDTO.builder()
+                .minPrice(10.0)
+                .maxPrice(100.0)
+                .build();
+
+        List<Item> res = itemService.findByGenderAndFilters("M", filter);
         assertEquals(1, res.size());
-        verify(itemRepository, times(1)).findByGenderAndFilters(eq("M"), isNull(), isNull(), isNull(), isNull(), isNull(), eq(10.0), eq(100.0));
+        verify(itemRepository, times(1)).findByGenderAndFilters(eq("M"), any(ItemFilterDTO.class));
     }
 
     @Test
@@ -298,18 +322,18 @@ class ItemServiceTest {
     void testGetRecentItems() {
         Item item2 = new Item();
         item2.setItemId(2);
-        
+
         when(itemRepository.findAll()).thenReturn(List.of(item, item2));
-        
+
         // Test with limit 1
         List<Item> res = itemService.getRecentItems(1);
         assertEquals(1, res.size());
         assertEquals(1, res.get(0).getItemId());
-        
+
         // Test with limit greater than list size
         res = itemService.getRecentItems(5);
         assertEquals(2, res.size());
-        
+
         verify(itemRepository, times(2)).findAll();
     }
 

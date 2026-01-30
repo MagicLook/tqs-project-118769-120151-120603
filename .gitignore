@@ -30,3 +30,6 @@ replay_pid*
 .vscode
 
 projMagicLook/uploads/**
+
+# Dotenv
+.env

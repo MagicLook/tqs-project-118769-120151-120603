@@ -7,6 +7,8 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
+    env:
+      APP_ADMIN_PASSWORD: ${{ secrets.APP_ADMIN_PASSWORD }}
     steps:
       - name: Cleanup Workspace
         run: |
@@ -33,6 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy
     if: always()
+    env:
+      APP_ADMIN_PASSWORD: ${{ secrets.APP_ADMIN_PASSWORD }}
 
     steps:
     - uses: actions/checkout@v4

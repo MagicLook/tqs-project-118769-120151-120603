@@ -1,5 +1,14 @@
 package com.magiclook.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ItemFilterDTO {
     private String color;
     private String brand;
@@ -10,82 +19,16 @@ public class ItemFilterDTO {
     private String shopLocation;
     private String subcategory;
     private String size;
-    
-    public ItemFilterDTO() {}
-    
-    public ItemFilterDTO(String color, String brand, String material, String category, 
-                        Double minPrice, Double maxPrice) {
-        this.color = color;
-        this.brand = brand;
-        this.material = material;
-        this.category = category;
-        this.minPrice = minPrice;
-        this.maxPrice = maxPrice;
-        this.shopLocation = null;
-    }
 
-    // Convenience constructor used by tests (includes shopLocation as last arg)
-    public ItemFilterDTO(String color, String brand, String material, String category,
-                        double minPrice, double maxPrice, String shopLocation) {
-        this.color = color;
-        this.brand = brand;
-        this.material = material;
-        this.category = category;
-        this.minPrice = Double.valueOf(minPrice);
-        this.maxPrice = Double.valueOf(maxPrice);
-        this.shopLocation = shopLocation;
-    }
-
-    public ItemFilterDTO(String color, String brand, String material, String category, 
-                        String subcategory, Double minPrice, Double maxPrice, 
-                        String shopLocation, String size) {
-        this.color = color;
-        this.brand = brand;
-        this.material = material;
-        this.category = category;
-        this.subcategory = subcategory;
-        this.minPrice = minPrice;
-        this.maxPrice = maxPrice;
-        this.shopLocation = shopLocation;
-        this.size = size;
-    }
-    
-    public String getColor() { return color; }
-    public void setColor(String color) { this.color = color; }
-    
-    public String getBrand() { return brand; }
-    public void setBrand(String brand) { this.brand = brand; }
-    
-    public String getMaterial() { return material; }
-    public void setMaterial(String material) { this.material = material; }
-    
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
-    
-    public Double getMinPrice() { return minPrice; }
-    public void setMinPrice(Double minPrice) { this.minPrice = minPrice; }
-    
-    public Double getMaxPrice() { return maxPrice; }
-    public void setMaxPrice(Double maxPrice) { this.maxPrice = maxPrice; }
-    
-    public String getShopLocation() { return shopLocation; }
-    public void setShopLocation(String shopLocation) { this.shopLocation = shopLocation; }
-    
-    public String getSubcategory() { return subcategory; }
-    public void setSubcategory(String subcategory) { this.subcategory = subcategory; }
-    
-    public String getSize() { return size; }
-    public void setSize(String size) { this.size = size; }
-    
     public boolean hasFilters() {
         return (color != null && !color.isEmpty()) ||
-               (brand != null && !brand.isEmpty()) ||
-               (material != null && !material.isEmpty()) ||
-               (category != null && !category.isEmpty()) ||
-               (subcategory != null && !subcategory.isEmpty()) ||
-               (shopLocation != null && !shopLocation.isEmpty()) ||
-               (size != null && !size.isEmpty()) ||
-               minPrice != null ||
-               maxPrice != null;
+                (brand != null && !brand.isEmpty()) ||
+                (material != null && !material.isEmpty()) ||
+                (category != null && !category.isEmpty()) ||
+                (subcategory != null && !subcategory.isEmpty()) ||
+                (shopLocation != null && !shopLocation.isEmpty()) ||
+                (size != null && !size.isEmpty()) ||
+                minPrice != null ||
+                maxPrice != null;
     }
 }

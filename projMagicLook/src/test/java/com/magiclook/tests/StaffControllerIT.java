@@ -85,15 +85,15 @@ class StaffControllerIT {
         void cleanupUploadedImages() {
                 // Clean up uploaded images from all directories
                 String normalizedDir = uploadDir.startsWith("/") ? uploadDir.substring(1) : uploadDir;
-                
+
                 // Clean external upload directory
                 Path externalUploadPath = Paths.get(uploadDir).toAbsolutePath();
                 cleanupDirectory(externalUploadPath);
-                
+
                 // Clean source and target directories (for development)
                 Path srcUploadPath = Paths.get("src/main/resources/static").toAbsolutePath().resolve(normalizedDir);
                 Path targetUploadPath = Paths.get("target/classes/static").toAbsolutePath().resolve(normalizedDir);
-                
+
                 cleanupDirectory(srcUploadPath);
                 cleanupDirectory(targetUploadPath);
         }
@@ -102,15 +102,15 @@ class StaffControllerIT {
                 if (Files.exists(directory)) {
                         try {
                                 Files.walk(directory)
-                                        .filter(path -> !path.equals(directory))
-                                        .filter(path -> path.getFileName().toString().startsWith("item_"))
-                                        .forEach(path -> {
-                                                try {
-                                                        Files.deleteIfExists(path);
-                                                } catch (IOException ignored) {
-                                                        // Ignore deletion errors
-                                                }
-                                        });
+                                                .filter(path -> !path.equals(directory))
+                                                .filter(path -> path.getFileName().toString().startsWith("item_"))
+                                                .forEach(path -> {
+                                                        try {
+                                                                Files.deleteIfExists(path);
+                                                        } catch (IOException ignored) {
+                                                                // Ignore deletion errors
+                                                        }
+                                                });
                         } catch (IOException ignored) {
                                 // Ignore walk errors
                         }
@@ -124,8 +124,16 @@ class StaffControllerIT {
                 String sessionCookie = loginAsStaff(seededUsername, seededPassword);
 
                 // Check if exists
-                Optional<Item> foundItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul",
-                                "Zara", "F", "Vestido", "Curto", seededShopId);
+                Optional<Item> foundItem = itemRepository.findByAllCharacteristics(ItemDTO.builder()
+                                .name("Vestido Azul")
+                                .material("Seda")
+                                .color("Azul")
+                                .brand("Zara")
+                                .gender("F")
+                                .category("Vestido")
+                                .subcategory("Curto")
+                                .shopId(seededShopId)
+                                .build());
 
                 // 2. Get initial itemSingle instances for that item
                 Integer initialCount = 0;
@@ -153,8 +161,16 @@ class StaffControllerIT {
 
                 if (foundItem.isEmpty()) {
                         // New type item was created
-                        Optional<Item> newItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul",
-                                        "Zara", "F", "Vestido", "Curto", seededShopId);
+                        Optional<Item> newItem = itemRepository.findByAllCharacteristics(ItemDTO.builder()
+                                        .name("Vestido Azul")
+                                        .material("Seda")
+                                        .color("Azul")
+                                        .brand("Zara")
+                                        .gender("F")
+                                        .category("Vestido")
+                                        .subcategory("Curto")
+                                        .shopId(seededShopId)
+                                        .build());
                         Assertions.assertThat(newItem)
                                         .as("A new item should be created")
                                         .isPresent();
@@ -176,7 +192,7 @@ class StaffControllerIT {
                 List<UUID> existingIds = itemSingles.stream()
                                 .map(ItemSingle::getId)
                                 .toList();
-                
+
                 List<ItemSingle> newItemSingles = finalItemSingles.stream()
                                 .filter(single -> !existingIds.contains(single.getId()))
                                 .toList();
@@ -203,8 +219,16 @@ class StaffControllerIT {
         void addItem_invalidSize_showsErrorOnDashboard() {
                 String sessionCookie = loginAsStaff(seededUsername, seededPassword);
 
-                Optional<Item> foundItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul",
-                                "Zara", "F", "Vestido", "Curto", seededShopId);
+                Optional<Item> foundItem = itemRepository.findByAllCharacteristics(ItemDTO.builder()
+                                .name("Vestido Azul")
+                                .material("Seda")
+                                .color("Azul")
+                                .brand("Zara")
+                                .gender("F")
+                                .category("Vestido")
+                                .subcategory("Curto")
+                                .shopId(seededShopId)
+                                .build());
 
                 Integer initialCount = 0;
                 if (foundItem.isPresent()) {
@@ -234,8 +258,16 @@ class StaffControllerIT {
 
                 else {
                         // Item didn't exist before, so no instances should exist now
-                        Optional<Item> postAttemptItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda",
-                                        "Azul", "Zara", "F", "Vestido", "Curto", seededShopId);
+                        Optional<Item> postAttemptItem = itemRepository.findByAllCharacteristics(ItemDTO.builder()
+                                        .name("Vestido Azul")
+                                        .material("Seda")
+                                        .color("Azul")
+                                        .brand("Zara")
+                                        .gender("F")
+                                        .category("Vestido")
+                                        .subcategory("Curto")
+                                        .shopId(seededShopId)
+                                        .build());
                         Assertions.assertThat(postAttemptItem)
                                         .as("Item should NOT be created on validation error")
                                         .isNotPresent();
@@ -292,8 +324,16 @@ class StaffControllerIT {
 
                 if (foundItem.isEmpty()) {
                         // New type item was created
-                        Optional<Item> newItem = itemRepository.findByAllCharacteristics("Vestido Azul", "Seda", "Azul",
-                                        "Zara", "F", "Vestido", "Curto", seededShopId);
+                        Optional<Item> newItem = itemRepository.findByAllCharacteristics(ItemDTO.builder()
+                                        .name("Vestido Azul")
+                                        .material("Seda")
+                                        .color("Azul")
+                                        .brand("Zara")
+                                        .gender("F")
+                                        .category("Vestido")
+                                        .subcategory("Curto")
+                                        .shopId(seededShopId)
+                                        .build());
                         Assertions.assertThat(newItem)
                                         .as("A new item should be created")
                                         .isPresent();
@@ -412,16 +452,31 @@ class StaffControllerIT {
                 // If there are others, delete them or create new item.
                 // For simplicity, let's create a dedicated item for this test to avoid
                 // collision
-                ItemDTO itemDTO = new ItemDTO(
-                                "DeleteMe", "Seda", "Branco", "NoBrand",
-                                new BigDecimal("10.0"), new BigDecimal("20.0"),
-                                seededShopId, "F", "Vestido", "Curto");
+                ItemDTO itemDTO = ItemDTO.builder()
+                                .name("DeleteMe")
+                                .material("Seda")
+                                .color("Branco")
+                                .brand("NoBrand")
+                                .priceRent(new BigDecimal("10.0"))
+                                .priceSale(new BigDecimal("20.0"))
+                                .shopId(seededShopId)
+                                .gender("F")
+                                .category("Vestido")
+                                .subcategory("Curto")
+                                .build();
 
                 staffService.addItem(itemDTO, "L");
 
-                Item itemToDelete = itemRepository.findByAllCharacteristics(
-                                "DeleteMe", "Seda", "Branco", "NoBrand",
-                                "F", "Vestido", "Curto", seededShopId).orElseThrow();
+                Item itemToDelete = itemRepository.findByAllCharacteristics(ItemDTO.builder()
+                                .name("DeleteMe")
+                                .material("Seda")
+                                .color("Branco")
+                                .brand("NoBrand")
+                                .gender("F")
+                                .category("Vestido")
+                                .subcategory("Curto")
+                                .shopId(seededShopId)
+                                .build()).orElseThrow();
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.add(HttpHeaders.COOKIE, sessionCookie);
@@ -446,16 +501,31 @@ class StaffControllerIT {
                 String sessionCookie = loginAsStaff(seededUsername, seededPassword);
 
                 // Create item with 2 sizes (using valid material 'Seda')
-                ItemDTO itemDTO = new ItemDTO(
-                                "MultiSize", "Seda", "Cinza", "NoBrand",
-                                new BigDecimal("10.0"), new BigDecimal("20.0"),
-                                seededShopId, "F", "Vestido", "Curto");
+                ItemDTO itemDTO = ItemDTO.builder()
+                                .name("MultiSize")
+                                .material("Seda")
+                                .color("Cinza")
+                                .brand("NoBrand")
+                                .priceRent(new BigDecimal("10.0"))
+                                .priceSale(new BigDecimal("20.0"))
+                                .shopId(seededShopId)
+                                .gender("F")
+                                .category("Vestido")
+                                .subcategory("Curto")
+                                .build();
                 staffService.addItem(itemDTO, "S");
                 staffService.addItem(itemDTO, "M");
 
-                Item itemMulti = itemRepository.findByAllCharacteristics(
-                                "MultiSize", "Seda", "Cinza", "NoBrand",
-                                "F", "Vestido", "Curto", seededShopId).orElseThrow();
+                Item itemMulti = itemRepository.findByAllCharacteristics(ItemDTO.builder()
+                                .name("MultiSize")
+                                .material("Seda")
+                                .color("Cinza")
+                                .brand("NoBrand")
+                                .gender("F")
+                                .category("Vestido")
+                                .subcategory("Curto")
+                                .shopId(seededShopId)
+                                .build()).orElseThrow();
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.add(HttpHeaders.COOKIE, sessionCookie);
@@ -592,30 +662,47 @@ class StaffControllerIT {
         // Ensure there is at least one item associated with the seeded shop for detail
         // tests
         private Item ensureItemExists() {
-                Optional<Item> foundItem = itemRepository.findByAllCharacteristics(
-                                "Vestido Azul", "Seda", "Azul", "Zara", "F", "Vestido", "Curto", seededShopId);
+                Optional<Item> foundItem = itemRepository.findByAllCharacteristics(ItemDTO.builder()
+                                .name("Vestido Azul")
+                                .material("Seda")
+                                .color("Azul")
+                                .brand("Zara")
+                                .gender("F")
+                                .category("Vestido")
+                                .subcategory("Curto")
+                                .shopId(seededShopId)
+                                .build());
 
                 if (foundItem.isPresent()) {
                         return foundItem.get();
                 }
 
-                ItemDTO itemDTO = new ItemDTO(
-                                "Vestido Azul",
-                                "Seda",
-                                "Azul",
-                                "Zara",
-                                new BigDecimal("250.00"),
-                                new BigDecimal("5000.00"),
-                                seededShopId,
-                                "F",
-                                "Vestido",
-                                "Curto");
+                ItemDTO itemDTO = ItemDTO.builder()
+                                .name("Vestido Azul")
+                                .material("Seda")
+                                .color("Azul")
+                                .brand("Zara")
+                                .priceRent(new BigDecimal("250.00"))
+                                .priceSale(new BigDecimal("5000.00"))
+                                .shopId(seededShopId)
+                                .gender("F")
+                                .category("Vestido")
+                                .subcategory("Curto")
+                                .build();
 
                 int result = staffService.addItem(itemDTO, "M");
                 Assertions.assertThat(result).isZero();
 
-                return itemRepository.findByAllCharacteristics(
-                                "Vestido Azul", "Seda", "Azul", "Zara", "F", "Vestido", "Curto", seededShopId)
+                return itemRepository.findByAllCharacteristics(ItemDTO.builder()
+                                .name("Vestido Azul")
+                                .material("Seda")
+                                .color("Azul")
+                                .brand("Zara")
+                                .gender("F")
+                                .category("Vestido")
+                                .subcategory("Curto")
+                                .shopId(seededShopId)
+                                .build())
                                 .orElseThrow();
         }
 }
