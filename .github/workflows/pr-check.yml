@@ -42,7 +42,7 @@ jobs:
               run: |
                 echo "Waiting for application to start..."
                 for i in {1..60}; do
-                  if curl -s http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
+                  if curl -sf http://localhost:8080/magiclook/login > /dev/null; then
                     echo "Application is ready!"
                     exit 0
                   fi
@@ -55,6 +55,9 @@ jobs:
 
             - name: Run Cucumber Tests
               run: mvn -B test -Dtest=CucumberTestRunner -Dsurefire.failIfNoSpecifiedTests=false
+
+            - name: Run Integration Tests
+              run: mvn -B failsafe:integration-test failsafe:verify
 
             - name: Stop Application
               if: always()
