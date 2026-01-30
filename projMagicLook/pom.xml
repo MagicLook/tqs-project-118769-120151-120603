@@ -257,6 +257,7 @@
 				<executions>
 					<execution>
 						<id>import-junit-results</id>
+						<phase>none</phase>
 						<goals>
 							<goal>import-results</goal>
 						</goals>
@@ -267,12 +268,13 @@
 					</execution>
 					<execution>
 						<id>import-cucumber-results</id>
+						<phase>none</phase>
 						<goals>
 							<goal>import-results</goal>
 						</goals>
 						<configuration>
 							<reportFormat>cucumber</reportFormat>
-							<reportFile>target/TEST-cucumber.xml</reportFile>
+							<reportFile>target/cucumber.json</reportFile>
 						</configuration>
 					</execution>
 				</executions>
