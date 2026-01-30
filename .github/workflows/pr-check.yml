@@ -26,8 +26,49 @@ jobs:
                     distribution: 'temurin'
                     cache: maven
                     
-            - name: Verify
-              run: mvn -B -U clean verify
+            - name: Run Unit Tests
+              run: mvn -B -U clean test
+
+            - name: Install Firefox
+              uses: browser-actions/setup-firefox@latest
+
+            - name: Package Application (skip tests)
+              run: mvn -B package -DskipTests
+
+            - name: Start Application in Background
+              run: |
+                nohup java -jar target/*.jar --server.port=8080 > app.log 2>&1 &
+                echo $! > app.pid
+                echo "Application PID: $(cat app.pid)"
+
+            - name: Wait for Application to be Ready
+              run: |
+                echo "Waiting for application to start..."
+                for i in {1..60}; do
+                  if curl -sf http://localhost:8080/magiclook/login > /dev/null; then
+                    echo "Application is ready!"
+                    exit 0
+                  fi
+                  echo "Attempt $i/60 - waiting..."
+                  sleep 2
+                done
+                echo "Application failed to start"
+                cat app.log
+                exit 1
+
+            - name: Run Cucumber Tests
+              run: mvn -B test -Dtest=CucumberTestRunner -Dsurefire.failIfNoSpecifiedTests=false
+
+            - name: Run Integration Tests
+              run: mvn -B failsafe:integration-test failsafe:verify
+
+            - name: Stop Application
+              if: always()
+              run: |
+                if [ -f app.pid ]; then
+                  kill $(cat app.pid) || true
+                  rm app.pid
+                fi
 
             - name: Generate JaCoCo Coverage Report
               run: mvn jacoco:report
@@ -56,9 +97,21 @@ jobs:
               run: mvn -B -U sonar:sonar "-Dsonar.projectKey=MagicLook_tqs-project-118769-120151-120603" "-Dsonar.organization=magiclook" "-Dsonar.qualitygate.wait=true" "-Dsonar.host.url=https://sonarcloud.io" "-Dsonar.coverage.jacoco.xmlReportPaths=$(pwd)/target/site/jacoco/jacoco.xml"
                     
                       
-            - name: Push results to Xray on Jira Cloud
+            - name: Push JUnit results to Xray on Jira Cloud
               env:
                     XRAY_CLIENT_ID: ${{ secrets.XRAYCLOUD_CLIENT_ID }}
                     XRAY_CLIENT_SECRET: ${{ secrets.XRAYCLOUD_CLIENT_SECRET }}
-              run: mvn -B xray:import-results -Dxray.clientId="$XRAY_CLIENT_ID" -Dxray.clientSecret="$XRAY_CLIENT_SECRET" -Dxray.timeout=300 -X
+              run: mvn -B xray:import-results@import-junit-results -Dxray.clientId="$XRAY_CLIENT_ID" -Dxray.clientSecret="$XRAY_CLIENT_SECRET"
+              continue-on-error: true
+
+            - name: Push Cucumber results to Xray on Jira Cloud
+              env:
+                    XRAY_CLIENT_ID: ${{ secrets.XRAYCLOUD_CLIENT_ID }}
+                    XRAY_CLIENT_SECRET: ${{ secrets.XRAYCLOUD_CLIENT_SECRET }}
+              run: |
+                if [ -s target/cucumber.json ]; then
+                  mvn -B xray:import-results -Dxray.clientId="$XRAY_CLIENT_ID" -Dxray.clientSecret="$XRAY_CLIENT_SECRET" -Dxray.reportFormat=cucumber -Dxray.reportFile=target/cucumber.json
+                else
+                  echo "Warning: cucumber.json is empty or missing, skipping Xray import"
+                fi
               continue-on-error: true

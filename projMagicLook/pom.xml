@@ -250,12 +250,23 @@
 				<configuration>
 					<cloud>true</cloud>
 					<projectKey>SCRUM</projectKey>
-					<reportFormat>junit</reportFormat>
-					<reportFile>target/TEST-junit-jupiter.xml</reportFile>
 					<timeout>300</timeout>
 					<clientId>${xray.clientId}</clientId>
 					<clientSecret>${xray.clientSecret}</clientSecret>
 				</configuration>
+				<executions>
+					<execution>
+						<id>import-junit-results</id>
+						<phase>none</phase>
+						<goals>
+							<goal>import-results</goal>
+						</goals>
+						<configuration>
+							<reportFormat>junit</reportFormat>
+							<reportFile>target/TEST-junit-jupiter.xml</reportFile>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
