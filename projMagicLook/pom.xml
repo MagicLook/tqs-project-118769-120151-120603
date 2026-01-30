@@ -266,17 +266,6 @@
 							<reportFile>target/TEST-junit-jupiter.xml</reportFile>
 						</configuration>
 					</execution>
-					<execution>
-						<id>import-cucumber-results</id>
-						<phase>none</phase>
-						<goals>
-							<goal>import-results</goal>
-						</goals>
-						<configuration>
-							<reportFormat>cucumber</reportFormat>
-							<reportFile>target/cucumber.json</reportFile>
-						</configuration>
-					</execution>
 				</executions>
 			</plugin>
 		</plugins>
