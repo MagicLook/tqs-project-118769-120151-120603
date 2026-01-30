@@ -69,7 +69,7 @@ public class DatabaseLoader {
         @Value("${app.upload.dir}")
         private String uploadDir;
 
-        @Value("${APP_ADMIN_PASSWORD}")
+        @Value("${APP_ADMIN_PASSWORD:admin123}")
         private String adminPassword;
 
         public DatabaseLoader(ShopRepository shopRepository, UserRepository userRepository,

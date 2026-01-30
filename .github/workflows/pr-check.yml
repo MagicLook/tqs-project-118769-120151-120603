@@ -9,6 +9,8 @@ jobs:
     pr-check:
         runs-on: ubuntu-latest
         timeout-minutes: 20
+        env:
+            APP_ADMIN_PASSWORD: ${{ secrets.APP_ADMIN_PASSWORD }}
 
         defaults:
           run:
