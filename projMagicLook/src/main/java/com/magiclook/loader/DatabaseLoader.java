@@ -69,6 +69,9 @@ public class DatabaseLoader {
         @Value("${app.upload.dir}")
         private String uploadDir;
 
+        @Value("${APP_ADMIN_PASSWORD}")
+        private String adminPassword;
+
         public DatabaseLoader(ShopRepository shopRepository, UserRepository userRepository,
                         StaffRepository staffRepository, ItemTypeRepository itemTypeRepository,
                         ItemRepository itemRepository, ItemSingleRepository itemSingleRepository,
@@ -127,9 +130,9 @@ public class DatabaseLoader {
 
                 // Init staff
                 if (staffRepository.count() == 0) {
-                        Staff staff1 = new Staff("Admin", "admin@gmail.com", passwordEncoder.encode("admin123"),
+                        Staff staff1 = new Staff("Admin", "admin@gmail.com", passwordEncoder.encode(adminPassword),
                                         "admin", shop1); // NOSONAR
-                        Staff staff2 = new Staff("Admin2", "admin2@gmail.com", passwordEncoder.encode("admin123"),
+                        Staff staff2 = new Staff("Admin2", "admin2@gmail.com", passwordEncoder.encode(adminPassword),
                                         "admin2", shop2); // NOSONAR
 
                         staffRepository.save(staff1);
